@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  TmsAlert maps to NIC66B (case/alert table).
+  alertId     -> synthetic row number
+  alertNo     -> SSPS_DL_ID
+  ruleId      -> SCNR_MRK (scenario score, kept as numeric reference)
+  custNo      -> DL_P_RNMCNO
+  alertDt     -> SSPS_DL_CRT_DT
+  alertStCd   -> RPR_PRGRS_CCD
+  detectAmt   -> RSK_MRK
+  riskScr     -> RSK_MRK
+  assignId    -> REG_ID
+  strYn/okCcd -> OK_CCD
+-->
+<mapper namespace="com.aml.mapper.TmsAlertMapper">
+
+    <resultMap id="AlertResultMap" type="com.aml.domain.TmsAlert">
+        <result property="alertId"    column="ALERT_SEQ"/>
+        <result property="alertNo"    column="SSPS_DL_ID"/>
+        <result property="ruleId"     column="SCNR_MRK"/>
+        <result property="custNo"     column="DL_P_RNMCNO"/>
+        <result property="alertDt"    column="SSPS_DL_CRT_DT"/>
+        <result property="alertStCd"  column="RPR_PRGRS_CCD"/>
+        <result property="detectAmt"  column="RSK_MRK"/>
+        <result property="detectCnt"  column="SCNR_MRK"/>
+        <result property="riskScr"    column="RSK_MRK"/>
+        <result property="assignId"   column="REG_ID"/>
+        <result property="closeDt"    column="UPD_DT"/>
+        <result property="closeRsnCd" column="OK_CCD"/>
+        <result property="remark"     column="AI_RESULT"/>
+        <result property="caseId"     column="CASE_ID_SEQ"/>
+        <result property="regId"      column="REG_ID"/>
+        <result property="regDt"      column="REG_DT"/>
+        <result property="updId"      column="UPD_ID"/>
+        <result property="updDt"      column="UPD_DT"/>
+    </resultMap>
+
+    <select id="findById" resultMap="AlertResultMap">
+        SELECT 0 AS ALERT_SEQ, 0 AS CASE_ID_SEQ,
+               SSPS_DL_CRT_DT, SSPS_DL_ID, SSPS_DL_CRT_CCD,
+               RPR_PRGRS_CCD, DL_P_RNMCNO, RSK_MRK, RSK_GRD_CD, OK_CCD,
+               SCNR_MRK, AI_RESULT, REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM NIC66B
+        WHERE SSPS_DL_ID = #{alertId}
+        LIMIT 1
+    </select>
+
+    <select id="findByParams" resultMap="AlertResultMap" parameterType="map">
+        SELECT 0 AS ALERT_SEQ, 0 AS CASE_ID_SEQ,
+               SSPS_DL_CRT_DT, SSPS_DL_ID, SSPS_DL_CRT_CCD,
+               RPR_PRGRS_CCD, DL_P_RNMCNO, RSK_MRK, RSK_GRD_CD, OK_CCD,
+               SCNR_MRK, AI_RESULT, REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM NIC66B
+        WHERE 1=1
+        <if test="alertStCd != null and alertStCd != ''">
+            AND RPR_PRGRS_CCD = #{alertStCd}
+        </if>
+        <if test="custNo != null and custNo != ''">
+            AND DL_P_RNMCNO = #{custNo}
+        </if>
+        <if test="alertDtFrom != null and alertDtFrom != ''">
+            AND SSPS_DL_CRT_DT >= #{alertDtFrom}
+        </if>
+        <if test="alertDtTo != null and alertDtTo != ''">
+            AND SSPS_DL_CRT_DT &lt;= #{alertDtTo}
+        </if>
+        ORDER BY REG_DT DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByParams" resultType="long" parameterType="map">
+        SELECT COUNT(*)
+        FROM NIC66B
+        WHERE 1=1
+        <if test="alertStCd != null and alertStCd != ''">
+            AND RPR_PRGRS_CCD = #{alertStCd}
+        </if>
+        <if test="custNo != null and custNo != ''">
+            AND DL_P_RNMCNO = #{custNo}
+        </if>
+        <if test="alertDtFrom != null and alertDtFrom != ''">
+            AND SSPS_DL_CRT_DT >= #{alertDtFrom}
+        </if>
+        <if test="alertDtTo != null and alertDtTo != ''">
+            AND SSPS_DL_CRT_DT &lt;= #{alertDtTo}
+        </if>
+    </select>
+
+    <insert id="insert" parameterType="com.aml.domain.TmsAlert">
+        INSERT INTO NIC66B (
+            SSPS_DL_CRT_DT, SSPS_DL_ID, SSPS_DL_CRT_CCD, RPR_PRGRS_CCD,
+            DL_P_RNMCNO, RSK_MRK, OK_CCD, AI_RESULT, REG_ID, REG_DT
+        ) VALUES (
+            #{alertDt}, #{alertNo}, 'STR', #{alertStCd},
+            #{custNo}, #{riskScr}, '0', #{remark}, #{regId}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <update id="update" parameterType="com.aml.domain.TmsAlert">
+        UPDATE NIC66B
+        SET RPR_PRGRS_CCD = #{alertStCd},
+            OK_CCD        = #{closeRsnCd},
+            AI_RESULT     = #{remark},
+            UPD_ID        = #{updId},
+            UPD_DT        = CURRENT_TIMESTAMP
+        WHERE SSPS_DL_ID = #{alertNo}
+    </update>
+
+    <select id="countByStatus" resultType="map">
+        SELECT RPR_PRGRS_CCD AS status, COUNT(*) AS cnt
+        FROM NIC66B
+        GROUP BY RPR_PRGRS_CCD
+    </select>
+
+    <select id="countByStatusCd" resultType="long">
+        SELECT COUNT(*)
+        FROM NIC66B
+        WHERE RPR_PRGRS_CCD = #{alertStCd}
+    </select>
+
+</mapper>

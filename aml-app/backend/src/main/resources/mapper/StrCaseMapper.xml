@@ -1,0 +1,265 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aml.mapper.StrCaseMapper">
+
+    <!-- STR 케이스 목록 (NIC66B JOIN NIC70B, LEFT JOIN NIC75B, LEFT JOIN NIC73B) -->
+    <select id="findStrCases" resultType="map" parameterType="map">
+        SELECT
+            C.SSPS_DL_CRT_DT,
+            C.SSPS_DL_ID,
+            C.SSPS_TYP_CD,
+            C.RPR_PRGRS_CCD,
+            C.RSK_GRD_CD,
+            C.SCNR_MRK,
+            C.INST_ID,
+            C.FIU_RPT_NO,
+            C.FIU_RPT_DT,
+            P.DL_P_NM,
+            P.DL_P_RNMCNO,
+            COALESCE(A.DL_AMT, 0) AS DL_AMT,
+            COALESCE(T.DL_CNT, 0) AS DL_CNT
+        FROM NIC66B C
+        LEFT JOIN NIC70B P
+            ON P.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT
+            AND P.DL_P_RNMCNO = C.DL_P_RNMCNO
+        LEFT JOIN (
+            SELECT SSPS_DL_CRT_DT, SSPS_DL_ID, SUM(DL_AMT) AS DL_AMT
+            FROM NIC75B
+            GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+        ) A ON A.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT AND A.SSPS_DL_ID = C.SSPS_DL_ID
+        LEFT JOIN (
+            SELECT SSPS_DL_CRT_DT, SSPS_DL_ID, COUNT(*) AS DL_CNT
+            FROM NIC73B
+            GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+        ) T ON T.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT AND T.SSPS_DL_ID = C.SSPS_DL_ID
+        WHERE C.SSPS_DL_CRT_CCD = 'STR'
+        <if test="stDate != null and stDate != ''">
+            AND C.SSPS_DL_CRT_DT &gt;= #{stDate}
+        </if>
+        <if test="edDate != null and edDate != ''">
+            AND C.SSPS_DL_CRT_DT &lt;= #{edDate}
+        </if>
+        <if test="scnrId != null and scnrId != ''">
+            AND C.SSPS_TYP_CD = #{scnrId}
+        </if>
+        <if test="rprPrgrsCcd != null and rprPrgrsCcd != ''">
+            AND C.RPR_PRGRS_CCD = #{rprPrgrsCcd}
+        </if>
+        ORDER BY C.SSPS_DL_CRT_DT DESC, C.SSPS_DL_ID DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countStrCases" resultType="long" parameterType="map">
+        SELECT COUNT(*)
+        FROM NIC66B C
+        WHERE C.SSPS_DL_CRT_CCD = 'STR'
+        <if test="stDate != null and stDate != ''">
+            AND C.SSPS_DL_CRT_DT &gt;= #{stDate}
+        </if>
+        <if test="edDate != null and edDate != ''">
+            AND C.SSPS_DL_CRT_DT &lt;= #{edDate}
+        </if>
+        <if test="scnrId != null and scnrId != ''">
+            AND C.SSPS_TYP_CD = #{scnrId}
+        </if>
+        <if test="rprPrgrsCcd != null and rprPrgrsCcd != ''">
+            AND C.RPR_PRGRS_CCD = #{rprPrgrsCcd}
+        </if>
+    </select>
+
+    <!-- 케이스 기본정보 (NIC66B) -->
+    <select id="findCaseInfo" resultType="map">
+        SELECT
+            SSPS_DL_CRT_DT, SSPS_DL_ID, SSPS_TYP_CD, SSPS_DL_CRT_CCD,
+            RPR_PRGRS_CCD, DL_P_RNMCNO, RSK_MRK, RSK_GRD_CD,
+            OK_CCD, INST_ID, SCNR_MRK, AI_RESULT,
+            FIU_RPT_NO, FIU_RPT_DT,
+            REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM NIC66B
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND SSPS_DL_ID      = #{sspsDlId}
+    </select>
+
+    <!-- 당사자 정보 (NIC70B + NIC78B) -->
+    <select id="findPartyInfo" resultType="map">
+        SELECT
+            P.SSPS_DL_CRT_DT, P.DL_P_RNMCNO, P.DL_P_NM,
+            P.DL_P_RNM_NO_CCD, P.INDV_CORP_CCD,
+            D.DL_P_BRTDY, D.DL_P_SEX_CD, D.OCPTN_CCD,
+            D.DL_P_HSE_ADDR, D.DL_P_MBL_TEL_NO, D.WP_NM, D.RNM_CMBNTN_NO
+        FROM NIC70B P
+        LEFT JOIN NIC78B D
+            ON D.SSPS_DL_CRT_DT = P.SSPS_DL_CRT_DT
+            AND D.DL_P_RNMCNO   = P.DL_P_RNMCNO
+        WHERE P.SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND P.DL_P_RNMCNO    = #{dlPRnmcno}
+    </select>
+
+    <!-- 거래 목록 (NIC73B) -->
+    <select id="findTransactions" resultType="map">
+        SELECT
+            SSPS_DL_CRT_DT, SSPS_DL_ID, SEQ_NO,
+            MN_DL_BRN_CD, MN_DL_BRN_NM,
+            DL_DT, DL_TM, DL_AMT, DL_TYP_CCD, DL_CCY,
+            CNTRP_AC_NO, CNTRP_NM, CNTRP_BNK_CD, CHNL_CCD
+        FROM NIC73B
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND SSPS_DL_ID      = #{sspsDlId}
+        ORDER BY SEQ_NO
+    </select>
+
+    <!-- 계좌별 금액 (NIC75B) -->
+    <select id="findAmounts" resultType="map">
+        SELECT
+            SSPS_DL_CRT_DT, SSPS_DL_ID, GNL_AC_NO, DL_AMT, DL_CCY
+        FROM NIC75B
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND SSPS_DL_ID      = #{sspsDlId}
+        ORDER BY GNL_AC_NO
+    </select>
+
+    <!-- 보고서 (NIC67B) -->
+    <select id="findReport" resultType="map">
+        SELECT
+            SSPS_DL_CRT_DT, SSPS_DL_ID,
+            RPR_RSN_CNTNT,
+            ITEM_CNTNT1, ITEM_CNTNT2, ITEM_CNTNT3,
+            ITEM_CNTNT4, ITEM_CNTNT5, ITEM_CNTNT6,
+            DOBT_DL_GRD_CD,
+            REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM NIC67B
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND SSPS_DL_ID      = #{sspsDlId}
+    </select>
+
+    <!-- 결재 목록 (AML_APPR) -->
+    <select id="findApprovals" resultType="map">
+        SELECT
+            APP_NO, GYLJ_LINE_G_C, NUM_SQ, APP_DT, SNO, SN_CCD,
+            APPR_ROLE_ID, TARGET_ROLE_ID, RSN_CNTNT,
+            HNDL_DY_TM, HNDL_P_ENO, REG_DT
+        FROM AML_APPR
+        WHERE APP_NO = #{appNo}
+        ORDER BY NUM_SQ
+    </select>
+
+    <!-- NIC67B UPSERT: H2 MERGE INTO 문법 -->
+    <update id="upsertReport" parameterType="map">
+        MERGE INTO NIC67B (
+            SSPS_DL_CRT_DT, SSPS_DL_ID,
+            RPR_RSN_CNTNT,
+            ITEM_CNTNT1, ITEM_CNTNT2, ITEM_CNTNT3,
+            ITEM_CNTNT4, ITEM_CNTNT5, ITEM_CNTNT6,
+            DOBT_DL_GRD_CD,
+            UPD_ID, UPD_DT
+        )
+        KEY (SSPS_DL_CRT_DT, SSPS_DL_ID)
+        VALUES (
+            #{sspsDlCrtDt}, #{sspsDlId},
+            #{rprRsnCntnt},
+            #{itemCntnt1}, #{itemCntnt2}, #{itemCntnt3},
+            #{itemCntnt4}, #{itemCntnt5}, #{itemCntnt6},
+            #{dobtDlGrdCd},
+            #{updId}, CURRENT_TIMESTAMP
+        )
+    </update>
+
+    <!-- NIC66B 상태 업데이트 -->
+    <update id="updateCaseStatus">
+        UPDATE NIC66B
+        SET RPR_PRGRS_CCD = #{rprPrgrsCcd},
+            UPD_ID        = #{updId},
+            UPD_DT        = CURRENT_TIMESTAMP
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND SSPS_DL_ID      = #{sspsDlId}
+    </update>
+
+    <!-- NIC66B INST_ID(결재번호) 업데이트 -->
+    <update id="updateCaseInstId">
+        UPDATE NIC66B
+        SET INST_ID    = #{instId},
+            UPD_ID     = #{updId},
+            UPD_DT     = CURRENT_TIMESTAMP
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND SSPS_DL_ID      = #{sspsDlId}
+    </update>
+
+    <!-- NIC66B FIU 접수 업데이트 -->
+    <update id="updateCaseFiu">
+        UPDATE NIC66B
+        SET RPR_PRGRS_CCD = '10',
+            FIU_RPT_NO    = #{fiuRptNo},
+            FIU_RPT_DT    = #{fiuRptDt},
+            UPD_ID        = #{updId},
+            UPD_DT        = CURRENT_TIMESTAMP
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND SSPS_DL_ID      = #{sspsDlId}
+    </update>
+
+    <!-- AML_APPR INSERT -->
+    <insert id="insertAppr" parameterType="map">
+        INSERT INTO AML_APPR (
+            APP_NO, GYLJ_LINE_G_C, NUM_SQ, APP_DT, SNO, SN_CCD,
+            APPR_ROLE_ID, TARGET_ROLE_ID, RSN_CNTNT,
+            HNDL_DY_TM, HNDL_P_ENO, REG_DT
+        ) VALUES (
+            #{appNo}, #{gyljLineGC}, #{numSq}, #{appDt}, #{sno}, #{snCcd},
+            #{apprRoleId}, #{targetRoleId}, #{rsnCntnt},
+            CURRENT_TIMESTAMP, #{hndlPEno}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <!-- AML_APPR UPDATE (승인/반려) -->
+    <update id="updateAppr" parameterType="map">
+        UPDATE AML_APPR
+        SET SN_CCD     = #{snCcd},
+            RSN_CNTNT  = #{rsnCntnt},
+            HNDL_DY_TM = CURRENT_TIMESTAMP,
+            HNDL_P_ENO = #{hndlPEno}
+        WHERE APP_NO        = #{appNo}
+          AND GYLJ_LINE_G_C = #{gyljLineGC}
+    </update>
+
+    <!-- AML_APPR_HIST INSERT -->
+    <insert id="insertApprHist" parameterType="map">
+        INSERT INTO AML_APPR_HIST (
+            APP_NO, GYLJ_LINE_G_C, NUM_SQ, APP_DT, SNO, SN_CCD,
+            APPR_ROLE_ID, RSN_CNTNT, HNDL_DY_TM, HNDL_P_ENO
+        ) VALUES (
+            #{appNo}, #{gyljLineGC}, #{numSq}, #{appDt}, #{sno}, #{snCcd},
+            #{apprRoleId}, #{rsnCntnt}, CURRENT_TIMESTAMP, #{hndlPEno}
+        )
+    </insert>
+
+    <!-- TMS_SET_VAL_APP INSERT -->
+    <insert id="insertSetValApp" parameterType="map">
+        INSERT INTO TMS_SET_VAL_APP (APP_NO, SCNR_ID, APP_STS_CCD, REQ_DT, REQ_ID, REG_DT)
+        VALUES (#{appNo}, #{scnrId}, #{appStsCcd}, #{reqDt}, #{reqId}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <!-- AML_APPR_HIST 최대 NUM_SQ 조회 -->
+    <select id="maxApprSeq" resultType="java.lang.Integer">
+        SELECT COALESCE(MAX(NUM_SQ), 0)
+        FROM AML_APPR_HIST
+        WHERE APP_NO = #{appNo}
+    </select>
+
+    <!-- INST_ID 기준 NIC66B 상태 업데이트 -->
+    <update id="updateStatusByInstId">
+        UPDATE NIC66B
+        SET RPR_PRGRS_CCD = #{rprPrgrsCcd},
+            UPD_ID        = #{updId},
+            UPD_DT        = CURRENT_TIMESTAMP
+        WHERE INST_ID = #{instId}
+    </update>
+
+    <!-- STR 결재번호 시퀀스용 카운트 -->
+    <select id="countStrAppNo" resultType="long">
+        SELECT COUNT(*)
+        FROM AML_APPR
+        WHERE APP_NO LIKE CONCAT('STR', #{dateStr}, '%')
+    </select>
+
+</mapper>

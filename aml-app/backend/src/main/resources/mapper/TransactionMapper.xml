@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  Transaction maps to NIC73B (transaction list within a case).
+  Composite PK: (SSPS_DL_CRT_DT, SSPS_DL_ID, SEQ_NO)
+  trxnId      -> synthetic SEQ_NO
+  custNo      -> joined from NIC66B.DL_P_RNMCNO
+  acctNo      -> joined from NIC75B.GNL_AC_NO
+  trxnDt      -> DL_DT
+  trxnTm      -> DL_TM
+  trxnTpCd    -> DL_TYP_CCD
+  trxnAmt     -> DL_AMT
+  trxnCcy     -> DL_CCY
+  cntrpAcctNo -> CNTRP_AC_NO
+  cntrpNm     -> CNTRP_NM
+  cntrpBankCd -> CNTRP_BNK_CD
+  chnlCd      -> CHNL_CCD
+  branchCd    -> MN_DL_BRN_CD
+-->
+<mapper namespace="com.aml.mapper.TransactionMapper">
+
+    <resultMap id="TrxnResultMap" type="com.aml.domain.Transaction">
+        <result property="trxnId"      column="SEQ_NO"/>
+        <result property="custNo"      column="DL_P_RNMCNO"/>
+        <result property="acctNo"      column="GNL_AC_NO"/>
+        <result property="trxnDt"      column="DL_DT"/>
+        <result property="trxnTm"      column="DL_TM"/>
+        <result property="trxnTpCd"    column="DL_TYP_CCD"/>
+        <result property="trxnAmt"     column="DL_AMT"/>
+        <result property="trxnCcy"     column="DL_CCY"/>
+        <result property="cntrpAcctNo" column="CNTRP_AC_NO"/>
+        <result property="cntrpNm"     column="CNTRP_NM"/>
+        <result property="cntrpBankCd" column="CNTRP_BNK_CD"/>
+        <result property="chnlCd"      column="CHNL_CCD"/>
+        <result property="branchCd"    column="MN_DL_BRN_CD"/>
+        <result property="regDt"       column="REG_DT"/>
+    </resultMap>
+
+    <sql id="baseSelect">
+        SELECT t.SEQ_NO, t.DL_DT, t.DL_TM, t.DL_TYP_CCD, t.DL_AMT, t.DL_CCY,
+               t.CNTRP_AC_NO, t.CNTRP_NM, t.CNTRP_BNK_CD, t.CHNL_CCD, t.MN_DL_BRN_CD,
+               c.DL_P_RNMCNO,
+               a.GNL_AC_NO,
+               c.REG_DT
+        FROM NIC73B t
+        JOIN NIC66B c ON c.SSPS_DL_CRT_DT = t.SSPS_DL_CRT_DT AND c.SSPS_DL_ID = t.SSPS_DL_ID
+        LEFT JOIN NIC75B a ON a.SSPS_DL_CRT_DT = t.SSPS_DL_CRT_DT AND a.SSPS_DL_ID = t.SSPS_DL_ID
+    </sql>
+
+    <select id="findById" resultMap="TrxnResultMap">
+        <include refid="baseSelect"/>
+        WHERE t.SEQ_NO = #{trxnId}
+        LIMIT 1
+    </select>
+
+    <select id="findByParams" resultMap="TrxnResultMap" parameterType="map">
+        <include refid="baseSelect"/>
+        WHERE 1=1
+        <if test="custNo != null and custNo != ''">
+            AND c.DL_P_RNMCNO = #{custNo}
+        </if>
+        <if test="trxnTpCd != null and trxnTpCd != ''">
+            AND t.DL_TYP_CCD = #{trxnTpCd}
+        </if>
+        <if test="trxnDtFrom != null and trxnDtFrom != ''">
+            AND t.DL_DT >= #{trxnDtFrom}
+        </if>
+        <if test="trxnDtTo != null and trxnDtTo != ''">
+            AND t.DL_DT &lt;= #{trxnDtTo}
+        </if>
+        ORDER BY t.DL_DT DESC, t.DL_TM DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByParams" resultType="long" parameterType="map">
+        SELECT COUNT(*)
+        FROM NIC73B t
+        JOIN NIC66B c ON c.SSPS_DL_CRT_DT = t.SSPS_DL_CRT_DT AND c.SSPS_DL_ID = t.SSPS_DL_ID
+        WHERE 1=1
+        <if test="custNo != null and custNo != ''">
+            AND c.DL_P_RNMCNO = #{custNo}
+        </if>
+        <if test="trxnTpCd != null and trxnTpCd != ''">
+            AND t.DL_TYP_CCD = #{trxnTpCd}
+        </if>
+        <if test="trxnDtFrom != null and trxnDtFrom != ''">
+            AND t.DL_DT >= #{trxnDtFrom}
+        </if>
+        <if test="trxnDtTo != null and trxnDtTo != ''">
+            AND t.DL_DT &lt;= #{trxnDtTo}
+        </if>
+    </select>
+
+    <select id="findByCustNo" resultMap="TrxnResultMap">
+        <include refid="baseSelect"/>
+        WHERE c.DL_P_RNMCNO = #{custNo}
+        ORDER BY t.DL_DT DESC, t.DL_TM DESC
+    </select>
+
+    <insert id="insert" parameterType="com.aml.domain.Transaction">
+        INSERT INTO NIC73B (
+            SSPS_DL_CRT_DT, SSPS_DL_ID, SEQ_NO, MN_DL_BRN_CD, DL_DT, DL_TM,
+            DL_AMT, DL_TYP_CCD, DL_CCY, CNTRP_AC_NO, CNTRP_NM, CNTRP_BNK_CD, CHNL_CCD
+        ) VALUES (
+            #{trxnDt}, #{acctNo}, #{trxnId}, #{branchCd}, #{trxnDt}, #{trxnTm},
+            #{trxnAmt}, #{trxnTpCd}, #{trxnCcy}, #{cntrpAcctNo}, #{cntrpNm}, #{cntrpBankCd}, #{chnlCd}
+        )
+    </insert>
+
+    <select id="search" resultMap="TrxnResultMap">
+        <include refid="baseSelect"/>
+        WHERE 1=1
+        <if test="custNo != null and custNo != ''">
+            AND c.DL_P_RNMCNO = #{custNo}
+        </if>
+        <if test="acctNo != null and acctNo != ''">
+            AND a.GNL_AC_NO = #{acctNo}
+        </if>
+        <if test="trxnTpCd != null and trxnTpCd != ''">
+            AND t.DL_TYP_CCD = #{trxnTpCd}
+        </if>
+        <if test="dtFrom != null and dtFrom != ''">
+            AND t.DL_DT >= #{dtFrom}
+        </if>
+        <if test="dtTo != null and dtTo != ''">
+            AND t.DL_DT &lt;= #{dtTo}
+        </if>
+        <if test="amtMin != null">
+            AND t.DL_AMT >= #{amtMin}
+        </if>
+        <if test="amtMax != null">
+            AND t.DL_AMT &lt;= #{amtMax}
+        </if>
+        ORDER BY t.DL_DT DESC, t.DL_TM DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="searchCount" resultType="int">
+        SELECT COUNT(*)
+        FROM NIC73B t
+        JOIN NIC66B c ON c.SSPS_DL_CRT_DT = t.SSPS_DL_CRT_DT AND c.SSPS_DL_ID = t.SSPS_DL_ID
+        LEFT JOIN NIC75B a ON a.SSPS_DL_CRT_DT = t.SSPS_DL_CRT_DT AND a.SSPS_DL_ID = t.SSPS_DL_ID
+        WHERE 1=1
+        <if test="custNo != null and custNo != ''">
+            AND c.DL_P_RNMCNO = #{custNo}
+        </if>
+        <if test="acctNo != null and acctNo != ''">
+            AND a.GNL_AC_NO = #{acctNo}
+        </if>
+        <if test="trxnTpCd != null and trxnTpCd != ''">
+            AND t.DL_TYP_CCD = #{trxnTpCd}
+        </if>
+        <if test="dtFrom != null and dtFrom != ''">
+            AND t.DL_DT >= #{dtFrom}
+        </if>
+        <if test="dtTo != null and dtTo != ''">
+            AND t.DL_DT &lt;= #{dtTo}
+        </if>
+        <if test="amtMin != null">
+            AND t.DL_AMT >= #{amtMin}
+        </if>
+        <if test="amtMax != null">
+            AND t.DL_AMT &lt;= #{amtMax}
+        </if>
+    </select>
+
+</mapper>

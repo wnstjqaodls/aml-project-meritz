@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  TmsRule maps to TMS_APPL (scenario application list).
+  ruleId      -> synthetic row number
+  ruleCd      -> SCNR_ID
+  ruleNm      -> SCNR_NM
+  ruleTpCd    -> SCNR_CCD
+  thresholdAmt-> from TMS_SET_VAL.SET_VAL where SET_VAL_CD='THRESHOLD_AMT'
+  periodDay   -> from TMS_REQ.PERIOD_DAY
+  useYn       -> USE_CCD
+-->
+<mapper namespace="com.aml.mapper.TmsRuleMapper">
+
+    <resultMap id="RuleResultMap" type="com.aml.domain.TmsRule">
+        <result property="ruleId"       column="RULE_SEQ"/>
+        <result property="ruleCd"       column="SCNR_ID"/>
+        <result property="ruleNm"       column="SCNR_NM"/>
+        <result property="ruleTpCd"     column="SCNR_CCD"/>
+        <result property="thresholdAmt" column="THRESHOLD_AMT"/>
+        <result property="thresholdCnt" column="THRESHOLD_CNT"/>
+        <result property="periodDay"    column="PERIOD_DAY"/>
+        <result property="useYn"        column="USE_CCD"/>
+        <result property="remark"       column="BZDM_CD"/>
+        <result property="regId"        column="REG_ID"/>
+        <result property="regDt"        column="REG_DT"/>
+        <result property="updId"        column="UPD_ID"/>
+        <result property="updDt"        column="UPD_DT"/>
+    </resultMap>
+
+    <sql id="ruleSelect">
+        SELECT 0 AS RULE_SEQ,
+               a.SCNR_ID, a.SCNR_NM, a.SCNR_CCD, a.BZDM_CD, a.USE_CCD, a.REG_ID, a.REG_DT, a.UPD_ID, a.UPD_DT,
+               r.PERIOD_DAY,
+               CAST(tamt.SET_VAL AS DECIMAL(20,2)) AS THRESHOLD_AMT,
+               CAST(tcnt.SET_VAL AS INT)            AS THRESHOLD_CNT
+        FROM TMS_APPL a
+        LEFT JOIN TMS_REQ r ON r.SCNR_ID = a.SCNR_ID
+        LEFT JOIN TMS_SET_VAL tamt ON tamt.SCNR_ID = a.SCNR_ID AND tamt.CS_CCD = 'ALL' AND tamt.SET_VAL_CD = 'THRESHOLD_AMT'
+        LEFT JOIN TMS_SET_VAL tcnt ON tcnt.SCNR_ID = a.SCNR_ID AND tcnt.CS_CCD = 'ALL' AND tcnt.SET_VAL_CD = 'THRESHOLD_CNT'
+    </sql>
+
+    <select id="findById" resultMap="RuleResultMap">
+        <include refid="ruleSelect"/>
+        WHERE a.SCNR_ID = #{ruleId}
+    </select>
+
+    <select id="findByRuleCd" resultMap="RuleResultMap">
+        <include refid="ruleSelect"/>
+        WHERE a.SCNR_ID = #{ruleCd}
+    </select>
+
+    <select id="findAll" resultMap="RuleResultMap">
+        <include refid="ruleSelect"/>
+        ORDER BY a.SCNR_ID
+    </select>
+
+    <select id="findAllActive" resultMap="RuleResultMap">
+        <include refid="ruleSelect"/>
+        WHERE a.USE_CCD = 'Y'
+        ORDER BY a.SCNR_ID
+    </select>
+
+    <insert id="insert" parameterType="com.aml.domain.TmsRule">
+        INSERT INTO TMS_APPL (SCNR_ID, SCNR_NM, SCNR_CCD, BZDM_CD, USE_CCD, REG_ID, REG_DT)
+        VALUES (#{ruleCd}, #{ruleNm}, #{ruleTpCd}, #{remark}, #{useYn}, #{regId}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <update id="update" parameterType="com.aml.domain.TmsRule">
+        UPDATE TMS_APPL
+        SET SCNR_NM  = #{ruleNm},
+            SCNR_CCD = #{ruleTpCd},
+            USE_CCD  = #{useYn},
+            UPD_ID   = #{updId},
+            UPD_DT   = CURRENT_TIMESTAMP
+        WHERE SCNR_ID = #{ruleCd}
+    </update>
+
+</mapper>

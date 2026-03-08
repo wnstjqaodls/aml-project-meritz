@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aml.mapper.KycMapper">
+
+    <resultMap id="KycResultMap" type="com.aml.domain.KycRecord">
+        <result property="kycId"        column="KYC_ID"/>
+        <result property="custNo"       column="RNMCNO"/>
+        <result property="kycTpCd"      column="KYC_TP_CCD"/>
+        <result property="kycStCd"      column="KYC_STS_CCD"/>
+        <result property="idTpCd"       column="ID_TP_CCD"/>
+        <result property="idNo"         column="ID_NO"/>
+        <result property="idExpireDt"   column="ID_EXPIRE_DT"/>
+        <result property="purposeCd"    column="PURPOSE_CCD"/>
+        <result property="fundSrcCd"    column="FUND_SRC_CCD"/>
+        <result property="pepYn"        column="PEP_F"/>
+        <result property="beneficialYn" column="BENEFICIAL_F"/>
+        <result property="kycDt"        column="KYC_DT"/>
+        <result property="nextKycDt"    column="NEXT_KYC_DT"/>
+        <result property="remark"       column="REMARK"/>
+        <result property="regId"        column="REG_ID"/>
+        <result property="regDt"        column="REG_DT"/>
+        <result property="updId"        column="UPD_ID"/>
+        <result property="updDt"        column="UPD_DT"/>
+    </resultMap>
+
+    <sql id="baseColumns">
+        KYC_ID, RNMCNO, KYC_TP_CCD, KYC_STS_CCD, ID_TP_CCD, ID_NO, ID_EXPIRE_DT,
+        PURPOSE_CCD, FUND_SRC_CCD, PEP_F, BENEFICIAL_F, KYC_DT, NEXT_KYC_DT,
+        REMARK, REG_ID, REG_DT, UPD_ID, UPD_DT
+    </sql>
+
+    <select id="findById" resultMap="KycResultMap">
+        SELECT <include refid="baseColumns"/>
+        FROM KYC_CUST
+        WHERE KYC_ID = #{kycId}
+    </select>
+
+    <select id="findByCustNo" resultMap="KycResultMap">
+        SELECT <include refid="baseColumns"/>
+        FROM KYC_CUST
+        WHERE RNMCNO = #{custNo}
+        ORDER BY REG_DT DESC
+    </select>
+
+    <select id="findByParams" resultMap="KycResultMap" parameterType="map">
+        SELECT <include refid="baseColumns"/>
+        FROM KYC_CUST
+        WHERE 1=1
+        <if test="custNo != null and custNo != ''">
+            AND RNMCNO = #{custNo}
+        </if>
+        <if test="kycStCd != null and kycStCd != ''">
+            AND KYC_STS_CCD = #{kycStCd}
+        </if>
+        <if test="kycTpCd != null and kycTpCd != ''">
+            AND KYC_TP_CCD = #{kycTpCd}
+        </if>
+        ORDER BY REG_DT DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByParams" resultType="long" parameterType="map">
+        SELECT COUNT(*)
+        FROM KYC_CUST
+        WHERE 1=1
+        <if test="custNo != null and custNo != ''">
+            AND RNMCNO = #{custNo}
+        </if>
+        <if test="kycStCd != null and kycStCd != ''">
+            AND KYC_STS_CCD = #{kycStCd}
+        </if>
+        <if test="kycTpCd != null and kycTpCd != ''">
+            AND KYC_TP_CCD = #{kycTpCd}
+        </if>
+    </select>
+
+    <insert id="insert" parameterType="com.aml.domain.KycRecord" useGeneratedKeys="true" keyProperty="kycId">
+        INSERT INTO KYC_CUST (
+            RNMCNO, KYC_TP_CCD, KYC_STS_CCD, ID_TP_CCD, ID_NO, ID_EXPIRE_DT,
+            PURPOSE_CCD, FUND_SRC_CCD, PEP_F, BENEFICIAL_F, KYC_DT, NEXT_KYC_DT,
+            REMARK, REG_ID, REG_DT
+        ) VALUES (
+            #{custNo}, #{kycTpCd}, #{kycStCd}, #{idTpCd}, #{idNo}, #{idExpireDt},
+            #{purposeCd}, #{fundSrcCd}, #{pepYn}, #{beneficialYn}, #{kycDt}, #{nextKycDt},
+            #{remark}, #{regId}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <update id="update" parameterType="com.aml.domain.KycRecord">
+        UPDATE KYC_CUST
+        SET KYC_TP_CCD    = #{kycTpCd},
+            KYC_STS_CCD   = #{kycStCd},
+            ID_TP_CCD     = #{idTpCd},
+            ID_NO         = #{idNo},
+            ID_EXPIRE_DT  = #{idExpireDt},
+            PURPOSE_CCD   = #{purposeCd},
+            FUND_SRC_CCD  = #{fundSrcCd},
+            PEP_F         = #{pepYn},
+            BENEFICIAL_F  = #{beneficialYn},
+            KYC_DT        = #{kycDt},
+            NEXT_KYC_DT   = #{nextKycDt},
+            REMARK        = #{remark},
+            UPD_ID        = #{updId},
+            UPD_DT        = CURRENT_TIMESTAMP
+        WHERE KYC_ID = #{kycId}
+    </update>
+
+    <select id="countPending" resultType="long">
+        SELECT COUNT(*)
+        FROM KYC_CUST
+        WHERE KYC_STS_CCD IN ('PENDING', 'IN_PROGRESS')
+    </select>
+
+</mapper>

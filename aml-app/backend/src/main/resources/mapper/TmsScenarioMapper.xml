@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  TmsScenario maps to TMS_APPL joined with TMS_REQ and TMS_SET_VAL.
+  scnrId      -> SCNR_ID
+  scnrNm      -> SCNR_NM
+  scnrNmEn    -> SCNR_NM (same, no separate EN column in original)
+  scnrTpCd    -> SCNR_CCD
+  scnrCatCd   -> BZDM_CD
+  periodDay   -> TMS_REQ.PERIOD_DAY
+  thresholdAmt-> TMS_SET_VAL where SET_VAL_CD='THRESHOLD_AMT'
+  thresholdCnt-> TMS_SET_VAL where SET_VAL_CD='THRESHOLD_CNT'
+  alertYn     -> USE_CCD (Y means alerting)
+  useYn       -> USE_CCD
+  lstAppNo    -> LST_APP_NO
+-->
+<mapper namespace="com.aml.mapper.TmsScenarioMapper">
+
+    <resultMap id="ScenarioResultMap" type="com.aml.domain.TmsScenario">
+        <result property="scnrId"       column="SCNR_ID"/>
+        <result property="scnrNm"       column="SCNR_NM"/>
+        <result property="scnrNmEn"     column="SCNR_NM"/>
+        <result property="scnrTpCd"     column="SCNR_CCD"/>
+        <result property="scnrCatCd"    column="BZDM_CD"/>
+        <result property="periodDay"    column="PERIOD_DAY"/>
+        <result property="thresholdAmt" column="THRESHOLD_AMT"/>
+        <result property="thresholdCnt" column="THRESHOLD_CNT"/>
+        <result property="alertYn"      column="USE_CCD"/>
+        <result property="useYn"        column="USE_CCD"/>
+        <result property="lstAppNo"     column="LST_APP_NO"/>
+        <result property="remark"       column="BZDM_CD"/>
+        <result property="regId"        column="REG_ID"/>
+        <result property="regDt"        column="REG_DT"/>
+        <result property="updId"        column="UPD_ID"/>
+        <result property="updDt"        column="UPD_DT"/>
+    </resultMap>
+
+    <sql id="scenarioSelect">
+        SELECT a.SCNR_ID, a.SCNR_NM, a.SCNR_CCD, a.BZDM_CD, a.LST_APP_NO,
+               a.USE_CCD, a.REG_ID, a.REG_DT, a.UPD_ID, a.UPD_DT,
+               COALESCE(r.PERIOD_DAY, 1) AS PERIOD_DAY,
+               CAST(tamt.SET_VAL AS DECIMAL(20,2)) AS THRESHOLD_AMT,
+               CAST(tcnt.SET_VAL AS INT)            AS THRESHOLD_CNT
+        FROM TMS_APPL a
+        LEFT JOIN TMS_REQ r ON r.SCNR_ID = a.SCNR_ID
+        LEFT JOIN TMS_SET_VAL tamt ON tamt.SCNR_ID = a.SCNR_ID AND tamt.CS_CCD = 'ALL' AND tamt.SET_VAL_CD = 'THRESHOLD_AMT'
+        LEFT JOIN TMS_SET_VAL tcnt ON tcnt.SCNR_ID = a.SCNR_ID AND tcnt.CS_CCD = 'ALL' AND tcnt.SET_VAL_CD = 'THRESHOLD_CNT'
+    </sql>
+
+    <sql id="whereClause">
+        WHERE 1=1
+        <if test="scnrTpCd != null and scnrTpCd != ''">
+            AND a.SCNR_CCD = #{scnrTpCd}
+        </if>
+        <if test="useYn != null and useYn != ''">
+            AND a.USE_CCD = #{useYn}
+        </if>
+    </sql>
+
+    <select id="findAll" resultMap="ScenarioResultMap">
+        <include refid="scenarioSelect"/>
+        <include refid="whereClause"/>
+        ORDER BY a.SCNR_ID
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*)
+        FROM TMS_APPL a
+        <include refid="whereClause"/>
+    </select>
+
+    <select id="findById" resultMap="ScenarioResultMap">
+        <include refid="scenarioSelect"/>
+        WHERE a.SCNR_ID = #{scnrId}
+    </select>
+
+    <insert id="insert" parameterType="com.aml.domain.TmsScenario">
+        INSERT INTO TMS_APPL (
+            SCNR_ID, SCNR_NM, SCNR_CCD, BZDM_CD, LST_APP_NO, USE_CCD, REG_ID, REG_DT
+        ) VALUES (
+            #{scnrId}, #{scnrNm}, #{scnrTpCd}, #{scnrCatCd}, #{lstAppNo}, #{useYn}, #{regId}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <update id="update" parameterType="com.aml.domain.TmsScenario">
+        UPDATE TMS_APPL
+        SET SCNR_NM    = #{scnrNm},
+            SCNR_CCD   = #{scnrTpCd},
+            BZDM_CD    = #{scnrCatCd},
+            LST_APP_NO = #{lstAppNo},
+            USE_CCD    = #{useYn},
+            UPD_ID     = #{updId},
+            UPD_DT     = CURRENT_TIMESTAMP
+        WHERE SCNR_ID = #{scnrId}
+    </update>
+
+</mapper>

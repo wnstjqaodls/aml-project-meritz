@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  StrReport maps to NIC67B (STR report content table).
+  Composite PK: (SSPS_DL_CRT_DT, SSPS_DL_ID)
+  strId        -> synthetic (0)
+  strNo        -> SSPS_DL_ID
+  caseId       -> synthetic (0, linked via SSPS_DL_ID)
+  custNo       -> joined from NIC66B.DL_P_RNMCNO
+  strDt        -> SSPS_DL_CRT_DT
+  strStCd      -> joined from NIC66B.RPR_PRGRS_CCD
+  suspRsn      -> RPR_RSN_CNTNT
+  suspAmt      -> joined from NIC75B
+-->
+<mapper namespace="com.aml.mapper.StrReportMapper">
+
+    <resultMap id="StrResultMap" type="com.aml.domain.StrReport">
+        <result property="strId"      column="STR_SEQ"/>
+        <result property="strNo"      column="SSPS_DL_ID"/>
+        <result property="caseId"     column="STR_SEQ"/>
+        <result property="custNo"     column="DL_P_RNMCNO"/>
+        <result property="strDt"      column="SSPS_DL_CRT_DT"/>
+        <result property="strStCd"    column="RPR_PRGRS_CCD"/>
+        <result property="suspAmt"    column="DL_AMT"/>
+        <result property="suspDtFrom" column="SSPS_DL_CRT_DT"/>
+        <result property="suspDtTo"   column="UPD_DT"/>
+        <result property="suspRsn"    column="RPR_RSN_CNTNT"/>
+        <result property="fiuRptNo"   column="INST_ID"/>
+        <result property="fiuRptDt"   column="UPD_DT"/>
+        <result property="regId"      column="REG_ID"/>
+        <result property="regDt"      column="REG_DT"/>
+        <result property="updId"      column="UPD_ID"/>
+        <result property="updDt"      column="UPD_DT"/>
+    </resultMap>
+
+    <select id="findById" resultMap="StrResultMap">
+        SELECT 0 AS STR_SEQ,
+               r.SSPS_DL_CRT_DT, r.SSPS_DL_ID, r.RPR_RSN_CNTNT, r.DOBT_DL_GRD_CD,
+               r.REG_ID, r.REG_DT, r.UPD_ID, r.UPD_DT,
+               c.DL_P_RNMCNO, c.RPR_PRGRS_CCD, c.INST_ID,
+               a.DL_AMT
+        FROM NIC67B r
+        JOIN NIC66B c ON c.SSPS_DL_CRT_DT = r.SSPS_DL_CRT_DT AND c.SSPS_DL_ID = r.SSPS_DL_ID
+        LEFT JOIN (
+            SELECT SSPS_DL_CRT_DT, SSPS_DL_ID, SUM(DL_AMT) AS DL_AMT
+            FROM NIC75B GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+        ) a ON a.SSPS_DL_CRT_DT = r.SSPS_DL_CRT_DT AND a.SSPS_DL_ID = r.SSPS_DL_ID
+        WHERE r.SSPS_DL_ID = #{strId}
+        LIMIT 1
+    </select>
+
+    <select id="findByParams" resultMap="StrResultMap" parameterType="map">
+        SELECT 0 AS STR_SEQ,
+               r.SSPS_DL_CRT_DT, r.SSPS_DL_ID, r.RPR_RSN_CNTNT,
+               r.REG_ID, r.REG_DT, r.UPD_ID, r.UPD_DT,
+               c.DL_P_RNMCNO, c.RPR_PRGRS_CCD, c.INST_ID,
+               a.DL_AMT
+        FROM NIC67B r
+        JOIN NIC66B c ON c.SSPS_DL_CRT_DT = r.SSPS_DL_CRT_DT AND c.SSPS_DL_ID = r.SSPS_DL_ID
+        LEFT JOIN (
+            SELECT SSPS_DL_CRT_DT, SSPS_DL_ID, SUM(DL_AMT) AS DL_AMT
+            FROM NIC75B GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+        ) a ON a.SSPS_DL_CRT_DT = r.SSPS_DL_CRT_DT AND a.SSPS_DL_ID = r.SSPS_DL_ID
+        WHERE c.SSPS_DL_CRT_CCD = 'STR'
+        <if test="strStCd != null and strStCd != ''">
+            AND c.RPR_PRGRS_CCD = #{strStCd}
+        </if>
+        <if test="custNo != null and custNo != ''">
+            AND c.DL_P_RNMCNO = #{custNo}
+        </if>
+        <if test="caseId != null">
+            AND r.SSPS_DL_ID = #{caseId}
+        </if>
+        <if test="strDtFrom != null and strDtFrom != ''">
+            AND r.SSPS_DL_CRT_DT >= #{strDtFrom}
+        </if>
+        <if test="strDtTo != null and strDtTo != ''">
+            AND r.SSPS_DL_CRT_DT &lt;= #{strDtTo}
+        </if>
+        ORDER BY r.REG_DT DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByParams" resultType="long" parameterType="map">
+        SELECT COUNT(*)
+        FROM NIC67B r
+        JOIN NIC66B c ON c.SSPS_DL_CRT_DT = r.SSPS_DL_CRT_DT AND c.SSPS_DL_ID = r.SSPS_DL_ID
+        WHERE c.SSPS_DL_CRT_CCD = 'STR'
+        <if test="strStCd != null and strStCd != ''">
+            AND c.RPR_PRGRS_CCD = #{strStCd}
+        </if>
+        <if test="custNo != null and custNo != ''">
+            AND c.DL_P_RNMCNO = #{custNo}
+        </if>
+        <if test="caseId != null">
+            AND r.SSPS_DL_ID = #{caseId}
+        </if>
+        <if test="strDtFrom != null and strDtFrom != ''">
+            AND r.SSPS_DL_CRT_DT >= #{strDtFrom}
+        </if>
+        <if test="strDtTo != null and strDtTo != ''">
+            AND r.SSPS_DL_CRT_DT &lt;= #{strDtTo}
+        </if>
+    </select>
+
+    <insert id="insert" parameterType="com.aml.domain.StrReport">
+        INSERT INTO NIC67B (
+            SSPS_DL_CRT_DT, SSPS_DL_ID, RPR_RSN_CNTNT, REG_ID, REG_DT
+        ) VALUES (
+            #{strDt}, #{strNo}, #{suspRsn}, #{regId}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <update id="update" parameterType="com.aml.domain.StrReport">
+        UPDATE NIC67B
+        SET RPR_RSN_CNTNT = #{suspRsn},
+            UPD_ID        = #{updId},
+            UPD_DT        = CURRENT_TIMESTAMP
+        WHERE SSPS_DL_ID = #{strNo}
+    </update>
+
+</mapper>

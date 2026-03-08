@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aml.mapper.CustomerMapper">
+
+    <resultMap id="CustomerResultMap" type="com.aml.domain.Customer">
+        <result property="custNo"     column="RNMCNO"/>
+        <result property="custNm"     column="CS_NM"/>
+        <result property="custTpCd"   column="CS_TYP_CD"/>
+        <result property="birthDt"    column="BRTH_DT"/>
+        <result property="regNo"      column="INDV_CORP_CCD"/>
+        <result property="natCd"      column="NAT_CD"/>
+        <result property="addr"       column="ADDR"/>
+        <result property="tel"        column="TEL_NO"/>
+        <result property="email"      column="EMAIL"/>
+        <result property="acctOpenDt" column="ACNT_OPNG_DT"/>
+        <result property="kycStCd"    column="KYC_STS_CCD"/>
+        <result property="eddYn"      column="EDD_F"/>
+        <result property="riskGrd"    column="RSK_GRD_CD"/>
+        <result property="riskScr"    column="RSK_SCR"/>
+        <result property="useYn"      column="USE_CCD"/>
+        <result property="regId"      column="REG_ID"/>
+        <result property="regDt"      column="REG_DT"/>
+        <result property="updId"      column="UPD_ID"/>
+        <result property="updDt"      column="UPD_DT"/>
+    </resultMap>
+
+    <sql id="baseColumns">
+        RNMCNO, CS_NM, CS_TYP_CD, BRTH_DT, INDV_CORP_CCD, NAT_CD, ADDR, TEL_NO, EMAIL,
+        ACNT_OPNG_DT, KYC_STS_CCD, EDD_F, RSK_GRD_CD, RSK_SCR, USE_CCD, REG_ID, REG_DT, UPD_ID, UPD_DT
+    </sql>
+
+    <select id="findById" resultMap="CustomerResultMap">
+        SELECT <include refid="baseColumns"/>
+        FROM NIC01B
+        WHERE RNMCNO = #{custNo}
+          AND USE_CCD = 'Y'
+    </select>
+
+    <select id="findByParams" resultMap="CustomerResultMap" parameterType="map">
+        SELECT <include refid="baseColumns"/>
+        FROM NIC01B
+        WHERE USE_CCD = 'Y'
+        <if test="custNm != null and custNm != ''">
+            AND CS_NM LIKE '%' || #{custNm} || '%'
+        </if>
+        <if test="custTpCd != null and custTpCd != ''">
+            AND CS_TYP_CD = #{custTpCd}
+        </if>
+        <if test="riskGrd != null and riskGrd != ''">
+            AND RSK_GRD_CD = #{riskGrd}
+        </if>
+        <if test="kycStCd != null and kycStCd != ''">
+            AND KYC_STS_CCD = #{kycStCd}
+        </if>
+        ORDER BY REG_DT DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByParams" resultType="long" parameterType="map">
+        SELECT COUNT(*)
+        FROM NIC01B
+        WHERE USE_CCD = 'Y'
+        <if test="custNm != null and custNm != ''">
+            AND CS_NM LIKE '%' || #{custNm} || '%'
+        </if>
+        <if test="custTpCd != null and custTpCd != ''">
+            AND CS_TYP_CD = #{custTpCd}
+        </if>
+        <if test="riskGrd != null and riskGrd != ''">
+            AND RSK_GRD_CD = #{riskGrd}
+        </if>
+        <if test="kycStCd != null and kycStCd != ''">
+            AND KYC_STS_CCD = #{kycStCd}
+        </if>
+    </select>
+
+    <insert id="insert" parameterType="com.aml.domain.Customer">
+        INSERT INTO NIC01B (
+            RNMCNO, CS_NM, CS_TYP_CD, BRTH_DT, INDV_CORP_CCD, NAT_CD, ADDR, TEL_NO, EMAIL,
+            ACNT_OPNG_DT, KYC_STS_CCD, EDD_F, RSK_GRD_CD, RSK_SCR, USE_CCD, REG_ID, REG_DT
+        ) VALUES (
+            #{custNo}, #{custNm}, #{custTpCd}, #{birthDt}, #{regNo}, #{natCd}, #{addr}, #{tel}, #{email},
+            #{acctOpenDt}, #{kycStCd}, #{eddYn}, #{riskGrd}, #{riskScr}, #{useYn}, #{regId}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <update id="update" parameterType="com.aml.domain.Customer">
+        UPDATE NIC01B
+        SET CS_NM        = #{custNm},
+            CS_TYP_CD    = #{custTpCd},
+            BRTH_DT      = #{birthDt},
+            INDV_CORP_CCD= #{regNo},
+            NAT_CD       = #{natCd},
+            ADDR         = #{addr},
+            TEL_NO       = #{tel},
+            EMAIL        = #{email},
+            ACNT_OPNG_DT = #{acctOpenDt},
+            KYC_STS_CCD  = #{kycStCd},
+            EDD_F        = #{eddYn},
+            RSK_GRD_CD   = #{riskGrd},
+            RSK_SCR      = #{riskScr},
+            UPD_ID       = #{updId},
+            UPD_DT       = CURRENT_TIMESTAMP
+        WHERE RNMCNO = #{custNo}
+    </update>
+
+    <update id="updateRiskInfo">
+        UPDATE NIC01B
+        SET RSK_GRD_CD = #{riskGrd},
+            RSK_SCR    = #{riskScr},
+            EDD_F      = #{eddYn},
+            UPD_ID     = #{updId},
+            UPD_DT     = CURRENT_TIMESTAMP
+        WHERE RNMCNO = #{custNo}
+    </update>
+
+    <update id="updateKycStatus">
+        UPDATE NIC01B
+        SET KYC_STS_CCD = #{kycStCd},
+            UPD_ID      = #{updId},
+            UPD_DT      = CURRENT_TIMESTAMP
+        WHERE RNMCNO = #{custNo}
+    </update>
+
+    <select id="findHighRisk" resultMap="CustomerResultMap">
+        SELECT <include refid="baseColumns"/>
+        FROM NIC01B
+        WHERE USE_CCD = 'Y'
+          AND RSK_GRD_CD = 'H'
+        ORDER BY RSK_SCR DESC
+    </select>
+
+</mapper>

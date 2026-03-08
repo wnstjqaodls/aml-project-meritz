@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aml.mapper.RaMapper">
+
+    <resultMap id="ItemResultMap" type="com.aml.domain.RaItem">
+        <result property="raItemCd" column="RA_ITEM_CD"/>
+        <result property="raItemNm" column="RA_ITEM_NM"/>
+        <result property="raItemTp" column="RA_ITEM_TP"/>
+        <result property="maxScr"   column="MAX_SCR"/>
+        <result property="wght"     column="WGHT"/>
+        <result property="useYn"    column="USE_CCD"/>
+        <result property="ordNo"    column="ORD_NO"/>
+        <result property="regDt"    column="REG_DT"/>
+    </resultMap>
+
+    <resultMap id="ResultMap" type="com.aml.domain.RaResult">
+        <result property="raId"       column="RA_ID"/>
+        <result property="custNo"     column="RNMCNO"/>
+        <result property="evalDt"     column="EVAL_DT"/>
+        <result property="raGrd"      column="RA_GRD"/>
+        <result property="raScr"      column="RA_SCR"/>
+        <result property="eddYn"      column="EDD_F"/>
+        <result property="nextEvalDt" column="NEXT_EVAL_DT"/>
+        <result property="remark"     column="REMARK"/>
+        <result property="regId"      column="REG_ID"/>
+        <result property="regDt"      column="REG_DT"/>
+        <result property="updId"      column="UPD_ID"/>
+        <result property="updDt"      column="UPD_DT"/>
+    </resultMap>
+
+    <resultMap id="DetailResultMap" type="com.aml.domain.RaResultDetail">
+        <result property="raDtlId"    column="RA_DTL_ID"/>
+        <result property="raId"       column="RA_ID"/>
+        <result property="raItemCd"   column="RA_ITEM_CD"/>
+        <result property="itemVal"    column="ITEM_VAL"/>
+        <result property="itemScr"    column="ITEM_SCR"/>
+        <result property="itemWght"   column="ITEM_WGHT"/>
+        <result property="itemLstScr" column="ITEM_LST_SCR"/>
+        <result property="regDt"      column="REG_DT"/>
+    </resultMap>
+
+    <select id="findAllItems" resultMap="ItemResultMap">
+        SELECT RA_ITEM_CD, RA_ITEM_NM, RA_ITEM_TP, MAX_SCR, WGHT, USE_CCD, ORD_NO, REG_DT
+        FROM RA_ITEM
+        ORDER BY ORD_NO ASC
+    </select>
+
+    <select id="findActiveItems" resultMap="ItemResultMap">
+        SELECT RA_ITEM_CD, RA_ITEM_NM, RA_ITEM_TP, MAX_SCR, WGHT, USE_CCD, ORD_NO, REG_DT
+        FROM RA_ITEM
+        WHERE USE_CCD = 'Y'
+        ORDER BY ORD_NO ASC
+    </select>
+
+    <select id="findItemById" resultMap="ItemResultMap">
+        SELECT RA_ITEM_CD, RA_ITEM_NM, RA_ITEM_TP, MAX_SCR, WGHT, USE_CCD, ORD_NO, REG_DT
+        FROM RA_ITEM
+        WHERE RA_ITEM_CD = #{raItemCd}
+    </select>
+
+    <select id="findGradeByScore" resultType="string">
+        SELECT RA_GRD
+        FROM RA_GRD_STD
+        WHERE #{raScr} >= GRD_SCR_MIN
+          AND #{raScr} &lt;= GRD_SCR_MAX
+        LIMIT 1
+    </select>
+
+    <insert id="insertResult" parameterType="com.aml.domain.RaResult" useGeneratedKeys="true" keyProperty="raId">
+        INSERT INTO RA_RESULT (
+            RNMCNO, EVAL_DT, RA_GRD, RA_SCR, EDD_F, NEXT_EVAL_DT, REMARK, REG_ID, REG_DT
+        ) VALUES (
+            #{custNo}, #{evalDt}, #{raGrd}, #{raScr}, #{eddYn}, #{nextEvalDt}, #{remark}, #{regId}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <insert id="insertResultDetail" parameterType="com.aml.domain.RaResultDetail" useGeneratedKeys="true" keyProperty="raDtlId">
+        INSERT INTO RA_RESULT_DTL (RA_ID, RA_ITEM_CD, ITEM_VAL, ITEM_SCR, ITEM_WGHT, ITEM_LST_SCR, REG_DT)
+        VALUES (#{raId}, #{raItemCd}, #{itemVal}, #{itemScr}, #{itemWght}, #{itemLstScr}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <select id="findResultById" resultMap="ResultMap">
+        SELECT RA_ID, RNMCNO, EVAL_DT, RA_GRD, RA_SCR, EDD_F, NEXT_EVAL_DT,
+               REMARK, REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM RA_RESULT
+        WHERE RA_ID = #{raId}
+    </select>
+
+    <select id="findResultByParams" resultMap="ResultMap" parameterType="map">
+        SELECT RA_ID, RNMCNO, EVAL_DT, RA_GRD, RA_SCR, EDD_F, NEXT_EVAL_DT,
+               REMARK, REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM RA_RESULT
+        WHERE 1=1
+        <if test="custNo != null and custNo != ''">
+            AND RNMCNO = #{custNo}
+        </if>
+        <if test="raGrd != null and raGrd != ''">
+            AND RA_GRD = #{raGrd}
+        </if>
+        <if test="eddYn != null and eddYn != ''">
+            AND EDD_F = #{eddYn}
+        </if>
+        ORDER BY REG_DT DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countResultByParams" resultType="long" parameterType="map">
+        SELECT COUNT(*)
+        FROM RA_RESULT
+        WHERE 1=1
+        <if test="custNo != null and custNo != ''">
+            AND RNMCNO = #{custNo}
+        </if>
+        <if test="raGrd != null and raGrd != ''">
+            AND RA_GRD = #{raGrd}
+        </if>
+        <if test="eddYn != null and eddYn != ''">
+            AND EDD_F = #{eddYn}
+        </if>
+    </select>
+
+    <select id="findDetailsByRaId" resultMap="DetailResultMap">
+        SELECT RA_DTL_ID, RA_ID, RA_ITEM_CD, ITEM_VAL, ITEM_SCR, ITEM_WGHT, ITEM_LST_SCR, REG_DT
+        FROM RA_RESULT_DTL
+        WHERE RA_ID = #{raId}
+        ORDER BY RA_DTL_ID ASC
+    </select>
+
+    <update id="updateResultScores" parameterType="com.aml.domain.RaResult">
+        UPDATE RA_RESULT
+        SET RA_SCR       = #{raScr},
+            RA_GRD       = #{raGrd},
+            EDD_F        = #{eddYn},
+            NEXT_EVAL_DT = #{nextEvalDt},
+            REMARK       = #{remark}
+        WHERE RA_ID = #{raId}
+    </update>
+
+    <select id="findLatestResultByCustNo" resultMap="ResultMap">
+        SELECT RA_ID, RNMCNO, EVAL_DT, RA_GRD, RA_SCR, EDD_F, NEXT_EVAL_DT,
+               REMARK, REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM RA_RESULT
+        WHERE RNMCNO = #{custNo}
+        ORDER BY REG_DT DESC
+        LIMIT 1
+    </select>
+
+</mapper>

@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  NIC66B is the production table for both Case and Alert concepts.
+  Composite PK: (SSPS_DL_CRT_DT, SSPS_DL_ID)
+  Case.caseId     -> synthetic (SSPS_DL_CRT_DT + SSPS_DL_ID concatenated for display)
+  Case.caseNo     -> SSPS_DL_ID
+  Case.caseTpCd   -> SSPS_DL_CRT_CCD  (STR / CTR)
+  Case.caseStCd   -> RPR_PRGRS_CCD    ('9'=Pending,'97'=Review,'98'=Completed,'99'=Cancelled)
+  Case.custNo     -> DL_P_RNMCNO
+  Case.openDt     -> SSPS_DL_CRT_DT
+  Case.priorityCd -> RSK_GRD_CD
+  Case.strYn      -> OK_CCD           ('1'=confirmed, '0'=pending)
+  Case.remark     -> AI_RESULT
+  Comments map to NIC89B (consultation history).
+-->
+<mapper namespace="com.aml.mapper.CaseMapper">
+
+    <resultMap id="CaseResultMap" type="com.aml.domain.Case">
+        <result property="caseId"    column="CASE_SEQ"/>
+        <result property="caseNo"    column="SSPS_DL_ID"/>
+        <result property="caseTpCd"  column="SSPS_DL_CRT_CCD"/>
+        <result property="caseStCd"  column="RPR_PRGRS_CCD"/>
+        <result property="custNo"    column="DL_P_RNMCNO"/>
+        <result property="openDt"    column="SSPS_DL_CRT_DT"/>
+        <result property="closeDt"   column="UPD_DT"/>
+        <result property="priorityCd" column="RSK_GRD_CD"/>
+        <result property="assignId"  column="REG_ID"/>
+        <result property="strYn"     column="OK_CCD"/>
+        <result property="ctrYn"     column="SSPS_DL_CRT_CCD"/>
+        <result property="remark"    column="AI_RESULT"/>
+        <result property="regId"     column="REG_ID"/>
+        <result property="regDt"     column="REG_DT"/>
+        <result property="updId"     column="UPD_ID"/>
+        <result property="updDt"     column="UPD_DT"/>
+    </resultMap>
+
+    <resultMap id="CommentResultMap" type="com.aml.domain.CaseComment">
+        <result property="cmtId"   column="SEQ_NO"/>
+        <result property="caseId"  column="SSPS_DL_ID_REF"/>
+        <result property="cmtText" column="CNSLT_CNTNT"/>
+        <result property="regId"   column="REG_ID"/>
+        <result property="regDt"   column="REG_DT"/>
+    </resultMap>
+
+    <sql id="baseColumns">
+        0 AS CASE_SEQ,
+        SSPS_DL_CRT_DT, SSPS_DL_ID, SSPS_TYP_CD, SSPS_DL_CRT_CCD,
+        RPR_PRGRS_CCD, DL_P_RNMCNO, RSK_MRK, RSK_GRD_CD, OK_CCD,
+        SCNR_MRK, AI_RESULT, REG_ID, REG_DT, UPD_ID, UPD_DT
+    </sql>
+
+    <select id="findById" resultMap="CaseResultMap">
+        SELECT 0 AS CASE_SEQ,
+               SSPS_DL_CRT_DT, SSPS_DL_ID, SSPS_TYP_CD, SSPS_DL_CRT_CCD,
+               RPR_PRGRS_CCD, DL_P_RNMCNO, RSK_MRK, RSK_GRD_CD, OK_CCD,
+               SCNR_MRK, AI_RESULT, REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM NIC66B
+        WHERE SSPS_DL_ID = #{caseId}
+        LIMIT 1
+    </select>
+
+    <select id="findByCaseNo" resultMap="CaseResultMap">
+        SELECT 0 AS CASE_SEQ,
+               SSPS_DL_CRT_DT, SSPS_DL_ID, SSPS_TYP_CD, SSPS_DL_CRT_CCD,
+               RPR_PRGRS_CCD, DL_P_RNMCNO, RSK_MRK, RSK_GRD_CD, OK_CCD,
+               SCNR_MRK, AI_RESULT, REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM NIC66B
+        WHERE SSPS_DL_ID = #{caseNo}
+        LIMIT 1
+    </select>
+
+    <select id="findByParams" resultMap="CaseResultMap" parameterType="map">
+        SELECT 0 AS CASE_SEQ,
+               SSPS_DL_CRT_DT, SSPS_DL_ID, SSPS_TYP_CD, SSPS_DL_CRT_CCD,
+               RPR_PRGRS_CCD, DL_P_RNMCNO, RSK_MRK, RSK_GRD_CD, OK_CCD,
+               SCNR_MRK, AI_RESULT, REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM NIC66B
+        WHERE 1=1
+        <if test="caseStCd != null and caseStCd != ''">
+            AND RPR_PRGRS_CCD = #{caseStCd}
+        </if>
+        <if test="caseTpCd != null and caseTpCd != ''">
+            AND SSPS_DL_CRT_CCD = #{caseTpCd}
+        </if>
+        <if test="custNo != null and custNo != ''">
+            AND DL_P_RNMCNO = #{custNo}
+        </if>
+        <if test="assignId != null and assignId != ''">
+            AND REG_ID = #{assignId}
+        </if>
+        ORDER BY REG_DT DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByParams" resultType="long" parameterType="map">
+        SELECT COUNT(*)
+        FROM NIC66B
+        WHERE 1=1
+        <if test="caseStCd != null and caseStCd != ''">
+            AND RPR_PRGRS_CCD = #{caseStCd}
+        </if>
+        <if test="caseTpCd != null and caseTpCd != ''">
+            AND SSPS_DL_CRT_CCD = #{caseTpCd}
+        </if>
+        <if test="custNo != null and custNo != ''">
+            AND DL_P_RNMCNO = #{custNo}
+        </if>
+        <if test="assignId != null and assignId != ''">
+            AND REG_ID = #{assignId}
+        </if>
+    </select>
+
+    <insert id="insert" parameterType="com.aml.domain.Case">
+        INSERT INTO NIC66B (
+            SSPS_DL_CRT_DT, SSPS_DL_ID, SSPS_DL_CRT_CCD, RPR_PRGRS_CCD,
+            DL_P_RNMCNO, RSK_GRD_CD, OK_CCD, AI_RESULT, REG_ID, REG_DT
+        ) VALUES (
+            #{openDt}, #{caseNo}, #{caseTpCd}, #{caseStCd},
+            #{custNo}, #{priorityCd}, #{strYn}, #{remark}, #{regId}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <update id="update" parameterType="com.aml.domain.Case">
+        UPDATE NIC66B
+        SET RPR_PRGRS_CCD = #{caseStCd},
+            RSK_GRD_CD    = #{priorityCd},
+            OK_CCD        = #{strYn},
+            AI_RESULT     = #{remark},
+            UPD_ID        = #{updId},
+            UPD_DT        = CURRENT_TIMESTAMP
+        WHERE SSPS_DL_ID = #{caseNo}
+    </update>
+
+    <!-- Comments use NIC89B (consultation history) -->
+    <insert id="insertComment" parameterType="com.aml.domain.CaseComment">
+        INSERT INTO NIC89B (
+            SSPS_DL_CRT_DT, SSPS_DL_ID, SEQ_NO, CNSLT_CNTNT, REG_ID, REG_DT
+        )
+        SELECT SSPS_DL_CRT_DT, SSPS_DL_ID,
+               COALESCE((SELECT MAX(SEQ_NO) + 1 FROM NIC89B WHERE SSPS_DL_ID = #{caseId}), 1),
+               #{cmtText}, #{regId}, CURRENT_TIMESTAMP
+        FROM NIC66B
+        WHERE SSPS_DL_ID = #{caseId}
+        LIMIT 1
+    </insert>
+
+    <select id="findCommentsByCaseId" resultMap="CommentResultMap">
+        SELECT SEQ_NO, SSPS_DL_ID AS SSPS_DL_ID_REF, CNSLT_CNTNT, REG_ID, REG_DT
+        FROM NIC89B
+        WHERE SSPS_DL_ID = #{caseId}
+        ORDER BY REG_DT ASC
+    </select>
+
+    <select id="countByStatusCd" resultType="long">
+        SELECT COUNT(*)
+        FROM NIC66B
+        WHERE RPR_PRGRS_CCD = #{caseStCd}
+    </select>
+
+</mapper>

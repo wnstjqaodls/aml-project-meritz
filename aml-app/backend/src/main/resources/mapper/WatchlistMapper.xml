@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aml.mapper.WatchlistMapper">
+
+    <resultMap id="EntryResultMap" type="com.aml.domain.WatchlistEntry">
+        <result property="wlId"       column="WLF_UNIQ_NO"/>
+        <result property="wlSrcCd"    column="WLF_NTNT_CNTT"/>
+        <result property="wlTpCd"     column="SANCTION_TP"/>
+        <result property="wlNm"       column="WLF_FLNM_CNTT"/>
+        <result property="wlNmAlias"  column="WLF_MIDDLE_NAME_CNTT"/>
+        <result property="birthDt"    column="SPLM_DATE"/>
+        <result property="natCd"      column="WLF_NTNT_CNTT"/>
+        <result property="sanctionTp" column="SANCTION_TP"/>
+        <result property="listDt"     column="LIST_DT"/>
+        <result property="useYn"      column="USE_CCD"/>
+        <result property="updSeq"     column="WLF_UNIQ_NO"/>
+        <result property="regDt"      column="REG_DT"/>
+    </resultMap>
+
+    <resultMap id="ScreenResultMap" type="com.aml.domain.WatchlistScreen">
+        <result property="screenId"  column="SCREEN_ID"/>
+        <result property="custNo"    column="RNMCNO"/>
+        <result property="wlId"      column="WLF_UNIQ_NO"/>
+        <result property="matchScr"  column="MATCH_SCR"/>
+        <result property="matchStCd" column="MATCH_ST_CCD"/>
+        <result property="screenDt"  column="SCREEN_DT"/>
+        <result property="reviewId"  column="REVIEW_ID"/>
+        <result property="reviewDt"  column="REVIEW_DT"/>
+        <result property="remark"    column="REMARK"/>
+        <result property="regId"     column="REG_ID"/>
+        <result property="regDt"     column="REG_DT"/>
+        <result property="updId"     column="UPD_ID"/>
+        <result property="updDt"     column="UPD_DT"/>
+    </resultMap>
+
+    <select id="findEntryById" resultMap="EntryResultMap">
+        SELECT WLF_UNIQ_NO, WLF_FLNM_CNTT, WLF_FIRST_NAME_CNTT, WLF_MIDDLE_NAME_CNTT,
+               WLF_LAST_NAME_CNTT, WLF_NTNT_CNTT, SPLM_DATE, SANCTION_TP, LIST_DT,
+               USE_CCD, REG_DT
+        FROM NIC19B_FACTIVA_UA
+        WHERE WLF_UNIQ_NO = #{wlId}
+    </select>
+
+    <select id="findEntryByParams" resultMap="EntryResultMap" parameterType="map">
+        SELECT WLF_UNIQ_NO, WLF_FLNM_CNTT, WLF_FIRST_NAME_CNTT, WLF_MIDDLE_NAME_CNTT,
+               WLF_LAST_NAME_CNTT, WLF_NTNT_CNTT, SPLM_DATE, SANCTION_TP, LIST_DT,
+               USE_CCD, REG_DT
+        FROM NIC19B_FACTIVA_UA
+        WHERE 1=1
+        <if test="wlNm != null and wlNm != ''">
+            AND (UPPER(WLF_FLNM_CNTT) LIKE '%' || UPPER(#{wlNm}) || '%'
+              OR UPPER(WLF_FIRST_NAME_CNTT) LIKE '%' || UPPER(#{wlNm}) || '%'
+              OR UPPER(WLF_LAST_NAME_CNTT) LIKE '%' || UPPER(#{wlNm}) || '%')
+        </if>
+        <if test="wlSrcCd != null and wlSrcCd != ''">
+            AND WLF_NTNT_CNTT = #{wlSrcCd}
+        </if>
+        <if test="wlTpCd != null and wlTpCd != ''">
+            AND SANCTION_TP = #{wlTpCd}
+        </if>
+        <if test="useYn != null and useYn != ''">
+            AND USE_CCD = #{useYn}
+        </if>
+        ORDER BY REG_DT DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countEntryByParams" resultType="long" parameterType="map">
+        SELECT COUNT(*)
+        FROM NIC19B_FACTIVA_UA
+        WHERE 1=1
+        <if test="wlNm != null and wlNm != ''">
+            AND (UPPER(WLF_FLNM_CNTT) LIKE '%' || UPPER(#{wlNm}) || '%'
+              OR UPPER(WLF_FIRST_NAME_CNTT) LIKE '%' || UPPER(#{wlNm}) || '%'
+              OR UPPER(WLF_LAST_NAME_CNTT) LIKE '%' || UPPER(#{wlNm}) || '%')
+        </if>
+        <if test="wlSrcCd != null and wlSrcCd != ''">
+            AND WLF_NTNT_CNTT = #{wlSrcCd}
+        </if>
+        <if test="wlTpCd != null and wlTpCd != ''">
+            AND SANCTION_TP = #{wlTpCd}
+        </if>
+        <if test="useYn != null and useYn != ''">
+            AND USE_CCD = #{useYn}
+        </if>
+    </select>
+
+    <select id="findAllActive" resultMap="EntryResultMap">
+        SELECT WLF_UNIQ_NO, WLF_FLNM_CNTT, WLF_FIRST_NAME_CNTT, WLF_MIDDLE_NAME_CNTT,
+               WLF_LAST_NAME_CNTT, WLF_NTNT_CNTT, SPLM_DATE, SANCTION_TP, LIST_DT,
+               USE_CCD, REG_DT
+        FROM NIC19B_FACTIVA_UA
+        WHERE USE_CCD = 'Y'
+        ORDER BY WLF_UNIQ_NO
+    </select>
+
+    <insert id="insertEntry" parameterType="com.aml.domain.WatchlistEntry" useGeneratedKeys="true" keyProperty="wlId">
+        INSERT INTO NIC19B_FACTIVA_UA (
+            WLF_FLNM_CNTT, WLF_NTNT_CNTT, SANCTION_TP, LIST_DT, SPLM_DATE, USE_CCD, REG_DT
+        ) VALUES (
+            #{wlNm}, #{wlSrcCd}, #{sanctionTp}, #{listDt}, #{birthDt}, #{useYn}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <update id="updateEntry" parameterType="com.aml.domain.WatchlistEntry">
+        UPDATE NIC19B_FACTIVA_UA
+        SET WLF_FLNM_CNTT = #{wlNm},
+            WLF_NTNT_CNTT = #{wlSrcCd},
+            SANCTION_TP   = #{sanctionTp},
+            LIST_DT       = #{listDt},
+            USE_CCD       = #{useYn}
+        WHERE WLF_UNIQ_NO = #{wlId}
+    </update>
+
+    <insert id="insertScreenResult" parameterType="com.aml.domain.WatchlistScreen" useGeneratedKeys="true" keyProperty="screenId">
+        INSERT INTO WL_SCREEN_RSLT (RNMCNO, WLF_UNIQ_NO, MATCH_SCR, MATCH_ST_CCD, SCREEN_DT, REG_ID, REG_DT)
+        VALUES (#{custNo}, #{wlId}, #{matchScr}, #{matchStCd}, CURRENT_TIMESTAMP, #{regId}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <update id="updateScreenResult" parameterType="com.aml.domain.WatchlistScreen">
+        UPDATE WL_SCREEN_RSLT
+        SET MATCH_ST_CCD = #{matchStCd},
+            REVIEW_ID    = #{reviewId},
+            REVIEW_DT    = #{reviewDt},
+            REMARK       = #{remark},
+            UPD_ID       = #{updId},
+            UPD_DT       = CURRENT_TIMESTAMP
+        WHERE SCREEN_ID = #{screenId}
+    </update>
+
+    <select id="findScreenByParams" resultMap="ScreenResultMap" parameterType="map">
+        SELECT SCREEN_ID, RNMCNO, WLF_UNIQ_NO, MATCH_SCR, MATCH_ST_CCD, SCREEN_DT,
+               REVIEW_ID, REVIEW_DT, REMARK, REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM WL_SCREEN_RSLT
+        WHERE 1=1
+        <if test="custNo != null and custNo != ''">
+            AND RNMCNO = #{custNo}
+        </if>
+        <if test="matchStCd != null and matchStCd != ''">
+            AND MATCH_ST_CCD = #{matchStCd}
+        </if>
+        ORDER BY SCREEN_DT DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countScreenByParams" resultType="long" parameterType="map">
+        SELECT COUNT(*)
+        FROM WL_SCREEN_RSLT
+        WHERE 1=1
+        <if test="custNo != null and custNo != ''">
+            AND RNMCNO = #{custNo}
+        </if>
+        <if test="matchStCd != null and matchStCd != ''">
+            AND MATCH_ST_CCD = #{matchStCd}
+        </if>
+    </select>
+
+    <select id="findScreenById" resultMap="ScreenResultMap">
+        SELECT SCREEN_ID, RNMCNO, WLF_UNIQ_NO, MATCH_SCR, MATCH_ST_CCD, SCREEN_DT,
+               REVIEW_ID, REVIEW_DT, REMARK, REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM WL_SCREEN_RSLT
+        WHERE SCREEN_ID = #{screenId}
+    </select>
+
+</mapper>

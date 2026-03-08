@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  TmsAppr maps to TMS_SET_VAL_APP (approval request header) joined with AML_APPR (approval detail).
+  apprId      -> synthetic
+  apprNo      -> APP_NO
+  apprTpCd    -> SCNR_ID (which scenario)
+  refId       -> SCNR_ID
+  apprStCd    -> APP_STS_CCD
+  reqId       -> REQ_ID
+  reqDt       -> REG_DT
+  apprUsrId   -> AML_APPR.HNDL_P_ENO
+  apprDt      -> AML_APPR.HNDL_DY_TM
+  apprCmnt    -> AML_APPR.RSN_CNTNT
+-->
+<mapper namespace="com.aml.mapper.TmsApprMapper">
+
+    <resultMap id="ApprResultMap" type="com.aml.domain.TmsAppr">
+        <result property="apprId"      column="APPR_SEQ"/>
+        <result property="apprNo"      column="APP_NO"/>
+        <result property="apprTpCd"    column="SCNR_ID"/>
+        <result property="refId"       column="SCNR_ID"/>
+        <result property="apprTitle"   column="SCNR_ID"/>
+        <result property="apprContent" column="RSN_CNTNT"/>
+        <result property="apprStCd"    column="APP_STS_CCD"/>
+        <result property="reqId"       column="REQ_ID"/>
+        <result property="reqDt"       column="REG_DT"/>
+        <result property="apprUsrId"   column="HNDL_P_ENO"/>
+        <result property="apprDt"      column="HNDL_DY_TM"/>
+        <result property="apprCmnt"    column="RSN_CNTNT"/>
+        <result property="rejectRsn"   column="RSN_CNTNT"/>
+        <result property="regId"       column="REQ_ID"/>
+        <result property="regDt"       column="REG_DT"/>
+        <result property="updId"       column="HNDL_P_ENO"/>
+        <result property="updDt"       column="HNDL_DY_TM"/>
+    </resultMap>
+
+    <sql id="apprSelect">
+        SELECT 0 AS APPR_SEQ,
+               v.APP_NO, v.SCNR_ID, v.APP_STS_CCD, v.REQ_ID, v.REQ_DT, v.REG_DT,
+               a.RSN_CNTNT, a.HNDL_P_ENO, a.HNDL_DY_TM
+        FROM TMS_SET_VAL_APP v
+        LEFT JOIN AML_APPR a ON a.APP_NO = v.APP_NO
+    </sql>
+
+    <sql id="whereClause">
+        WHERE 1=1
+        <if test="apprStCd != null and apprStCd != ''">
+            AND v.APP_STS_CCD = #{apprStCd}
+        </if>
+        <if test="apprTpCd != null and apprTpCd != ''">
+            AND v.SCNR_ID = #{apprTpCd}
+        </if>
+    </sql>
+
+    <select id="findAll" resultMap="ApprResultMap">
+        <include refid="apprSelect"/>
+        <include refid="whereClause"/>
+        ORDER BY v.REG_DT DESC
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*)
+        FROM TMS_SET_VAL_APP v
+        <include refid="whereClause"/>
+    </select>
+
+    <select id="findById" resultMap="ApprResultMap">
+        <include refid="apprSelect"/>
+        WHERE v.APP_NO = #{apprId}
+    </select>
+
+    <insert id="insert" parameterType="com.aml.domain.TmsAppr">
+        INSERT INTO TMS_SET_VAL_APP (APP_NO, SCNR_ID, APP_STS_CCD, REQ_DT, REQ_ID, REG_DT)
+        VALUES (#{apprNo}, #{refId}, #{apprStCd}, #{reqId}, #{reqId}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <update id="update" parameterType="com.aml.domain.TmsAppr">
+        UPDATE TMS_SET_VAL_APP
+        SET APP_STS_CCD = #{apprStCd}
+        WHERE APP_NO = #{apprNo}
+    </update>
+
+</mapper>

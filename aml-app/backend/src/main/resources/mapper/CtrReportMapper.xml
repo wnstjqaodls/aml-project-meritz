@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  CtrReport maps to NIC66B where SSPS_DL_CRT_CCD = 'CTR'.
+  ctrId      -> synthetic
+  ctrNo      -> SSPS_DL_ID
+  custNo     -> DL_P_RNMCNO
+  trxnDt     -> SSPS_DL_CRT_DT
+  ctrAmt     -> joined from NIC75B
+  ctrStCd    -> RPR_PRGRS_CCD
+  fiuRptNo   -> INST_ID
+-->
+<mapper namespace="com.aml.mapper.CtrReportMapper">
+
+    <resultMap id="CtrResultMap" type="com.aml.domain.CtrReport">
+        <result property="ctrId"     column="CTR_SEQ"/>
+        <result property="ctrNo"     column="SSPS_DL_ID"/>
+        <result property="custNo"    column="DL_P_RNMCNO"/>
+        <result property="trxnDt"    column="SSPS_DL_CRT_DT"/>
+        <result property="ctrAmt"    column="DL_AMT"/>
+        <result property="ctrCcy"    column="DL_CCY"/>
+        <result property="trxnTpCd"  column="SSPS_TYP_CD"/>
+        <result property="branchCd"  column="INST_ID"/>
+        <result property="ctrStCd"   column="RPR_PRGRS_CCD"/>
+        <result property="fiuRptNo"  column="INST_ID"/>
+        <result property="fiuRptDt"  column="UPD_DT"/>
+        <result property="regId"     column="REG_ID"/>
+        <result property="regDt"     column="REG_DT"/>
+        <result property="updId"     column="UPD_ID"/>
+        <result property="updDt"     column="UPD_DT"/>
+    </resultMap>
+
+    <select id="findById" resultMap="CtrResultMap">
+        SELECT 0 AS CTR_SEQ,
+               c.SSPS_DL_CRT_DT, c.SSPS_DL_ID, c.SSPS_TYP_CD,
+               c.DL_P_RNMCNO, c.RPR_PRGRS_CCD, c.INST_ID,
+               c.REG_ID, c.REG_DT, c.UPD_ID, c.UPD_DT,
+               COALESCE(a.DL_AMT, 0) AS DL_AMT,
+               COALESCE(a.DL_CCY, 'KRW') AS DL_CCY
+        FROM NIC66B c
+        LEFT JOIN (
+            SELECT SSPS_DL_CRT_DT, SSPS_DL_ID,
+                   SUM(DL_AMT) AS DL_AMT, MAX(DL_CCY) AS DL_CCY
+            FROM NIC75B GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+        ) a ON a.SSPS_DL_CRT_DT = c.SSPS_DL_CRT_DT AND a.SSPS_DL_ID = c.SSPS_DL_ID
+        WHERE c.SSPS_DL_CRT_CCD = 'CTR'
+          AND c.SSPS_DL_ID = #{ctrId}
+        LIMIT 1
+    </select>
+
+    <select id="findByParams" resultMap="CtrResultMap" parameterType="map">
+        SELECT 0 AS CTR_SEQ,
+               c.SSPS_DL_CRT_DT, c.SSPS_DL_ID, c.SSPS_TYP_CD,
+               c.DL_P_RNMCNO, c.RPR_PRGRS_CCD, c.INST_ID,
+               c.REG_ID, c.REG_DT, c.UPD_ID, c.UPD_DT,
+               COALESCE(a.DL_AMT, 0) AS DL_AMT,
+               COALESCE(a.DL_CCY, 'KRW') AS DL_CCY
+        FROM NIC66B c
+        LEFT JOIN (
+            SELECT SSPS_DL_CRT_DT, SSPS_DL_ID,
+                   SUM(DL_AMT) AS DL_AMT, MAX(DL_CCY) AS DL_CCY
+            FROM NIC75B GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+        ) a ON a.SSPS_DL_CRT_DT = c.SSPS_DL_CRT_DT AND a.SSPS_DL_ID = c.SSPS_DL_ID
+        WHERE c.SSPS_DL_CRT_CCD = 'CTR'
+        <if test="ctrStCd != null and ctrStCd != ''">
+            AND c.RPR_PRGRS_CCD = #{ctrStCd}
+        </if>
+        <if test="custNo != null and custNo != ''">
+            AND c.DL_P_RNMCNO = #{custNo}
+        </if>
+        <if test="trxnDtFrom != null and trxnDtFrom != ''">
+            AND c.SSPS_DL_CRT_DT >= #{trxnDtFrom}
+        </if>
+        <if test="trxnDtTo != null and trxnDtTo != ''">
+            AND c.SSPS_DL_CRT_DT &lt;= #{trxnDtTo}
+        </if>
+        ORDER BY c.REG_DT DESC
+        LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <select id="countByParams" resultType="long" parameterType="map">
+        SELECT COUNT(*)
+        FROM NIC66B c
+        WHERE c.SSPS_DL_CRT_CCD = 'CTR'
+        <if test="ctrStCd != null and ctrStCd != ''">
+            AND c.RPR_PRGRS_CCD = #{ctrStCd}
+        </if>
+        <if test="custNo != null and custNo != ''">
+            AND c.DL_P_RNMCNO = #{custNo}
+        </if>
+        <if test="trxnDtFrom != null and trxnDtFrom != ''">
+            AND c.SSPS_DL_CRT_DT >= #{trxnDtFrom}
+        </if>
+        <if test="trxnDtTo != null and trxnDtTo != ''">
+            AND c.SSPS_DL_CRT_DT &lt;= #{trxnDtTo}
+        </if>
+    </select>
+
+    <insert id="insert" parameterType="com.aml.domain.CtrReport">
+        INSERT INTO NIC66B (
+            SSPS_DL_CRT_DT, SSPS_DL_ID, SSPS_TYP_CD, SSPS_DL_CRT_CCD,
+            DL_P_RNMCNO, RPR_PRGRS_CCD, INST_ID, REG_ID, REG_DT
+        ) VALUES (
+            #{trxnDt}, #{ctrNo}, #{trxnTpCd}, 'CTR',
+            #{custNo}, #{ctrStCd}, #{fiuRptNo}, #{regId}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <update id="update" parameterType="com.aml.domain.CtrReport">
+        UPDATE NIC66B
+        SET RPR_PRGRS_CCD = #{ctrStCd},
+            INST_ID       = #{fiuRptNo},
+            UPD_ID        = #{updId},
+            UPD_DT        = CURRENT_TIMESTAMP
+        WHERE SSPS_DL_ID = #{ctrNo}
+          AND SSPS_DL_CRT_CCD = 'CTR'
+    </update>
+
+</mapper>

@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aml.mapper.BatchSimulatorMapper">
+
+    <select id="findRandomCustomers" resultType="string">
+        SELECT RNMCNO FROM NIC01B
+        WHERE USE_CCD = 'Y'
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
+    <select id="findRandomScenarios" resultType="string">
+        SELECT SCNR_ID FROM TMS_APPL
+        WHERE USE_CCD = 'Y'
+        ORDER BY RAND()
+        LIMIT #{limit}
+    </select>
+
+    <insert id="insertNic66b" parameterType="map">
+        INSERT INTO NIC66B (
+            SSPS_DL_CRT_DT, SSPS_DL_ID, SSPS_TYP_CD, SSPS_DL_CRT_CCD,
+            RPR_PRGRS_CCD, DL_P_RNMCNO, RSK_MRK, RSK_GRD_CD,
+            OK_CCD, SCNR_MRK, AI_RESULT, REG_ID, REG_DT
+        ) VALUES (
+            #{sspsDlCrtDt}, #{sspsDlId}, #{sspsTYpCd}, #{sspsDlCrtCcd},
+            '9', #{dlPRnmcno}, #{rskMrk}, #{rskGrdCd},
+            '0', #{scnrMrk}, #{aiResult}, #{regId}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <insert id="insertNic70b" parameterType="map">
+        INSERT INTO NIC70B (
+            SSPS_DL_CRT_DT, DL_P_RNMCNO, DL_P_NM, DL_P_RNM_NO_CCD, INDV_CORP_CCD
+        ) VALUES (
+            #{sspsDlCrtDt}, #{dlPRnmcno}, #{dlPNm}, #{dlPRnmNoCcd}, #{indvCorpCcd}
+        )
+    </insert>
+
+    <insert id="insertNic73b" parameterType="map">
+        INSERT INTO NIC73B (
+            SSPS_DL_CRT_DT, SSPS_DL_ID, SEQ_NO,
+            MN_DL_BRN_CD, MN_DL_BRN_NM,
+            DL_DT, DL_TM, DL_AMT, DL_TYP_CCD, DL_CCY, CHNL_CCD
+        ) VALUES (
+            #{sspsDlCrtDt}, #{sspsDlId}, #{seqNo},
+            #{mnDlBrnCd}, #{mnDlBrnNm},
+            #{dlDt}, #{dlTm}, #{dlAmt}, #{dlTypCcd}, 'KRW', #{chnlCcd}
+        )
+    </insert>
+
+    <insert id="insertNic75b" parameterType="map">
+        INSERT INTO NIC75B (
+            SSPS_DL_CRT_DT, SSPS_DL_ID, GNL_AC_NO, DL_AMT, DL_CCY
+        ) VALUES (
+            #{sspsDlCrtDt}, #{sspsDlId}, #{gnlAcNo}, #{dlAmt}, 'KRW'
+        )
+    </insert>
+
+    <insert id="insertNic67bDraft" parameterType="map">
+        INSERT INTO NIC67B (
+            SSPS_DL_CRT_DT, SSPS_DL_ID, RPR_RSN_CNTNT, REG_ID, REG_DT
+        ) VALUES (
+            #{sspsDlCrtDt}, #{sspsDlId}, '', #{regId}, CURRENT_TIMESTAMP
+        )
+    </insert>
+
+    <select id="countExistingCase" resultType="int">
+        SELECT COUNT(*)
+        FROM NIC66B
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND SSPS_DL_ID      = #{sspsDlId}
+    </select>
+
+    <select id="countExistingNic70b" resultType="int">
+        SELECT COUNT(*)
+        FROM NIC70B
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND DL_P_RNMCNO     = #{dlPRnmcno}
+    </select>
+
+    <select id="countCasesForDate" resultType="long">
+        SELECT COUNT(*)
+        FROM NIC66B
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND SSPS_DL_ID LIKE CONCAT(#{prefix}, #{sspsDlCrtDt}, '%')
+    </select>
+
+</mapper>

@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  TmsSetVal maps to TMS_SET_VAL.
+  Original PK: (SCNR_ID, CS_CCD, SET_VAL_CD)
+  setId       -> synthetic row number
+  scnrId      -> SCNR_ID
+  setKey      -> SET_VAL_CD
+  setNm       -> SET_VAL_CD (no separate name column)
+  setVal      -> SET_VAL
+  prevVal     -> SET_VAL (same column, no prev storage in original schema)
+  valTpCd     -> CS_CCD
+  useYn       -> 'Y' literal (not stored)
+  regId       -> REG_ID
+-->
+<mapper namespace="com.aml.mapper.TmsSetValMapper">
+
+    <resultMap id="SetValResultMap" type="com.aml.domain.TmsSetVal">
+        <result property="setId"    column="SET_SEQ"/>
+        <result property="scnrId"   column="SCNR_ID"/>
+        <result property="setKey"   column="SET_VAL_CD"/>
+        <result property="setNm"    column="SET_VAL_CD"/>
+        <result property="setVal"   column="SET_VAL"/>
+        <result property="prevVal"  column="SET_VAL"/>
+        <result property="valTpCd"  column="CS_CCD"/>
+        <result property="useYn"    column="USE_FLAG"/>
+        <result property="regId"    column="REG_ID"/>
+        <result property="updId"    column="UPD_ID"/>
+    </resultMap>
+
+    <sql id="setValSelect">
+        SELECT 0 AS SET_SEQ,
+               SCNR_ID, CS_CCD, SET_VAL_CD, SET_VAL, REG_ID, UPD_ID, 'Y' AS USE_FLAG
+        FROM TMS_SET_VAL
+    </sql>
+
+    <select id="findByScnrId" resultMap="SetValResultMap">
+        <include refid="setValSelect"/>
+        WHERE SCNR_ID = #{scnrId}
+        ORDER BY SET_VAL_CD
+    </select>
+
+    <select id="findAll" resultMap="SetValResultMap">
+        <include refid="setValSelect"/>
+        WHERE 1=1
+        <if test="scnrId != null and scnrId != ''">
+            AND SCNR_ID = #{scnrId}
+        </if>
+        ORDER BY SCNR_ID, SET_VAL_CD
+        LIMIT #{limit} OFFSET #{offset}
+    </select>
+
+    <select id="countAll" resultType="int">
+        SELECT COUNT(*)
+        FROM TMS_SET_VAL
+        WHERE 1=1
+        <if test="scnrId != null and scnrId != ''">
+            AND SCNR_ID = #{scnrId}
+        </if>
+    </select>
+
+    <select id="findById" resultMap="SetValResultMap">
+        <include refid="setValSelect"/>
+        WHERE SET_VAL_CD = #{setId}
+        LIMIT 1
+    </select>
+
+    <update id="update" parameterType="com.aml.domain.TmsSetVal">
+        UPDATE TMS_SET_VAL
+        SET SET_VAL  = #{setVal},
+            UPD_ID   = #{updId},
+            UPD_DTTM = FORMATDATETIME(CURRENT_TIMESTAMP, 'yyyyMMddHHmmss')
+        WHERE SCNR_ID    = #{scnrId}
+          AND SET_VAL_CD = #{setKey}
+    </update>
+
+    <insert id="insert" parameterType="com.aml.domain.TmsSetVal">
+        INSERT INTO TMS_SET_VAL (
+            SCNR_ID, CS_CCD, SET_VAL_CD, SET_VAL, REG_ID, REG_DTTM
+        ) VALUES (
+            #{scnrId}, #{valTpCd}, #{setKey}, #{setVal}, #{regId},
+            FORMATDATETIME(CURRENT_TIMESTAMP, 'yyyyMMddHHmmss')
+        )
+    </insert>
+
+</mapper>

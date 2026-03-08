@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aml.mapper.CodeMapper">
+
+    <resultMap id="CodeResultMap" type="com.aml.domain.Code">
+        <result property="codeGrp" column="CD"/>
+        <result property="codeCd"  column="CNTNT"/>
+        <result property="codeNm"  column="CD_NM"/>
+        <result property="ordNo"   column="ORD_NO"/>
+        <result property="useYn"   column="USE_CCD"/>
+    </resultMap>
+
+    <select id="findByGroup" resultMap="CodeResultMap">
+        SELECT CD, CNTNT, CD_NM, ORD_NO, USE_CCD
+        FROM NIC92B
+        WHERE CD = #{codeGrp}
+          AND USE_CCD = 'Y'
+        ORDER BY ORD_NO ASC
+    </select>
+
+    <select id="findAll" resultMap="CodeResultMap">
+        SELECT CD, CNTNT, CD_NM, ORD_NO, USE_CCD
+        FROM NIC92B
+        WHERE USE_CCD = 'Y'
+        ORDER BY CD, ORD_NO ASC
+    </select>
+
+    <insert id="insert" parameterType="com.aml.domain.Code">
+        INSERT INTO NIC92B (CD, CNTNT, CD_NM, ORD_NO, USE_CCD)
+        VALUES (#{codeGrp}, #{codeCd}, #{codeNm}, #{ordNo}, #{useYn})
+    </insert>
+
+</mapper>

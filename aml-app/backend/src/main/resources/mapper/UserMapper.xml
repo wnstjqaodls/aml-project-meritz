@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.aml.mapper.UserMapper">
+
+    <resultMap id="UserResultMap" type="com.aml.domain.User">
+        <result property="userId"  column="USER_ID"/>
+        <result property="userNm"  column="USER_NM"/>
+        <result property="deptCd"  column="DEPT_CD"/>
+        <result property="email"   column="EMAIL"/>
+        <result property="pwd"     column="PWD"/>
+        <result property="roleCd"  column="ROLE_ID"/>
+        <result property="useYn"   column="USE_CCD"/>
+        <result property="regDt"   column="REG_DT"/>
+    </resultMap>
+
+    <select id="findById" resultMap="UserResultMap">
+        SELECT USER_ID, USER_NM, DEPT_CD, EMAIL, PWD, ROLE_ID, USE_CCD, REG_DT
+        FROM C_USER
+        WHERE USER_ID = #{userId}
+          AND USE_CCD = 'Y'
+    </select>
+
+    <select id="findByIdAndPwd" resultMap="UserResultMap">
+        SELECT USER_ID, USER_NM, DEPT_CD, EMAIL, PWD, ROLE_ID, USE_CCD, REG_DT
+        FROM C_USER
+        WHERE USER_ID = #{userId}
+          AND PWD = #{pwd}
+          AND USE_CCD = 'Y'
+    </select>
+
+    <select id="findAll" resultMap="UserResultMap">
+        SELECT USER_ID, USER_NM, DEPT_CD, EMAIL, PWD, ROLE_ID, USE_CCD, REG_DT
+        FROM C_USER
+        WHERE USE_CCD = 'Y'
+        ORDER BY USER_ID
+    </select>
+
+    <insert id="insert" parameterType="com.aml.domain.User">
+        INSERT INTO C_USER (USER_ID, USER_NM, DEPT_CD, EMAIL, PWD, ROLE_ID, USE_CCD)
+        VALUES (#{userId}, #{userNm}, #{deptCd}, #{email}, #{pwd}, #{roleCd}, #{useYn})
+    </insert>
+
+    <update id="update" parameterType="com.aml.domain.User">
+        UPDATE C_USER
+        SET USER_NM = #{userNm},
+            DEPT_CD = #{deptCd},
+            EMAIL   = #{email},
+            ROLE_ID = #{roleCd},
+            USE_CCD = #{useYn}
+        WHERE USER_ID = #{userId}
+    </update>
+
+</mapper>
