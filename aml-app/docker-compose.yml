@@ -1,0 +1,61 @@
+version: '3.8'
+
+# AML 개발 환경 - Oracle Free + Backend
+# 사용법:
+#   Oracle만 실행: docker compose up oracle -d
+#   전체 실행:     docker compose up -d
+#
+# Oracle 최초 기동은 1~2분 소요됩니다 (healthcheck 참고)
+# 접속 정보: jdbc:oracle:thin:@localhost:1521/FREEPDB1 / jbbank / jbbank
+
+services:
+
+  # ──────────────────────────────────────────────
+  # Oracle Database 23c Free (slim-faststart)
+  # Image: gvenzl/oracle-free (~600MB, 가장 가벼운 Oracle 23c Free)
+  # ──────────────────────────────────────────────
+  oracle:
+    image: gvenzl/oracle-free:slim-faststart
+    container_name: aml-oracle
+    ports:
+      - "1521:1521"
+    environment:
+      ORACLE_PASSWORD: aml1234          # SYS/SYSTEM 비밀번호
+      APP_USER: jbbank                  # 애플리케이션용 유저 (NIC66B 등 테이블 소유)
+      APP_USER_PASSWORD: jbbank
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      # 초기화 스크립트: schema → data 순으로 자동 실행
+      - ../backend/src/main/resources/schema-oracle.sql:/container-entrypoint-initdb.d/01-schema.sql
+      - ../backend/src/main/resources/data-oracle.sql:/container-entrypoint-initdb.d/02-data.sql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+
+  # ──────────────────────────────────────────────
+  # AML Backend (Oracle 프로필로 실행)
+  # ──────────────────────────────────────────────
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: aml-backend
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_PROFILES_ACTIVE: oracle
+      SPRING_DATASOURCE_URL: jdbc:oracle:thin:@oracle:1521/FREEPDB1
+      SPRING_DATASOURCE_USERNAME: jbbank
+      SPRING_DATASOURCE_PASSWORD: jbbank
+    depends_on:
+      oracle:
+        condition: service_healthy
+    profiles:
+      - full  # docker compose --profile full up 시만 실행
+
+volumes:
+  oracle-data:
+    driver: local

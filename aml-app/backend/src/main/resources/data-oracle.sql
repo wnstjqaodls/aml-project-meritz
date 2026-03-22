@@ -1,4 +1,7 @@
--- AMLXpress7 Sample Data (H2 compatible, all text in English)
+-- AMLXpress7 Sample Data (Oracle compatible)
+-- Converted from data.sql: CURRENT_TIMESTAMP -> SYSTIMESTAMP
+-- GENERATED ALWAYS AS IDENTITY columns (WLF_UNIQ_NO, SCREEN_ID, KYC_ID, RA_ID, RA_DTL_ID)
+-- are excluded from INSERT column lists so Oracle generates them automatically.
 
 -- ============================================================
 -- NIC92B: Common Codes
@@ -199,16 +202,17 @@ INSERT INTO NIC35B VALUES ('7205141234567', 'H', '20250201');
 -- ============================================================
 -- NIC17B: Accounts
 -- ============================================================
-INSERT INTO NIC17B VALUES ('1001-001-123456', '8001011234567', 'SAV', '20200101', 'Y', CURRENT_TIMESTAMP);
-INSERT INTO NIC17B VALUES ('1001-002-234567', '7512155678901', 'CHK', '20190601', 'Y', CURRENT_TIMESTAMP);
-INSERT INTO NIC17B VALUES ('1001-003-345678', '6509201122334', 'SAV', '20180301', 'Y', CURRENT_TIMESTAMP);
-INSERT INTO NIC17B VALUES ('2002-001-456789', '1234567890',    'BIZ', '20150101', 'Y', CURRENT_TIMESTAMP);
-INSERT INTO NIC17B VALUES ('2002-002-567890', '9876543210',    'BIZ', '20160501', 'Y', CURRENT_TIMESTAMP);
-INSERT INTO NIC17B VALUES ('1001-004-456789', '7809201357901', 'SAV', '20220115', 'Y', CURRENT_TIMESTAMP);
-INSERT INTO NIC17B VALUES ('1001-005-567890', '7205141234567', 'SAV', '20230201', 'Y', CURRENT_TIMESTAMP);
+INSERT INTO NIC17B VALUES ('1001-001-123456', '8001011234567', 'SAV', '20200101', 'Y', SYSTIMESTAMP);
+INSERT INTO NIC17B VALUES ('1001-002-234567', '7512155678901', 'CHK', '20190601', 'Y', SYSTIMESTAMP);
+INSERT INTO NIC17B VALUES ('1001-003-345678', '6509201122334', 'SAV', '20180301', 'Y', SYSTIMESTAMP);
+INSERT INTO NIC17B VALUES ('2002-001-456789', '1234567890',    'BIZ', '20150101', 'Y', SYSTIMESTAMP);
+INSERT INTO NIC17B VALUES ('2002-002-567890', '9876543210',    'BIZ', '20160501', 'Y', SYSTIMESTAMP);
+INSERT INTO NIC17B VALUES ('1001-004-456789', '7809201357901', 'SAV', '20220115', 'Y', SYSTIMESTAMP);
+INSERT INTO NIC17B VALUES ('1001-005-567890', '7205141234567', 'SAV', '20230201', 'Y', SYSTIMESTAMP);
 
 -- ============================================================
--- NIC19B_FACTIVA_UA: Watchlist Entries (20 real columns)
+-- NIC19B_FACTIVA_UA: Watchlist Entries
+-- WLF_UNIQ_NO is GENERATED ALWAYS AS IDENTITY - omitted from INSERT
 -- ============================================================
 INSERT INTO NIC19B_FACTIVA_UA
   (WLF_ISTU_CLS_CNTT, WLF_FLNM_CNTT, WLF_RLNM_CNTT, WLF_FCNM_CNTT,
@@ -217,7 +221,7 @@ INSERT INTO NIC19B_FACTIVA_UA
 VALUES
   ('UN', 'Kim Jong Un', 'Kim Jong Un', 'Kim Jong Un',
    'Jong Un', '', 'Kim',
-   'KP', '19840108', '20251124', 'N', CURRENT_TIMESTAMP);
+   'KP', '19840108', '20251124', 'N', SYSTIMESTAMP);
 
 INSERT INTO NIC19B_FACTIVA_UA
   (WLF_ISTU_CLS_CNTT, WLF_FLNM_CNTT, WLF_RLNM_CNTT, WLF_FCNM_CNTT,
@@ -226,7 +230,7 @@ INSERT INTO NIC19B_FACTIVA_UA
 VALUES
   ('OFAC', 'Al-Qaida Network', 'Al-Qaida', 'Al-Qaida',
    'Al', '', 'Qaida',
-   'AF', '19980101', '20251124', 'N', CURRENT_TIMESTAMP);
+   'AF', '19980101', '20251124', 'N', SYSTIMESTAMP);
 
 INSERT INTO NIC19B_FACTIVA_UA
   (WLF_ISTU_CLS_CNTT, WLF_FLNM_CNTT, WLF_RLNM_CNTT, WLF_FCNM_CNTT,
@@ -235,7 +239,7 @@ INSERT INTO NIC19B_FACTIVA_UA
 VALUES
   ('FATF', 'Suspicious Individual', '', 'Suspicious Individual',
    'Suspicious', '', 'Individual',
-   'IR', '19750515', '20251124', 'N', CURRENT_TIMESTAMP);
+   'IR', '19750515', '20251124', 'N', SYSTIMESTAMP);
 
 INSERT INTO NIC19B_FACTIVA_UA
   (WLF_ISTU_CLS_CNTT, WLF_FLNM_CNTT, WLF_RLNM_CNTT, WLF_FCNM_CNTT,
@@ -244,7 +248,7 @@ INSERT INTO NIC19B_FACTIVA_UA
 VALUES
   ('PEPs', 'Lee Myung Park', 'Lee Myung Park', 'Lee Myung Park',
    'Myung', '', 'Park',
-   'KR', '19601001', '20251124', 'N', CURRENT_TIMESTAMP);
+   'KR', '19601001', '20251124', 'N', SYSTIMESTAMP);
 
 INSERT INTO NIC19B_FACTIVA_UA
   (WLF_ISTU_CLS_CNTT, WLF_FLNM_CNTT, WLF_RLNM_CNTT, WLF_FCNM_CNTT,
@@ -253,7 +257,7 @@ INSERT INTO NIC19B_FACTIVA_UA
 VALUES
   ('KFIU', 'Jung Min Kim', 'Jung Min Kim', 'Jung Min Kim',
    'Min', 'Jung', 'Kim',
-   'KR', '19851215', '20251124', 'N', CURRENT_TIMESTAMP);
+   'KR', '19851215', '20251124', 'N', SYSTIMESTAMP);
 
 INSERT INTO NIC19B_FACTIVA_UA
   (WLF_ISTU_CLS_CNTT, WLF_FLNM_CNTT, WLF_RLNM_CNTT, WLF_FCNM_CNTT,
@@ -263,7 +267,7 @@ INSERT INTO NIC19B_FACTIVA_UA
 VALUES
   ('OFAC', 'ZHANG WEI', 'ZHANG WEI', 'ZHANG WEI',
    'WEI', '', 'ZHANG',
-   'CN', '19781001', '20201110', 'N', CURRENT_TIMESTAMP,
+   'CN', '19781001', '20201110', 'N', SYSTIMESTAMP,
    'See previous Roles');
 
 INSERT INTO NIC19B_FACTIVA_UA
@@ -274,7 +278,7 @@ INSERT INTO NIC19B_FACTIVA_UA
 VALUES
   ('EURO', 'IVAN PETROV', 'IVAN PETROV', 'IVAN PETROV',
    'IVAN', '', 'PETROV',
-   'RU', '19720514', '20220301', 'N', CURRENT_TIMESTAMP,
+   'RU', '19720514', '20220301', 'N', SYSTIMESTAMP,
    'Deceased');
 
 INSERT INTO NIC19B_FACTIVA_UA
@@ -284,7 +288,7 @@ INSERT INTO NIC19B_FACTIVA_UA
 VALUES
   ('UN', 'CHOE RYONG HAE', 'CHOE RYONG HAE', 'CHOE RYONG HAE',
    'RYONG HAE', '', 'CHOE',
-   'KP', '19500912', '20160630', 'N', CURRENT_TIMESTAMP);
+   'KP', '19500912', '20160630', 'N', SYSTIMESTAMP);
 
 -- ============================================================
 -- NIC70B: Transaction Party Basic
@@ -423,9 +427,9 @@ INSERT INTO TMS_SET_VAL VALUES ('CTR002', 'ALL', 'PERIOD_DAY',    '1',        'a
 -- ============================================================
 -- TMS_SET_VAL_APP: Approval Requests
 -- ============================================================
-INSERT INTO TMS_SET_VAL_APP VALUES ('APP2025001', 'STR001', 'E', '20250110', 'analyst1', CURRENT_TIMESTAMP);
-INSERT INTO TMS_SET_VAL_APP VALUES ('APP2025002', 'STR002', 'N', '20250205', 'analyst2', CURRENT_TIMESTAMP);
-INSERT INTO TMS_SET_VAL_APP VALUES ('APP2025003', 'CTR001', 'N', '20250301', 'analyst1', CURRENT_TIMESTAMP);
+INSERT INTO TMS_SET_VAL_APP VALUES ('APP2025001', 'STR001', 'E', '20250110', 'analyst1', SYSTIMESTAMP);
+INSERT INTO TMS_SET_VAL_APP VALUES ('APP2025002', 'STR002', 'N', '20250205', 'analyst2', SYSTIMESTAMP);
+INSERT INTO TMS_SET_VAL_APP VALUES ('APP2025003', 'CTR001', 'N', '20250301', 'analyst1', SYSTIMESTAMP);
 
 -- ============================================================
 -- TMS_SET_VAL_APP_DTL: Approval Request Details
@@ -439,14 +443,15 @@ INSERT INTO TMS_SET_VAL_APP_DTL VALUES ('APP2025003', 'ALL', 'THRESHOLD_AMT', 'T
 -- AML_APPR: Approvals (historical)
 -- ============================================================
 INSERT INTO AML_APPR (APP_NO, GYLJ_LINE_G_C, NUM_SQ, APP_DT, SNO, SN_CCD, APPR_ROLE_ID, TARGET_ROLE_ID, RSN_CNTNT, HNDL_DY_TM, HNDL_P_ENO, REG_DT)
-  VALUES ('APP2025001', 'TMS1', 1, '20250110', 1, 'E', 'ANALYST', 'MANAGER', 'Threshold adjustment approved', CURRENT_TIMESTAMP, 'analyst1', CURRENT_TIMESTAMP);
+  VALUES ('APP2025001', 'TMS1', 1, '20250110', 1, 'E', 'ANALYST', 'MANAGER', 'Threshold adjustment approved', SYSTIMESTAMP, 'analyst1', SYSTIMESTAMP);
 INSERT INTO AML_APPR (APP_NO, GYLJ_LINE_G_C, NUM_SQ, APP_DT, SNO, SN_CCD, APPR_ROLE_ID, TARGET_ROLE_ID, RSN_CNTNT, HNDL_DY_TM, HNDL_P_ENO, REG_DT)
-  VALUES ('APP2025002', 'TMS1', 1, '20250205', 1, 'N', 'ANALYST', 'MANAGER', 'Structuring threshold review', CURRENT_TIMESTAMP, 'analyst2', CURRENT_TIMESTAMP);
+  VALUES ('APP2025002', 'TMS1', 1, '20250205', 1, 'N', 'ANALYST', 'MANAGER', 'Structuring threshold review', SYSTIMESTAMP, 'analyst2', SYSTIMESTAMP);
 INSERT INTO AML_APPR (APP_NO, GYLJ_LINE_G_C, NUM_SQ, APP_DT, SNO, SN_CCD, APPR_ROLE_ID, TARGET_ROLE_ID, RSN_CNTNT, HNDL_DY_TM, HNDL_P_ENO, REG_DT)
-  VALUES ('APP2025003', 'TMS2', 1, '20250301', 1, 'N', 'ANALYST', 'MANAGER', 'CTR threshold revision', CURRENT_TIMESTAMP, 'analyst1', CURRENT_TIMESTAMP);
+  VALUES ('APP2025003', 'TMS2', 1, '20250301', 1, 'N', 'ANALYST', 'MANAGER', 'CTR threshold revision', SYSTIMESTAMP, 'analyst1', SYSTIMESTAMP);
 
 -- ============================================================
 -- KYC_CUST: KYC Records
+-- KYC_ID is GENERATED ALWAYS AS IDENTITY - omitted from INSERT
 -- ============================================================
 INSERT INTO KYC_CUST (RNMCNO, KYC_TP_CCD, KYC_STS_CCD, ID_TP_CCD, PEP_F, BENEFICIAL_F, KYC_DT, NEXT_KYC_DT, REG_ID)
   VALUES ('8001011234567', 'INITIAL',  'COMPLETE',     'RRN',      'N', 'N', '20250101', '20260101', 'analyst1');
@@ -467,8 +472,7 @@ INSERT INTO RA_GRD_STD VALUES ('M', 40.00,  69.99, 'Medium Risk');
 INSERT INTO RA_GRD_STD VALUES ('L',  0.00,  39.99, 'Low Risk');
 
 -- ============================================================
--- RA_ITEM: Risk Assessment Items (actual DDL.txt columns)
--- RA_MDL_GBN_CD references A040 code group
+-- RA_ITEM: Risk Assessment Items
 -- ============================================================
 INSERT INTO RA_ITEM (RA_ITEM_CD, RA_ITEM_NM, RA_MDL_GBN_CD, REFF_COMN_CD, MISS_VAL_SCR, INTV_VAL_YN, USE_YN, SRT_SQ, REG_ID)
   VALUES ('I001', 'Country Risk',           'INDI', NULL,   10.00, 'N', 'Y', 1, 'admin');
@@ -490,7 +494,7 @@ INSERT INTO RA_ITEM (RA_ITEM_CD, RA_ITEM_NM, RA_MDL_GBN_CD, REFF_COMN_CD, MISS_V
   VALUES ('C003', 'Transaction Risk',        'CORP', NULL,   10.00, 'Y', 'Y', 3, 'admin');
 
 -- ============================================================
--- RA_ITEM_WGHT: RA Item Weights (individual model)
+-- RA_ITEM_WGHT: RA Item Weights
 -- ============================================================
 INSERT INTO RA_ITEM_WGHT (RA_ITEM_CD, RA_MDL_GBN_CD, WGHT, MAX_SCR, SN_CCD, USE_YN)
   VALUES ('I001', 'INDI', 25.00, 30.00, 'E', 'Y');
@@ -504,7 +508,6 @@ INSERT INTO RA_ITEM_WGHT (RA_ITEM_CD, RA_MDL_GBN_CD, WGHT, MAX_SCR, SN_CCD, USE_
   VALUES ('I005', 'INDI', 10.00, 20.00, 'E', 'Y');
 INSERT INTO RA_ITEM_WGHT (RA_ITEM_CD, RA_MDL_GBN_CD, WGHT, MAX_SCR, SN_CCD, USE_YN)
   VALUES ('I006', 'INDI',  5.00, 20.00, 'E', 'Y');
--- Corporate model weights
 INSERT INTO RA_ITEM_WGHT (RA_ITEM_CD, RA_MDL_GBN_CD, WGHT, MAX_SCR, SN_CCD, USE_YN)
   VALUES ('C001', 'CORP', 35.00, 30.00, 'E', 'Y');
 INSERT INTO RA_ITEM_WGHT (RA_ITEM_CD, RA_MDL_GBN_CD, WGHT, MAX_SCR, SN_CCD, USE_YN)
@@ -584,18 +587,19 @@ VALUES ('I001', 'US', 'United States', 'United States of America', 'N', 1.00, 'N
 INSERT INTO SRBA_SCHD
   (BAS_YYMM, VALT_TRN, ING_STEP, TGT_TRN_SDT, TGT_TRN_EDT, APPR_DT, SCHD_CMPLT_DT, USE_YN, REG_ID, REG_DT)
 VALUES
-  ('202501', '01', '99', '20250101', '20250331', '20250415', '20250430', 'Y', 'admin', CURRENT_TIMESTAMP);
+  ('202501', '01', '99', '20250101', '20250331', '20250415', '20250430', 'Y', 'admin', SYSTIMESTAMP);
 INSERT INTO SRBA_SCHD
   (BAS_YYMM, VALT_TRN, ING_STEP, TGT_TRN_SDT, TGT_TRN_EDT, APPR_DT, SCHD_CMPLT_DT, USE_YN, REG_ID, REG_DT)
 VALUES
-  ('202502', '01', '20', '20250401', '20250630', NULL, NULL, 'Y', 'admin', CURRENT_TIMESTAMP);
+  ('202502', '01', '20', '20250401', '20250630', NULL, NULL, 'Y', 'admin', SYSTIMESTAMP);
 INSERT INTO SRBA_SCHD
   (BAS_YYMM, VALT_TRN, ING_STEP, TGT_TRN_SDT, TGT_TRN_EDT, USE_YN, REG_ID, REG_DT)
 VALUES
-  ('202503', '01', '00', '20250701', '20250930', 'Y', 'admin', CURRENT_TIMESTAMP);
+  ('202503', '01', '00', '20250701', '20250930', 'Y', 'admin', SYSTIMESTAMP);
 
 -- ============================================================
 -- RA_RESULT: RA Results
+-- RA_ID is GENERATED ALWAYS AS IDENTITY - omitted from INSERT
 -- ============================================================
 INSERT INTO RA_RESULT (RNMCNO, EVAL_DT, RA_GRD, RA_SCR, EDD_F, NEXT_EVAL_DT, REG_ID)
   VALUES ('8001011234567', '20250101', 'M', 45.50, 'N', '20260101', 'admin');
@@ -741,27 +745,25 @@ INSERT INTO NIC67B (SSPS_DL_CRT_DT, SSPS_DL_ID, RPR_RSN_CNTNT, ITEM_CNTNT1, ITEM
 -- ============================================================
 -- AML_APPR: Approval records for today's STR cases
 -- ============================================================
--- STR003 approval (completed)
 INSERT INTO AML_APPR (APP_NO, GYLJ_LINE_G_C, NUM_SQ, APP_DT, SNO, SN_CCD, APPR_ROLE_ID, TARGET_ROLE_ID, RSN_CNTNT, HNDL_DY_TM, HNDL_P_ENO, REG_DT)
   VALUES ('STR202603080001', 'TMS1', 1, '20260308', 1, 'E', 'ANALYST', 'MANAGER',
           'Approved: ZHANG WEI confirmed on OFAC list. STR warranted.',
-          CURRENT_TIMESTAMP, 'manager1', CURRENT_TIMESTAMP);
--- STR002 approval (pending manager)
+          SYSTIMESTAMP, 'manager1', SYSTIMESTAMP);
 INSERT INTO AML_APPR (APP_NO, GYLJ_LINE_G_C, NUM_SQ, APP_DT, SNO, SN_CCD, APPR_ROLE_ID, TARGET_ROLE_ID, RSN_CNTNT, HNDL_DY_TM, HNDL_P_ENO, REG_DT)
   VALUES ('STR202603080002', 'TMS1', 1, '20260308', 1, 'N', 'ANALYST', 'MANAGER',
           'Structuring pattern STR submitted for manager review.',
-          CURRENT_TIMESTAMP, 'analyst2', CURRENT_TIMESTAMP);
+          SYSTIMESTAMP, 'analyst2', SYSTIMESTAMP);
 
 -- AML_APPR_HIST: Approval history
 INSERT INTO AML_APPR_HIST (APP_NO, GYLJ_LINE_G_C, NUM_SQ, APP_DT, SNO, SN_CCD, APPR_ROLE_ID, RSN_CNTNT, HNDL_DY_TM, HNDL_P_ENO)
   VALUES ('STR202603080001', 'TMS1', 1, '20260308', 1, 'N', 'ANALYST',
           'STR report submitted for approval. Sanctions match confirmed.',
-          CURRENT_TIMESTAMP, 'analyst1');
+          SYSTIMESTAMP, 'analyst1');
 INSERT INTO AML_APPR_HIST (APP_NO, GYLJ_LINE_G_C, NUM_SQ, APP_DT, SNO, SN_CCD, APPR_ROLE_ID, RSN_CNTNT, HNDL_DY_TM, HNDL_P_ENO)
   VALUES ('STR202603080001', 'TMS1', 2, '20260308', 2, 'E', 'MANAGER',
           'Approved: Verified OFAC match. Proceeding with FIU submission.',
-          CURRENT_TIMESTAMP, 'manager1');
+          SYSTIMESTAMP, 'manager1');
 
 -- TMS_SET_VAL_APP: Approval requests for today's cases
-INSERT INTO TMS_SET_VAL_APP VALUES ('STR202603080001', 'STR003', 'E', '20260308', 'analyst1', CURRENT_TIMESTAMP);
-INSERT INTO TMS_SET_VAL_APP VALUES ('STR202603080002', 'STR002', 'N', '20260308', 'analyst2', CURRENT_TIMESTAMP);
+INSERT INTO TMS_SET_VAL_APP VALUES ('STR202603080001', 'STR003', 'E', '20260308', 'analyst1', SYSTIMESTAMP);
+INSERT INTO TMS_SET_VAL_APP VALUES ('STR202603080002', 'STR002', 'N', '20260308', 'analyst2', SYSTIMESTAMP);

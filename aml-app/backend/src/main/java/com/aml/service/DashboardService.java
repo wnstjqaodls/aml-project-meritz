@@ -1,8 +1,10 @@
 package com.aml.service;
 
 import com.aml.mapper.CaseMapper;
+import com.aml.mapper.CtrCaseMapper;
 import com.aml.mapper.CustomerMapper;
 import com.aml.mapper.KycMapper;
+import com.aml.mapper.StrCaseMapper;
 import com.aml.mapper.TmsAlertMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,6 +21,8 @@ public class DashboardService {
 
     private final TmsAlertMapper tmsAlertMapper;
     private final CaseMapper caseMapper;
+    private final StrCaseMapper strCaseMapper;
+    private final CtrCaseMapper ctrCaseMapper;
     private final KycMapper kycMapper;
     private final CustomerMapper customerMapper;
 
@@ -54,6 +58,24 @@ public class DashboardService {
 
         // Total open cases
         stats.put("openCaseCount", caseCounts.get("OPEN") + caseCounts.get("REVIEW"));
+
+        // STR pending counts by status
+        Map<String, Object> strPendingParams = new HashMap<>();
+        strPendingParams.put("rprPrgrsCcd", "9");
+        stats.put("pendingStrCount", strCaseMapper.countStrCases(strPendingParams));
+
+        Map<String, Object> strCompletedParams = new HashMap<>();
+        strCompletedParams.put("rprPrgrsCcd", "98");
+        stats.put("completedStrCount", strCaseMapper.countStrCases(strCompletedParams));
+
+        Map<String, Object> strFiuParams = new HashMap<>();
+        strFiuParams.put("rprPrgrsCcd", "10");
+        stats.put("fiuStrCount", strCaseMapper.countStrCases(strFiuParams));
+
+        // CTR pending count
+        Map<String, Object> ctrPendingParams = new HashMap<>();
+        ctrPendingParams.put("rprPrgrsCcd", "9");
+        stats.put("pendingCtrCount", ctrCaseMapper.countCtrCases(ctrPendingParams));
 
         log.debug("Dashboard stats retrieved");
         return stats;

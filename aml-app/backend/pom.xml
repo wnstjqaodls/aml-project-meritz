@@ -57,6 +57,15 @@
             <optional>true</optional>
         </dependency>
 
+        <!-- Oracle JDBC (Maven Central 배포판, Java 17 이상) -->
+        <!-- Docker Oracle 연결 시 활성화: spring.profiles.active=oracle -->
+        <dependency>
+            <groupId>com.oracle.database.jdbc</groupId>
+            <artifactId>ojdbc11</artifactId>
+            <version>23.3.0.23.09</version>
+            <scope>runtime</scope>
+        </dependency>
+
         <!-- Spring Boot Test -->
         <dependency>
             <groupId>org.springframework.boot</groupId>

@@ -5,6 +5,7 @@
 <mapper namespace="com.aml.mapper.StrCaseMapper">
 
     <!-- STR 케이스 목록 (NIC66B JOIN NIC70B, LEFT JOIN NIC75B, LEFT JOIN NIC73B) -->
+    <!-- H2 variant -->
     <select id="findStrCases" resultType="map" parameterType="map">
         SELECT
             C.SSPS_DL_CRT_DT,
@@ -49,6 +50,56 @@
         </if>
         ORDER BY C.SSPS_DL_CRT_DT DESC, C.SSPS_DL_ID DESC
         LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- Oracle variant: ROWNUM-based pagination -->
+    <select id="findStrCases" databaseId="oracle" resultType="map" parameterType="map">
+        SELECT * FROM (
+            SELECT ROWNUM AS RN, T.* FROM (
+                SELECT
+                    C.SSPS_DL_CRT_DT,
+                    C.SSPS_DL_ID,
+                    C.SSPS_TYP_CD,
+                    C.RPR_PRGRS_CCD,
+                    C.RSK_GRD_CD,
+                    C.SCNR_MRK,
+                    C.INST_ID,
+                    C.FIU_RPT_NO,
+                    C.FIU_RPT_DT,
+                    P.DL_P_NM,
+                    P.DL_P_RNMCNO,
+                    COALESCE(A.DL_AMT, 0) AS DL_AMT,
+                    COALESCE(T.DL_CNT, 0) AS DL_CNT
+                FROM NIC66B C
+                LEFT JOIN NIC70B P
+                    ON P.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT
+                    AND P.DL_P_RNMCNO = C.DL_P_RNMCNO
+                LEFT JOIN (
+                    SELECT SSPS_DL_CRT_DT, SSPS_DL_ID, SUM(DL_AMT) AS DL_AMT
+                    FROM NIC75B
+                    GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+                ) A ON A.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT AND A.SSPS_DL_ID = C.SSPS_DL_ID
+                LEFT JOIN (
+                    SELECT SSPS_DL_CRT_DT, SSPS_DL_ID, COUNT(*) AS DL_CNT
+                    FROM NIC73B
+                    GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+                ) T ON T.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT AND T.SSPS_DL_ID = C.SSPS_DL_ID
+                WHERE C.SSPS_DL_CRT_CCD = 'STR'
+                <if test="stDate != null and stDate != ''">
+                    AND C.SSPS_DL_CRT_DT &gt;= #{stDate}
+                </if>
+                <if test="edDate != null and edDate != ''">
+                    AND C.SSPS_DL_CRT_DT &lt;= #{edDate}
+                </if>
+                <if test="scnrId != null and scnrId != ''">
+                    AND C.SSPS_TYP_CD = #{scnrId}
+                </if>
+                <if test="rprPrgrsCcd != null and rprPrgrsCcd != ''">
+                    AND C.RPR_PRGRS_CCD = #{rprPrgrsCcd}
+                </if>
+                ORDER BY C.SSPS_DL_CRT_DT DESC, C.SSPS_DL_ID DESC
+            ) T WHERE ROWNUM &lt;= #{offset} + #{size}
+        ) WHERE RN &gt; #{offset}
     </select>
 
     <select id="countStrCases" resultType="long" parameterType="map">
@@ -166,12 +217,42 @@
         )
     </update>
 
+    <!-- Oracle variant: standard ANSI MERGE INTO ... USING DUAL -->
+    <update id="upsertReport" databaseId="oracle" parameterType="map">
+        MERGE INTO NIC67B T
+        USING DUAL ON (T.SSPS_DL_CRT_DT = #{sspsDlCrtDt} AND T.SSPS_DL_ID = #{sspsDlId})
+        WHEN MATCHED THEN
+            UPDATE SET RPR_RSN_CNTNT = #{rprRsnCntnt},
+                ITEM_CNTNT1 = #{itemCntnt1}, ITEM_CNTNT2 = #{itemCntnt2}, ITEM_CNTNT3 = #{itemCntnt3},
+                ITEM_CNTNT4 = #{itemCntnt4}, ITEM_CNTNT5 = #{itemCntnt5}, ITEM_CNTNT6 = #{itemCntnt6},
+                DOBT_DL_GRD_CD = #{dobtDlGrdCd}, UPD_ID = #{updId}, UPD_DT = SYSDATE
+        WHEN NOT MATCHED THEN
+            INSERT (SSPS_DL_CRT_DT, SSPS_DL_ID, RPR_RSN_CNTNT,
+                    ITEM_CNTNT1, ITEM_CNTNT2, ITEM_CNTNT3,
+                    ITEM_CNTNT4, ITEM_CNTNT5, ITEM_CNTNT6,
+                    DOBT_DL_GRD_CD, UPD_ID, UPD_DT)
+            VALUES (#{sspsDlCrtDt}, #{sspsDlId}, #{rprRsnCntnt},
+                    #{itemCntnt1}, #{itemCntnt2}, #{itemCntnt3},
+                    #{itemCntnt4}, #{itemCntnt5}, #{itemCntnt6},
+                    #{dobtDlGrdCd}, #{updId}, SYSDATE)
+    </update>
+
     <!-- NIC66B 상태 업데이트 -->
     <update id="updateCaseStatus">
         UPDATE NIC66B
         SET RPR_PRGRS_CCD = #{rprPrgrsCcd},
             UPD_ID        = #{updId},
             UPD_DT        = CURRENT_TIMESTAMP
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND SSPS_DL_ID      = #{sspsDlId}
+    </update>
+
+    <!-- Oracle variant -->
+    <update id="updateCaseStatus" databaseId="oracle">
+        UPDATE NIC66B
+        SET RPR_PRGRS_CCD = #{rprPrgrsCcd},
+            UPD_ID        = #{updId},
+            UPD_DT        = SYSDATE
         WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
           AND SSPS_DL_ID      = #{sspsDlId}
     </update>
@@ -186,6 +267,16 @@
           AND SSPS_DL_ID      = #{sspsDlId}
     </update>
 
+    <!-- Oracle variant -->
+    <update id="updateCaseInstId" databaseId="oracle">
+        UPDATE NIC66B
+        SET INST_ID    = #{instId},
+            UPD_ID     = #{updId},
+            UPD_DT     = SYSDATE
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND SSPS_DL_ID      = #{sspsDlId}
+    </update>
+
     <!-- NIC66B FIU 접수 업데이트 -->
     <update id="updateCaseFiu">
         UPDATE NIC66B
@@ -194,6 +285,18 @@
             FIU_RPT_DT    = #{fiuRptDt},
             UPD_ID        = #{updId},
             UPD_DT        = CURRENT_TIMESTAMP
+        WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
+          AND SSPS_DL_ID      = #{sspsDlId}
+    </update>
+
+    <!-- Oracle variant -->
+    <update id="updateCaseFiu" databaseId="oracle">
+        UPDATE NIC66B
+        SET RPR_PRGRS_CCD = '10',
+            FIU_RPT_NO    = #{fiuRptNo},
+            FIU_RPT_DT    = #{fiuRptDt},
+            UPD_ID        = #{updId},
+            UPD_DT        = SYSDATE
         WHERE SSPS_DL_CRT_DT = #{sspsDlCrtDt}
           AND SSPS_DL_ID      = #{sspsDlId}
     </update>
@@ -211,12 +314,36 @@
         )
     </insert>
 
+    <!-- Oracle variant -->
+    <insert id="insertAppr" databaseId="oracle" parameterType="map">
+        INSERT INTO AML_APPR (
+            APP_NO, GYLJ_LINE_G_C, NUM_SQ, APP_DT, SNO, SN_CCD,
+            APPR_ROLE_ID, TARGET_ROLE_ID, RSN_CNTNT,
+            HNDL_DY_TM, HNDL_P_ENO, REG_DT
+        ) VALUES (
+            #{appNo}, #{gyljLineGC}, #{numSq}, #{appDt}, #{sno}, #{snCcd},
+            #{apprRoleId}, #{targetRoleId}, #{rsnCntnt},
+            SYSDATE, #{hndlPEno}, SYSDATE
+        )
+    </insert>
+
     <!-- AML_APPR UPDATE (승인/반려) -->
     <update id="updateAppr" parameterType="map">
         UPDATE AML_APPR
         SET SN_CCD     = #{snCcd},
             RSN_CNTNT  = #{rsnCntnt},
             HNDL_DY_TM = CURRENT_TIMESTAMP,
+            HNDL_P_ENO = #{hndlPEno}
+        WHERE APP_NO        = #{appNo}
+          AND GYLJ_LINE_G_C = #{gyljLineGC}
+    </update>
+
+    <!-- Oracle variant -->
+    <update id="updateAppr" databaseId="oracle" parameterType="map">
+        UPDATE AML_APPR
+        SET SN_CCD     = #{snCcd},
+            RSN_CNTNT  = #{rsnCntnt},
+            HNDL_DY_TM = SYSDATE,
             HNDL_P_ENO = #{hndlPEno}
         WHERE APP_NO        = #{appNo}
           AND GYLJ_LINE_G_C = #{gyljLineGC}
@@ -233,10 +360,27 @@
         )
     </insert>
 
+    <!-- Oracle variant -->
+    <insert id="insertApprHist" databaseId="oracle" parameterType="map">
+        INSERT INTO AML_APPR_HIST (
+            APP_NO, GYLJ_LINE_G_C, NUM_SQ, APP_DT, SNO, SN_CCD,
+            APPR_ROLE_ID, RSN_CNTNT, HNDL_DY_TM, HNDL_P_ENO
+        ) VALUES (
+            #{appNo}, #{gyljLineGC}, #{numSq}, #{appDt}, #{sno}, #{snCcd},
+            #{apprRoleId}, #{rsnCntnt}, SYSDATE, #{hndlPEno}
+        )
+    </insert>
+
     <!-- TMS_SET_VAL_APP INSERT -->
     <insert id="insertSetValApp" parameterType="map">
         INSERT INTO TMS_SET_VAL_APP (APP_NO, SCNR_ID, APP_STS_CCD, REQ_DT, REQ_ID, REG_DT)
         VALUES (#{appNo}, #{scnrId}, #{appStsCcd}, #{reqDt}, #{reqId}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <!-- Oracle variant -->
+    <insert id="insertSetValApp" databaseId="oracle" parameterType="map">
+        INSERT INTO TMS_SET_VAL_APP (APP_NO, SCNR_ID, APP_STS_CCD, REQ_DT, REQ_ID, REG_DT)
+        VALUES (#{appNo}, #{scnrId}, #{appStsCcd}, #{reqDt}, #{reqId}, SYSDATE)
     </insert>
 
     <!-- AML_APPR_HIST 최대 NUM_SQ 조회 -->
@@ -252,6 +396,15 @@
         SET RPR_PRGRS_CCD = #{rprPrgrsCcd},
             UPD_ID        = #{updId},
             UPD_DT        = CURRENT_TIMESTAMP
+        WHERE INST_ID = #{instId}
+    </update>
+
+    <!-- Oracle variant -->
+    <update id="updateStatusByInstId" databaseId="oracle">
+        UPDATE NIC66B
+        SET RPR_PRGRS_CCD = #{rprPrgrsCcd},
+            UPD_ID        = #{updId},
+            UPD_DT        = SYSDATE
         WHERE INST_ID = #{instId}
     </update>
 

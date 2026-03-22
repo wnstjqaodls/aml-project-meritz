@@ -4,15 +4,18 @@
 
 <mapper namespace="com.aml.mapper.RaMapper">
 
+    <!-- RA_ITEM resultMap: 실제 DDL 컬럼 기준 -->
     <resultMap id="ItemResultMap" type="com.aml.domain.RaItem">
-        <result property="raItemCd" column="RA_ITEM_CD"/>
-        <result property="raItemNm" column="RA_ITEM_NM"/>
-        <result property="raItemTp" column="RA_ITEM_TP"/>
-        <result property="maxScr"   column="MAX_SCR"/>
-        <result property="wght"     column="WGHT"/>
-        <result property="useYn"    column="USE_CCD"/>
-        <result property="ordNo"    column="ORD_NO"/>
-        <result property="regDt"    column="REG_DT"/>
+        <result property="raItemCd"  column="RA_ITEM_CD"/>
+        <result property="raItemNm"  column="RA_ITEM_NM"/>
+        <result property="raMdlGbnCd" column="RA_MDL_GBN_CD"/>
+        <result property="reffComnCd" column="REFF_COMN_CD"/>
+        <result property="missValScr" column="MISS_VAL_SCR"/>
+        <result property="intvValYn"  column="INTV_VAL_YN"/>
+        <result property="useYn"      column="USE_YN"/>
+        <result property="srtSq"      column="SRT_SQ"/>
+        <result property="lstAppNo"   column="LST_APP_NO"/>
+        <result property="regDt"      column="REG_DT"/>
     </resultMap>
 
     <resultMap id="ResultMap" type="com.aml.domain.RaResult">
@@ -41,31 +44,58 @@
         <result property="regDt"      column="REG_DT"/>
     </resultMap>
 
+    <!-- 전체 항목 조회 (관리 화면용) -->
     <select id="findAllItems" resultMap="ItemResultMap">
-        SELECT RA_ITEM_CD, RA_ITEM_NM, RA_ITEM_TP, MAX_SCR, WGHT, USE_CCD, ORD_NO, REG_DT
+        SELECT RA_ITEM_CD, RA_ITEM_NM, RA_MDL_GBN_CD, REFF_COMN_CD,
+               MISS_VAL_SCR, INTV_VAL_YN, USE_YN, SRT_SQ, LST_APP_NO, REG_DT
         FROM RA_ITEM
-        ORDER BY ORD_NO ASC
+        ORDER BY SRT_SQ ASC
     </select>
 
+    <!-- 활성 항목 조회 (평가 엔진용) -->
     <select id="findActiveItems" resultMap="ItemResultMap">
-        SELECT RA_ITEM_CD, RA_ITEM_NM, RA_ITEM_TP, MAX_SCR, WGHT, USE_CCD, ORD_NO, REG_DT
+        SELECT RA_ITEM_CD, RA_ITEM_NM, RA_MDL_GBN_CD, REFF_COMN_CD,
+               MISS_VAL_SCR, INTV_VAL_YN, USE_YN, SRT_SQ, LST_APP_NO, REG_DT
         FROM RA_ITEM
-        WHERE USE_CCD = 'Y'
-        ORDER BY ORD_NO ASC
+        WHERE USE_YN = 'Y'
+        ORDER BY SRT_SQ ASC
     </select>
 
+    <!-- 단건 조회 -->
     <select id="findItemById" resultMap="ItemResultMap">
-        SELECT RA_ITEM_CD, RA_ITEM_NM, RA_ITEM_TP, MAX_SCR, WGHT, USE_CCD, ORD_NO, REG_DT
+        SELECT RA_ITEM_CD, RA_ITEM_NM, RA_MDL_GBN_CD, REFF_COMN_CD,
+               MISS_VAL_SCR, INTV_VAL_YN, USE_YN, SRT_SQ, LST_APP_NO, REG_DT
         FROM RA_ITEM
         WHERE RA_ITEM_CD = #{raItemCd}
     </select>
 
+    <!-- 위험평가모델별 가중치 조회 (RA_ITEM_WGHT JOIN RA_ITEM) -->
+    <select id="findItemWeights" resultType="map" parameterType="string">
+        SELECT W.RA_ITEM_CD, W.RA_MDL_GBN_CD, W.WGHT, W.MAX_SCR, W.USE_YN,
+               I.RA_ITEM_NM
+        FROM RA_ITEM_WGHT W
+        JOIN RA_ITEM I ON I.RA_ITEM_CD = W.RA_ITEM_CD
+        WHERE W.RA_MDL_GBN_CD = #{raMdlGbnCd}
+          AND W.USE_YN = 'Y'
+        ORDER BY I.SRT_SQ ASC
+    </select>
+
+    <!-- 점수 → 등급 변환 -->
     <select id="findGradeByScore" resultType="string">
         SELECT RA_GRD
         FROM RA_GRD_STD
-        WHERE #{raScr} >= GRD_SCR_MIN
+        WHERE #{raScr} &gt;= GRD_SCR_MIN
           AND #{raScr} &lt;= GRD_SCR_MAX
         LIMIT 1
+    </select>
+
+    <!-- Oracle variant: ROWNUM instead of LIMIT 1 -->
+    <select id="findGradeByScore" databaseId="oracle" resultType="string">
+        SELECT RA_GRD
+        FROM RA_GRD_STD
+        WHERE #{raScr} &gt;= GRD_SCR_MIN
+          AND #{raScr} &lt;= GRD_SCR_MAX
+          AND ROWNUM = 1
     </select>
 
     <insert id="insertResult" parameterType="com.aml.domain.RaResult" useGeneratedKeys="true" keyProperty="raId">
@@ -76,9 +106,24 @@
         )
     </insert>
 
+    <!-- Oracle variant -->
+    <insert id="insertResult" databaseId="oracle" parameterType="com.aml.domain.RaResult" useGeneratedKeys="true" keyProperty="raId">
+        INSERT INTO RA_RESULT (
+            RNMCNO, EVAL_DT, RA_GRD, RA_SCR, EDD_F, NEXT_EVAL_DT, REMARK, REG_ID, REG_DT
+        ) VALUES (
+            #{custNo}, #{evalDt}, #{raGrd}, #{raScr}, #{eddYn}, #{nextEvalDt}, #{remark}, #{regId}, SYSDATE
+        )
+    </insert>
+
     <insert id="insertResultDetail" parameterType="com.aml.domain.RaResultDetail" useGeneratedKeys="true" keyProperty="raDtlId">
         INSERT INTO RA_RESULT_DTL (RA_ID, RA_ITEM_CD, ITEM_VAL, ITEM_SCR, ITEM_WGHT, ITEM_LST_SCR, REG_DT)
         VALUES (#{raId}, #{raItemCd}, #{itemVal}, #{itemScr}, #{itemWght}, #{itemLstScr}, CURRENT_TIMESTAMP)
+    </insert>
+
+    <!-- Oracle variant -->
+    <insert id="insertResultDetail" databaseId="oracle" parameterType="com.aml.domain.RaResultDetail" useGeneratedKeys="true" keyProperty="raDtlId">
+        INSERT INTO RA_RESULT_DTL (RA_ID, RA_ITEM_CD, ITEM_VAL, ITEM_SCR, ITEM_WGHT, ITEM_LST_SCR, REG_DT)
+        VALUES (#{raId}, #{raItemCd}, #{itemVal}, #{itemScr}, #{itemWght}, #{itemLstScr}, SYSDATE)
     </insert>
 
     <select id="findResultById" resultMap="ResultMap">
@@ -104,6 +149,28 @@
         </if>
         ORDER BY REG_DT DESC
         LIMIT #{size} OFFSET #{offset}
+    </select>
+
+    <!-- Oracle variant: ROWNUM-based pagination -->
+    <select id="findResultByParams" databaseId="oracle" resultMap="ResultMap" parameterType="map">
+        SELECT * FROM (
+            SELECT ROWNUM AS RN, T.* FROM (
+                SELECT RA_ID, RNMCNO, EVAL_DT, RA_GRD, RA_SCR, EDD_F, NEXT_EVAL_DT,
+                       REMARK, REG_ID, REG_DT, UPD_ID, UPD_DT
+                FROM RA_RESULT
+                WHERE 1=1
+                <if test="custNo != null and custNo != ''">
+                    AND RNMCNO = #{custNo}
+                </if>
+                <if test="raGrd != null and raGrd != ''">
+                    AND RA_GRD = #{raGrd}
+                </if>
+                <if test="eddYn != null and eddYn != ''">
+                    AND EDD_F = #{eddYn}
+                </if>
+                ORDER BY REG_DT DESC
+            ) T WHERE ROWNUM &lt;= #{offset} + #{size}
+        ) WHERE RN &gt; #{offset}
     </select>
 
     <select id="countResultByParams" resultType="long" parameterType="map">
@@ -145,6 +212,20 @@
         WHERE RNMCNO = #{custNo}
         ORDER BY REG_DT DESC
         LIMIT 1
+    </select>
+
+    <!-- Oracle variant: ROWNUM = 1 replaces LIMIT 1 -->
+    <select id="findLatestResultByCustNo" databaseId="oracle" resultMap="ResultMap">
+        SELECT RA_ID, RNMCNO, EVAL_DT, RA_GRD, RA_SCR, EDD_F, NEXT_EVAL_DT,
+               REMARK, REG_ID, REG_DT, UPD_ID, UPD_DT
+        FROM (
+            SELECT RA_ID, RNMCNO, EVAL_DT, RA_GRD, RA_SCR, EDD_F, NEXT_EVAL_DT,
+                   REMARK, REG_ID, REG_DT, UPD_ID, UPD_DT
+            FROM RA_RESULT
+            WHERE RNMCNO = #{custNo}
+            ORDER BY REG_DT DESC
+        )
+        WHERE ROWNUM = 1
     </select>
 
 </mapper>

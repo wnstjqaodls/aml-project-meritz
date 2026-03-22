@@ -1,5 +1,5 @@
--- AMLXpress7 Database Schema (H2 compatible, original Oracle naming)
--- Table names and column names match production AMLXpress7 Oracle DB
+-- AMLXpress7 Database Schema (H2 compatible, production Oracle naming)
+-- Reverse-engineered from DDL.txt, XML mappers, and Java source analysis
 
 -- ============================================================
 -- NIC92B: Common Code
@@ -85,20 +85,29 @@ CREATE TABLE IF NOT EXISTS NIC35B (
 );
 
 -- ============================================================
--- NIC19B_FACTIVA_UA: Watchlist
+-- NIC19B_FACTIVA_UA: Watchlist (20 columns from WLFLoaderTest.java)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS NIC19B_FACTIVA_UA (
-    WLF_UNIQ_NO          BIGINT       AUTO_INCREMENT PRIMARY KEY,
-    WLF_FLNM_CNTT        VARCHAR(200),
-    WLF_FIRST_NAME_CNTT  VARCHAR(100),
-    WLF_MIDDLE_NAME_CNTT VARCHAR(100),
-    WLF_LAST_NAME_CNTT   VARCHAR(100),
-    WLF_NTNT_CNTT        VARCHAR(5),
-    SPLM_DATE            VARCHAR(8),
-    SANCTION_TP          VARCHAR(50),
-    LIST_DT              VARCHAR(8),
-    USE_CCD              CHAR(1)      DEFAULT 'Y',
-    REG_DT               TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+    WLF_UNIQ_NO            BIGINT        AUTO_INCREMENT PRIMARY KEY,
+    WLF_ISTU_CLS_CNTT      VARCHAR(50),   -- category: SIE/UN/RCA/SIP/KFSC/W180/UN-FINCEN/EURO/FATF/KFIU/PEPs/ETC/OFAC
+    WLF_FLNM_CNTT          VARCHAR(200),  -- full name
+    WLF_RLNM_CNTT          VARCHAR(200),  -- real name
+    WLF_FCNM_CNTT          VARCHAR(200),  -- foreign name
+    WLF_RSPS_CNTT          VARCHAR(200),  -- response content (e.g. "See previous Roles", "Deceased")
+    WLF_NTNT_CNTT          VARCHAR(10),   -- nationality code
+    WLF_ADDR_CNTT          VARCHAR(500),  -- address
+    WLF_RGNO_CNTT          VARCHAR(30),   -- registration number
+    WLF_POB_CNTT           VARCHAR(20),   -- date of birth (yyyyMMdd)
+    WLF_BRTH_NTNL_CNTT     VARCHAR(100),  -- birth nationality
+    WLF_BRTH_CITY_CNTT     VARCHAR(100),  -- birth city
+    WLF_SPLM_INFO_CNTT     VARCHAR(500),  -- supplementary information
+    FLXB_YN                CHAR(1)        DEFAULT 'N',  -- flexible flag
+    SPLM_DATE              VARCHAR(8),    -- supplement date (yyyyMMdd)
+    DEL_DATE               VARCHAR(8),    -- deletion date (yyyyMMdd)
+    MNPL_YMDH              TIMESTAMP,     -- manipulation datetime
+    WLF_FIRST_NAME_CNTT    VARCHAR(100),  -- first name
+    WLF_MIDDLE_NAME_CNTT   VARCHAR(100),  -- middle name
+    WLF_LAST_NAME_CNTT     VARCHAR(100)   -- last name
 );
 
 -- ============================================================
@@ -314,6 +323,19 @@ CREATE TABLE IF NOT EXISTS NIC58B (
 );
 
 -- ============================================================
+-- NIC93B_LOG: Batch Job Log (referenced in AML_00.xml)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS NIC93B_LOG (
+    JOB_DT     VARCHAR(14) NOT NULL,  -- yyyyMMddHHmmss
+    JOB_ID     VARCHAR(10) NOT NULL,  -- e.g. B70001, B70002
+    JOB_ST_CD  CHAR(1)     DEFAULT '0',  -- 0=start, 1=complete, 9=error
+    JOB_MSG    VARCHAR(1000),
+    JOB_CNT    INT         DEFAULT 0,
+    REG_DT     TIMESTAMP   DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (JOB_DT, JOB_ID)
+);
+
+-- ============================================================
 -- KYC_CUST: KYC Customer Verification
 -- ============================================================
 CREATE TABLE IF NOT EXISTS KYC_CUST (
@@ -447,17 +469,39 @@ CREATE TABLE IF NOT EXISTS AML_APPR_HIST (
 );
 
 -- ============================================================
--- RA_ITEM: Risk Assessment Item
+-- RA_ITEM: Risk Assessment Item Master
+-- Based on actual SSQ.RA_ITEM DDL.txt columns
 -- ============================================================
 CREATE TABLE IF NOT EXISTS RA_ITEM (
-    RA_ITEM_CD VARCHAR(20)  PRIMARY KEY,
-    RA_ITEM_NM VARCHAR(100) NOT NULL,
-    RA_ITEM_TP VARCHAR(20),
-    MAX_SCR    DECIMAL(10,2),
-    WGHT       DECIMAL(5,2),
-    USE_CCD    CHAR(1)      DEFAULT 'Y',
-    ORD_NO     INT,
-    REG_DT     TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+    RA_ITEM_CD    VARCHAR(10)   PRIMARY KEY,
+    LST_APP_NO    VARCHAR(10),
+    RA_ITEM_NM    VARCHAR(100),
+    RA_MDL_GBN_CD VARCHAR(10)   NOT NULL,  -- Risk model type code (A040: INDI/CORP/FORE/ETC)
+    REFF_COMN_CD  VARCHAR(4),              -- Reference common code
+    MISS_VAL_SCR  DECIMAL(9,2)  DEFAULT 0, -- Missing value score
+    INTV_VAL_YN   CHAR(1)       DEFAULT 'N', -- Interval value flag
+    USE_YN        CHAR(1)       DEFAULT 'Y',
+    SRT_SQ        INT,
+    REG_ID        VARCHAR(20),
+    REG_DT        TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    UPD_ID        VARCHAR(20),
+    UPD_DT        TIMESTAMP
+);
+
+-- ============================================================
+-- RA_ITEM_WGHT: RA Item Weight Management (separate from RA_ITEM)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS RA_ITEM_WGHT (
+    RA_ITEM_CD    VARCHAR(10)  NOT NULL,
+    RA_MDL_GBN_CD VARCHAR(10)  NOT NULL,  -- INDI=individual, CORP=corporate
+    WGHT          DECIMAL(5,2) DEFAULT 0,
+    MAX_SCR       DECIMAL(9,2) DEFAULT 0,
+    LST_APP_NO    VARCHAR(10),
+    APP_DT        VARCHAR(8),
+    SN_CCD        CHAR(1)      DEFAULT 'N',  -- approval status
+    USE_YN        CHAR(1)      DEFAULT 'Y',
+    REG_DT        TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (RA_ITEM_CD, RA_MDL_GBN_CD)
 );
 
 -- ============================================================
@@ -494,7 +538,7 @@ CREATE TABLE IF NOT EXISTS RA_RESULT (
 CREATE TABLE IF NOT EXISTS RA_RESULT_DTL (
     RA_DTL_ID    BIGINT       AUTO_INCREMENT PRIMARY KEY,
     RA_ID        BIGINT       NOT NULL,
-    RA_ITEM_CD   VARCHAR(20),
+    RA_ITEM_CD   VARCHAR(10),
     ITEM_VAL     VARCHAR(100),
     ITEM_SCR     DECIMAL(10,2),
     ITEM_WGHT    DECIMAL(5,2),
@@ -503,17 +547,83 @@ CREATE TABLE IF NOT EXISTS RA_RESULT_DTL (
 );
 
 -- ============================================================
+-- RA_RISK_FACTOR: ML/TF Risk Factor Master
+-- ============================================================
+CREATE TABLE IF NOT EXISTS RA_RISK_FACTOR (
+    RISK_CATG1_C      VARCHAR(10)   NOT NULL,  -- Risk category Lv1
+    RISK_CATG2_C      VARCHAR(10)   NOT NULL,  -- Risk category Lv2
+    RISK_ELMT_C       VARCHAR(10)   NOT NULL,  -- Risk element code
+    RISK_ELMT_NM      VARCHAR(400)  NOT NULL,  -- Risk element name
+    RISK_INDI         CHAR(1),                 -- Apply to individual
+    RISK_CORP         CHAR(1),                 -- Apply to corporate
+    RISK_VAL_ITEM     VARCHAR(100),            -- Assessment item
+    RISK_VAL_CAL_STD  VARCHAR(100),            -- Assessment standard
+    RISK_APPL_YN      CHAR(1)       DEFAULT 'Y',
+    RISK_APPL_MODEL_I CHAR(1)       DEFAULT 'N',  -- Apply individual model
+    RISK_APPL_MODEL_B CHAR(1)       DEFAULT 'N',  -- Apply corporate model
+    RISK_HRSK_YN      CHAR(1)       DEFAULT 'N',  -- Mandatory EDD flag
+    RISK_SCR          DECIMAL(6,4),
+    RISK_RSN_DESC     VARCHAR(4000),
+    RISK_RMRK         VARCHAR(4000),
+    RISK_REG_DT       TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+    RISK_REG_ID       VARCHAR(20),
+    RISK_UPD_DT       TIMESTAMP,
+    RISK_UPD_ID       VARCHAR(20),
+    PRIMARY KEY (RISK_CATG1_C, RISK_CATG2_C, RISK_ELMT_C)
+);
+
+-- ============================================================
+-- RA_ITEM_NTN: Country Risk Score Master
+-- ============================================================
+CREATE TABLE IF NOT EXISTS RA_ITEM_NTN (
+    RA_ITEM_CD         VARCHAR(10)  NOT NULL,
+    RA_ITEM_CODE       VARCHAR(100) NOT NULL,  -- country code (ISO-2)
+    RA_ITEM_NTN_CD     VARCHAR(100),           -- country name
+    RA_ITEM_NM         VARCHAR(200),
+    ABS_HRSK_YN        CHAR(1)      DEFAULT 'N',  -- mandatory high-risk flag
+    RA_ITEM_SCR        DECIMAL(4,2),
+    FATF_BLACK_LIST_YN CHAR(1)      DEFAULT 'N',
+    FATF_GREY_LIST_YN  CHAR(1)      DEFAULT 'N',
+    FINCEN_LIST_YN     CHAR(1)      DEFAULT 'N',
+    UN_SANTIONS_YN     CHAR(1)      DEFAULT 'N',
+    OFAC_SANTIONS_YN   CHAR(1)      DEFAULT 'N',
+    OECD_YN            CHAR(1)      DEFAULT 'N',
+    EU_SANTIONS_YN     CHAR(1)      DEFAULT 'N',
+    EU_HRT_YN          CHAR(1)      DEFAULT 'N',
+    TICPI_CPI_IDX      DECIMAL(4,2),
+    BASEL_RIK_IDX      DECIMAL(4,2),
+    HNDL_DY_TM         TIMESTAMP    DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (RA_ITEM_CD, RA_ITEM_CODE)
+);
+
+-- ============================================================
+-- SRBA_SCHD: RBA Evaluation Schedule (batch schedule)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS SRBA_SCHD (
+    BAS_YYMM        VARCHAR(6)   PRIMARY KEY,  -- base year-month (yyyyMM)
+    VALT_TRN        VARCHAR(2),                -- evaluation round
+    ING_STEP        VARCHAR(5)   DEFAULT '00', -- progress step
+    TGT_TRN_SDT     VARCHAR(8),                -- target period start date
+    TGT_TRN_EDT     VARCHAR(8),                -- target period end date
+    APPR_DT         VARCHAR(8),                -- approval date
+    SCHD_CMPLT_DT   VARCHAR(8),                -- schedule completion date
+    USE_YN          CHAR(1)      DEFAULT 'Y',
+    REG_ID          VARCHAR(20),
+    REG_DT          TIMESTAMP    DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ============================================================
 -- TMS_STATS_DAILY: Daily Statistics Snapshot (app-internal)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS TMS_STATS_DAILY (
-    STATS_DT         VARCHAR(8) NOT NULL,
-    TOTAL_ALERTS     INT DEFAULT 0,
-    NEW_ALERTS       INT DEFAULT 0,
-    REVIEW_ALERTS    INT DEFAULT 0,
-    CLOSED_ALERTS    INT DEFAULT 0,
-    STR_COUNT        INT DEFAULT 0,
-    CTR_COUNT        INT DEFAULT 0,
-    HIGH_RISK_COUNT  INT DEFAULT 0,
+    STATS_DT         VARCHAR(8)   NOT NULL,
+    TOTAL_ALERTS     INT          DEFAULT 0,
+    NEW_ALERTS       INT          DEFAULT 0,
+    REVIEW_ALERTS    INT          DEFAULT 0,
+    CLOSED_ALERTS    INT          DEFAULT 0,
+    STR_COUNT        INT          DEFAULT 0,
+    CTR_COUNT        INT          DEFAULT 0,
+    HIGH_RISK_COUNT  INT          DEFAULT 0,
     TOTAL_DETECT_AMT DECIMAL(20,2),
     PRIMARY KEY (STATS_DT)
 );

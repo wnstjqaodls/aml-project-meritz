@@ -1,0 +1,40 @@
+# Oracle 프로필 (Docker Oracle Free 또는 실제 Oracle 서버)
+# 실행: java -jar aml-backend.jar --spring.profiles.active=oracle
+# 또는: ./mvnw spring-boot:run -Dspring-boot.run.profiles=oracle
+#
+# Docker Oracle 환경변수로 오버라이드 가능:
+#   SPRING_DATASOURCE_URL=jdbc:oracle:thin:@호스트:1521/FREEPDB1
+
+spring:
+  datasource:
+    # Docker Oracle Free 기본값 (gvenzl/oracle-free)
+    url: jdbc:oracle:thin:@localhost:1521/FREEPDB1
+    driver-class-name: oracle.jdbc.OracleDriver
+    username: jbbank
+    password: jbbank
+    hikari:
+      connection-timeout: 30000
+      maximum-pool-size: 10
+      minimum-idle: 2
+
+  # Oracle 연결 시 schema.sql / data.sql 자동 초기화 비활성화
+  # (schema-oracle.sql, data-oracle.sql은 Docker 기동 시 자동 실행)
+  sql:
+    init:
+      mode: never
+
+  # H2 콘솔 비활성화
+  h2:
+    console:
+      enabled: false
+
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+logging:
+  level:
+    com.aml: DEBUG
+    org.mybatis: INFO
