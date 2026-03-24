@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<!-- UTF-8 처리 -->
+
+<!DOCTYPE ejb-service SYSTEM "ejb-service.dtd">
+
+	<ejb-service verbose="true" defaultElement="default">
+
+		<ejb-service-config name="default" deploy="true" loadOnStartup="100" verbose="true" lastModified="1087476546248" target="all.web">
+			<log-type>ONLY_CONSOLE</log-type>
+			<log-level>DEBUG</log-level>
+			<log-location></log-location>
+			<jndi-service-name>default</jndi-service-name>
+			<ejb-is-cache>false</ejb-is-cache>
+		</ejb-service-config>
+
+	</ejb-service>

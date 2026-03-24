@@ -1,0 +1,668 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="proc">
+
+<delete id="deleteVLstRemdrR"  parameterType="schdVO">
+		DELETE FROM SRBA_V_LST_REMDR_R
+		WHERE BAS_YYMM = #{basYymm}
+</delete>
+	
+<delete id="deleteRptValtI"  parameterType="schdVO">
+		DELETE FROM SRBA_RPT_VALT_I
+		WHERE BAS_YYMM = #{basYymm}
+</delete>
+
+<delete id="deleteVProcCntBrno" parameterType="schdVO">
+		DELETE FROM SRBA_V_PROC_CNT_BRNO
+		WHERE BAS_YYMM = #{basYymm}
+</delete>
+	
+<delete id="deleteVRskBasI" parameterType="schdVO">
+		DELETE FROM SRBA_V_RSK_BAS_I
+		WHERE BAS_YYMM = #{basYymm}
+</delete>
+	
+<delete id="deleteVRskR" parameterType="schdVO">
+		DELETE FROM SRBA_V_RSK_R
+		WHERE BAS_YYMM = #{basYymm}
+</delete>
+
+<insert id="insertProcCntBrno" parameterType="schdVO">
+		INSERT INTO SRBA_V_PROC_CNT_BRNO(BAS_YYMM, PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C, BRNO_CNT)    
+		SELECT
+		     M.BAS_YYMM
+		        ,M.PROC_FLD_C
+		        ,M.PROC_LGDV_C
+		        ,M.PROC_MDDV_C
+		        ,M.PROC_SMDV_C   
+		        ,NVL(BRNO_CNT,0) BRNO_CNT
+		FROM
+		(
+		    SELECT 
+		        M.BAS_YYMM
+		        ,M.PROC_FLD_C
+		        ,M.PROC_LGDV_C
+		        ,M.PROC_MDDV_C
+		        ,M.PROC_SMDV_C   
+		    FROM SRBA_V_PROC_M M
+		    WHERE 1=1
+		    AND M.BAS_YYMM = #{basYymm}
+		    AND PROC_FLD_C = '1'
+		    AND M.USYN = 1
+		    AND VALT_METH_C = '1'
+		) M
+		,(
+		    SELECT
+		         BAS_YYMM ,PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C, COUNT(DISTINCT VALT_BRNO) BRNO_CNT
+		    FROM
+		    (
+		        SELECT
+		            BAS_YYMM ,PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C  ,VALT_BRNO ,RSK_INDCT ,VALT_CNT
+		        FROM SRBA_V_RSK_CNT_R
+		        WHERE 1=1
+		        AND BAS_YYMM = #{basYymm}
+		        AND VALT_CNT > 0
+		        ORDER BY BAS_YYMM ,PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C ,VALT_BRNO ,RSK_INDCT
+		    ) M
+		    GROUP BY BAS_YYMM ,PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C  
+		) A
+		WHERE 1=1
+		AND M.PROC_SMDV_C = A.PROC_SMDV_C(+)
+	</insert>
+	
+	
+<!-- 평가 위험별 기준정보 -->
+<insert id="insertVRskBasI" parameterType="schdVO">
+	INSERT INTO SRBA_V_RSK_BAS_I(BAS_YYMM, PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C, RSK_CATG, RSK_FAC, RSK_INDCT, VALT_AVG_V, VALT_STDDEV, DR_DT, DR_TIME, DR_OP_JKW_NO)
+	  SELECT
+		       #{basYymm} BAS_YYMM ,M.PROC_FLD_C, M.PROC_LGDV_C, M.PROC_MDDV_C, M.PROC_SMDV_C, M.RSK_CATG, M.RSK_FAC, M.RSK_INDCT
+		       ,ROUND(INDCT_TOT_VAL / DECODE(BRNO_CNT,'',1,0,1,BRNO_CNT),1) VALT_AVG_V
+		       ,VALT_STDDEV
+		       ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+			   ,TO_CHAR(SYSDATE, 'HH24MISS')
+		       ,'SYSTEM'
+		FROM (SELECT T.PROC_FLD_C, T.PROC_LGDV_C, T.PROC_MDDV_C, T.PROC_SMDV_C ,T.RSK_CATG ,T.RSK_FAC ,T.RSK_INDCT, INDCT_TOT_VAL ,VALT_STDDEV
+		        FROM (SELECT PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C ,RSK_CATG ,RSK_FAC ,RSK_INDCT ,SUM(BRNO_TOT_VAL) INDCT_TOT_VAL <!--  프로세스별 리스크별 합계 -->
+				       FROM (SELECT PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C, VALT_BRNO, RSK_CATG, RSK_FAC, RSK_INDCT, SUM(VALT_CNT) BRNO_TOT_VAL 
+				               FROM SRBA_V_RSK_CNT_R
+				              WHERE 1=1
+				               AND BAS_YYMM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{basYymm},'YYYYMM'), -36),'YYYYMM') AND #{basYymm}
+				             GROUP BY PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C  ,VALT_BRNO ,RSK_CATG ,RSK_FAC ,RSK_INDCT
+				            ) M
+				      WHERE 1=1
+				      GROUP BY PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C ,RSK_CATG ,RSK_FAC ,RSK_INDCT
+				    ) T
+		    		,(SELECT PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C, RSK_CATG, RSK_FAC, RSK_INDCT, ROUND(STDDEV(VALT_CNT),2) VALT_STDDEV --, DECODE(ROUND(STDDEV(VALT_CNT),2),0,1,ROUND(STDDEV(VALT_CNT),2)) VALT_STDDEV
+		        		FROM SRBA_V_RSK_CNT_R
+				       WHERE 1=1        
+				         AND BAS_YYMM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{basYymm},'YYYYMM'), -36),'YYYYMM') AND #{basYymm}
+				       GROUP BY PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C ,RSK_CATG ,RSK_FAC ,RSK_INDCT
+				     ) T1   
+		       WHERE 1=1
+			     AND T.PROC_FLD_C = T1.PROC_FLD_C
+			     AND T.PROC_LGDV_C = T1.PROC_LGDV_C
+			     AND T.PROC_MDDV_C = T1.PROC_MDDV_C
+			     AND T.PROC_SMDV_C = T1.PROC_SMDV_C
+			     AND T.RSK_CATG = T1.RSK_CATG
+			     AND T.RSK_FAC = T1.RSK_FAC
+			     AND T.RSK_INDCT = T1.RSK_INDCT
+			) M
+			,(SELECT PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C, SUM(BRNO_CNT) BRNO_CNT
+		        FROM SRBA_V_PROC_CNT_BRNO
+		       WHERE 1=1
+		    	 AND BAS_YYMM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{basYymm},'YYYYMM'), -36),'YYYYMM') AND #{basYymm}
+		       GROUP BY PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C  
+			) A    
+	   WHERE 1=1
+		 AND M.PROC_FLD_C = A.PROC_FLD_C
+		 AND M.PROC_LGDV_C = A.PROC_LGDV_C
+		 AND M.PROC_MDDV_C = A.PROC_MDDV_C
+		 AND M.PROC_SMDV_C = A.PROC_SMDV_C
+
+	</insert>
+	
+	
+	<!-- ML/TF 자동지표 평가결과 -->
+	<insert id="insertVRskR" parameterType="schdVO">
+		INSERT INTO SRBA_V_RSK_R(BAS_YYMM, PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C, RSK_CATG, RSK_FAC, RSK_INDCT, VALT_BRNO, STD_PNT, H_PNT, RT_PNT, RSK_VALT_PNT, DR_DT, DR_TIME, DR_OP_JKW_NO)
+		SELECT
+		    BAS_YYMM
+		    ,PROC_FLD_C
+		    ,PROC_LGDV_C
+		    ,PROC_MDDV_C
+		    ,PROC_SMDV_C 
+		    ,RSK_CATG 
+		    ,RSK_FAC 
+		    ,RSK_INDCT  
+		    ,VALT_BRNO   
+		    ,STD_PNT
+		    ,H_PNT
+		    ,RT_PNT
+		    ,ROUND((H_PNT * RT_PNT) / 100 ,2) RSK_VALT_PNT
+		    ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		    ,TO_CHAR(SYSDATE, 'HH24MISS')
+		    ,'SYSTEM'
+		FROM (SELECT M.BAS_YYMM
+			        ,M.PROC_FLD_C
+			        ,M.PROC_LGDV_C
+			        ,M.PROC_MDDV_C
+			        ,M.PROC_SMDV_C  
+			        ,M.RSK_CATG 
+			        ,M.RSK_FAC 
+			        ,M.RSK_INDCT
+			        ,VALT_BRNO   
+			        ,STD_PNT
+			        ,(CASE WHEN STD_PNT = 0 THEN 0
+			          ELSE 
+			            (CASE WHEN (14*STD_PNT)+50 &lt; 1 THEN 1
+			                   WHEN (14*STD_PNT)+50 > 100 THEN 100
+			              ELSE (14*STD_PNT)+50 
+			             END) 
+			         END) H_PNT
+			        ,JIPYO_ALLT RT_PNT        
+			    FROM (SELECT BAS_YYMM
+				            ,PROC_FLD_C
+				            ,PROC_LGDV_C
+				            ,PROC_MDDV_C
+				            ,PROC_SMDV_C              
+				            ,RSK_CATG 
+				            ,RSK_FAC 
+				            ,RSK_INDCT 
+				            ,VALT_BRNO  
+				            ,(CASE WHEN VALT_AVG_V = 0 THEN 0 
+				                ELSE ROUND((VALT_CNT - VALT_AVG_V ) / VALT_STDDEV,2)
+				             END) STD_PNT
+				        FROM (SELECT M.BAS_YYMM
+					                ,M.PROC_FLD_C
+					                ,M.PROC_LGDV_C
+					                ,M.PROC_MDDV_C
+					                ,M.PROC_SMDV_C  
+					                ,VALT_BRNO 
+					                ,M.RSK_CATG 
+					                ,M.RSK_FAC 
+					                ,M.RSK_INDCT 
+					                ,VALT_CNT
+					                ,VALT_AVG_V
+					                ,DECODE(VALT_STDDEV,0,1,VALT_STDDEV) AS VALT_STDDEV   --표준편차 
+					            FROM SRBA_V_RSK_CNT_R M ,SRBA_V_RSK_BAS_I A 
+					            WHERE 1=1
+					            AND M.BAS_YYMM = A.BAS_YYMM
+					            AND M.PROC_FLD_C = A.PROC_FLD_C
+					            AND M.PROC_LGDV_C = A.PROC_LGDV_C
+					            AND M.PROC_MDDV_C = A.PROC_MDDV_C
+					            AND M.PROC_SMDV_C = A.PROC_SMDV_C
+					            AND M.RSK_CATG = A.RSK_CATG
+					            AND M.RSK_FAC = A.RSK_FAC
+					            AND M.RSK_INDCT = A.RSK_INDCT        
+					            AND M.BAS_YYMM = #{basYymm}
+					            ORDER BY M.BAS_YYMM , M.PROC_FLD_C , M.PROC_LGDV_C , M.PROC_MDDV_C , M.PROC_SMDV_C , VALT_BRNO  , M.RSK_CATG , M.RSK_FAC , M.RSK_INDCT 
+					       ) M
+			    	) M, SRBA_RSK_ALLT_I C
+			    WHERE 1=1
+			    AND M.BAS_YYMM = C.BAS_YYMM
+			    AND M.RSK_CATG = C.RSK_CATG
+			    AND M.RSK_FAC = C.RSK_FAC
+			    AND M.RSK_INDCT = C.RSK_INDCT
+			) M 
+	</insert>
+	
+	
+	<delete id="deleteVLstRskR" parameterType="schdVO">
+		DELETE FROM SRBA_V_LST_RSK_R
+		WHERE BAS_YYMM = #{basYymm}
+	</delete>
+	
+	
+	<!-- ML/TF 최종 평가결과 -->
+	<insert id="insertVLstRskR" parameterType="schdVO">
+		INSERT INTO SRBA_V_LST_RSK_R(BAS_YYMM, PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C, VALT_BRNO, VALT_PNT, DR_DT, DR_TIME, DR_OP_JKW_NO)
+		SELECT
+		    BAS_YYMM 
+		    ,PROC_FLD_C
+		    ,PROC_LGDV_C
+		    ,PROC_MDDV_C
+		    ,PROC_SMDV_C
+		    ,VALT_BRNO
+		    ,VALT_PNT    
+		    ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		    ,TO_CHAR(SYSDATE, 'HH24MISS')
+		    ,'SYSTEM'
+		FROM
+		(    
+		    SELECT
+		        BAS_YYMM 
+		        ,PROC_FLD_C
+		        ,PROC_LGDV_C
+		        ,PROC_MDDV_C
+		        ,PROC_SMDV_C
+		        ,VALT_BRNO
+		        ,SUM(RSK_VALT_PNT) VALT_PNT
+		    FROM SRBA_V_RSK_R M 
+		    WHERE 1=1
+		    AND BAS_YYMM = #{basYymm}
+		    GROUP BY BAS_YYMM ,PROC_FLD_C ,PROC_LGDV_C ,PROC_MDDV_C ,PROC_SMDV_C ,VALT_BRNO
+		    UNION ALL
+		    SELECT 
+		        BAS_YYMM
+		        ,PROC_FLD_C
+		        ,PROC_LGDV_C
+		        ,PROC_MDDV_C
+		        ,PROC_SMDV_C
+		        ,VALT_BRNO
+		        ,RSK_VALT_PNT
+		    FROM SRBA_V_HRSK_R
+		    WHERE 1=1
+		    AND BAS_YYMM = #{basYymm}
+		    ORDER BY VALT_BRNO ,PROC_SMDV_C
+		) M
+		
+	</insert>
+	
+	
+	<!-- ML/TF 최종 평가결과 백분위 업데이트 -->
+	<update id="updateVLstRskR" parameterType="schdVO">
+		UPDATE SRBA_V_LST_RSK_R M
+		SET RSK_VALT_RT =
+		(
+		    SELECT RSK_VALT_RT
+		    FROM
+		    (    
+		        SELECT
+		            BAS_YYMM 
+		            ,PROC_FLD_C
+		            ,PROC_LGDV_C
+		            ,PROC_MDDV_C
+		            ,PROC_SMDV_C
+		            ,VALT_BRNO
+		            ,VALT_PNT
+		            ,ROUND(PERCENT_RANK() OVER(PARTITION BY PROC_SMDV_C ORDER BY VALT_PNT) * 100,2) RSK_VALT_RT
+		        FROM SRBA_V_LST_RSK_R M 
+		        WHERE 1=1    
+		        AND BAS_YYMM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{basYymm},'YYYYMM'), -36),'YYYYMM') AND #{basYymm}
+		        ORDER BY VALT_BRNO ,PROC_SMDV_C
+		    ) T
+		    WHERE T.BAS_YYMM = #{basYymm}
+		    AND M.BAS_YYMM  = T.BAS_YYMM
+		    AND M.PROC_FLD_C = T.PROC_FLD_C
+		    AND M.PROC_LGDV_C = T.PROC_LGDV_C
+		    AND M.PROC_MDDV_C = T.PROC_MDDV_C
+		    AND M.PROC_SMDV_C = T.PROC_SMDV_C
+		    AND M.VALT_BRNO = T.VALT_BRNO       
+		)
+		WHERE BAS_YYMM = #{basYymm}
+	</update>
+	
+	
+	
+	<!-- 내부통재 백분위 업데이트 -->
+	<update id="updateVTongjeR" parameterType="schdVO">
+		UPDATE SRBA_V_TONGJE_R M
+		SET TONGJE_VALT_RT =
+		        (
+		            SELECT TONGJE_VALT_RT
+		            FROM
+		            (    
+		                SELECT 
+		                     BAS_YYMM ,TONGJE_FLD_C, TONGJE_LGDV_C, TONGJE_MDDV_C, TONGJE_SMDV_C ,VALT_BRNO
+		                    ,TONGJE_VALT_PNT
+		                    ,ROUND(PERCENT_RANK() OVER(PARTITION BY TONGJE_SMDV_C ORDER BY   TONGJE_VALT_PNT ) * 100,2) TONGJE_VALT_RT
+		                FROM SRBA_V_TONGJE_R
+		                WHERE 1=1
+		                AND BAS_YYMM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{basYymm},'YYYYMM'), -36),'YYYYMM') AND #{basYymm}
+		                ORDER BY TONGJE_SMDV_C, VALT_BRNO 
+		            ) T
+		            WHERE T.BAS_YYMM = #{basYymm}
+		            AND M.BAS_YYMM  = T.BAS_YYMM
+		            AND M.TONGJE_FLD_C = T.TONGJE_FLD_C
+		            AND M.TONGJE_LGDV_C = T.TONGJE_LGDV_C
+		            AND M.TONGJE_MDDV_C = T.TONGJE_MDDV_C
+		            AND M.TONGJE_SMDV_C = T.TONGJE_SMDV_C
+		            AND M.VALT_BRNO = T.VALT_BRNO       
+		        )
+		WHERE BAS_YYMM = #{basYymm}
+	</update>
+	
+	
+	<delete id="deleteVProcTongjeR"  parameterType="schdVO">
+		DELETE FROM SRBA_V_PROC_TONGJE_R
+		WHERE BAS_YYMM = #{basYymm}
+	</delete>
+	
+	<delete id="deleteVRemdrR"  parameterType="schdVO">
+		DELETE FROM SRBA_V_REMDR_R
+		WHERE BAS_YYMM = #{basYymm}
+	</delete>
+	
+	
+	<!-- 프로세스별 통재결과 등록 -->
+	<insert id="insertVProcTongjeR" parameterType="schdVO">
+		INSERT INTO SRBA_V_PROC_TONGJE_R(BAS_YYMM, PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C, VALT_BRNO, TONGJE_VALT_PNT, DR_DT, DR_TIME, DR_OP_JKW_NO)
+		SELECT
+		     M.BAS_YYMM
+		     ,M.PROC_FLD_C
+		     ,M.PROC_LGDV_C
+		     ,M.PROC_MDDV_C
+		     ,M.PROC_SMDV_C
+		     ,VALT_BRNO
+		     ,NVL(TONGJE_VALT_PNT+DEPT_VALT_PNT, 0) TONGJE_VALT_PNT
+		     ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		     ,TO_CHAR(SYSDATE, 'HH24MISS')
+		     ,'SYSTEM'
+		FROM
+		(  
+		    SELECT
+		        M.BAS_YYMM 
+		        ,PROC_FLD_C 
+		        ,PROC_LGDV_C
+		        ,PROC_MDDV_C
+		        ,PROC_SMDV_C
+		        ,VALT_BRNO 
+		        ,SUM(TONGJE_VALT_PNT)TONGJE_VALT_PNT
+		    FROM
+		    (
+		        SELECT
+		             M.BAS_YYMM
+		            ,M.PROC_FLD_C
+		            ,M.PROC_LGDV_C
+		            ,M.PROC_MDDV_C
+		            ,M.PROC_SMDV_C
+		            ,TONGJE_FLD_C
+		            ,TONGJE_LGDV_C
+		            ,TONGJE_MDDV_C
+		        FROM SRBA_V_PROC_M M ,SRBA_PROC_TJ_MP A
+		        WHERE 1=1
+		        AND BAS_YYMM = #{basYymm}
+		        AND M.PROC_FLD_C = A.PROC_FLD_C
+		        AND M.PROC_LGDV_C = A.PROC_LGDV_C
+		        AND M.PROC_MDDV_C = A.PROC_MDDV_C
+		        AND M.PROC_SMDV_C = A.PROC_SMDV_C
+		        AND USYN = 1
+		    ) M ,SRBA_V_TONGJE_R A
+		    WHERE 1=1
+		    AND M.BAS_YYMM = A.BAS_YYMM
+		    AND M.TONGJE_FLD_C = A.TONGJE_FLD_C
+		    AND M.TONGJE_LGDV_C = A.TONGJE_LGDV_C
+		    AND M.TONGJE_MDDV_C = A.TONGJE_MDDV_C    
+		    AND M.BAS_YYMM = #{basYymm}
+		    AND VALT_BRNO NOT IN ( SELECT DTL_C FROM SRBA_DTL_C WHERE GRP_C = 'R999' )          
+		    GROUP BY  M.BAS_YYMM ,PROC_FLD_C ,PROC_LGDV_C ,PROC_MDDV_C ,PROC_SMDV_C ,VALT_BRNO     
+		) M
+		,(
+		    SELECT
+		        M.BAS_YYMM 
+		        ,PROC_FLD_C 
+		        ,PROC_LGDV_C
+		        ,PROC_MDDV_C
+		        ,PROC_SMDV_C
+		        ,SUM(TONGJE_VALT_PNT) DEPT_VALT_PNT
+		    FROM
+		    (
+		        SELECT
+		             M.BAS_YYMM
+		            ,M.PROC_FLD_C
+		            ,M.PROC_LGDV_C
+		            ,M.PROC_MDDV_C
+		            ,M.PROC_SMDV_C
+		            ,TONGJE_FLD_C
+		            ,TONGJE_LGDV_C
+		            ,TONGJE_MDDV_C
+		        FROM SRBA_V_PROC_M M ,SRBA_PROC_TJ_MP A
+		        WHERE 1=1
+		        AND BAS_YYMM = #{basYymm}
+		        AND M.PROC_FLD_C = A.PROC_FLD_C
+		        AND M.PROC_LGDV_C = A.PROC_LGDV_C
+		        AND M.PROC_MDDV_C = A.PROC_MDDV_C
+		        AND M.PROC_SMDV_C = A.PROC_SMDV_C
+		        AND USYN = 1
+		    ) M ,SRBA_V_TONGJE_R A
+		    WHERE 1=1
+		    AND M.BAS_YYMM = A.BAS_YYMM
+		    AND M.TONGJE_FLD_C = A.TONGJE_FLD_C
+		    AND M.TONGJE_LGDV_C = A.TONGJE_LGDV_C
+		    AND M.TONGJE_MDDV_C = A.TONGJE_MDDV_C    
+		    AND M.BAS_YYMM = #{basYymm} 
+		    AND VALT_BRNO  IN ( SELECT DTL_C FROM SRBA_DTL_C WHERE GRP_C = 'R999' )          
+		    GROUP BY  M.BAS_YYMM ,PROC_FLD_C ,PROC_LGDV_C ,PROC_MDDV_C ,PROC_SMDV_C  
+		) A   
+		WHERE M.BAS_YYMM = A.BAS_YYMM     
+		AND M.PROC_FLD_C = A.PROC_FLD_C
+		AND M.PROC_LGDV_C = A.PROC_LGDV_C
+		AND M.PROC_MDDV_C = A.PROC_MDDV_C
+		AND M.PROC_SMDV_C = A.PROC_SMDV_C
+	
+	</insert>
+	
+	
+	<!-- 프로세스별 통재결과 백분위 업데이트 -->
+	<update id="updateVProcTongjeR" parameterType="schdVO">
+		UPDATE SRBA_V_PROC_TONGJE_R M
+        SET TONGJE_VALT_RT =
+                (
+                    SELECT TONGJE_VALT_RT
+                    FROM
+                    (    
+                        SELECT 
+                             BAS_YYMM ,PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C ,VALT_BRNO
+                            ,TONGJE_VALT_PNT
+                            ,ROUND(PERCENT_RANK() OVER(PARTITION BY PROC_SMDV_C ORDER BY   TONGJE_VALT_PNT ) * 100,2) TONGJE_VALT_RT
+                        FROM SRBA_V_PROC_TONGJE_R
+                        WHERE 1=1
+                        AND BAS_YYMM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{basYymm},'YYYYMM'), -36),'YYYYMM') AND #{basYymm}
+                        ORDER BY PROC_SMDV_C, VALT_BRNO 
+                    ) T
+                    WHERE T.BAS_YYMM = #{basYymm}
+                    AND M.BAS_YYMM = T.BAS_YYMM
+                    AND M.PROC_FLD_C = T.PROC_FLD_C
+                    AND M.PROC_LGDV_C = T.PROC_LGDV_C
+                    AND M.PROC_MDDV_C = T.PROC_MDDV_C
+                    AND M.PROC_SMDV_C = T.PROC_SMDV_C
+                    AND M.VALT_BRNO = T.VALT_BRNO       
+		        )
+		WHERE BAS_YYMM = #{basYymm}
+	</update>
+	
+	
+	
+	<!-- 잔여위험 결과 등록 -->
+	<insert id="insertVRemdrR" parameterType="schdVO">
+		INSERT INTO SRBA_V_REMDR_R(BAS_YYMM, PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C, VALT_BRNO, RSK_VALT_PNT, RSK_VALT_RT, TONGJE_VALT_PNT, TONGJE_VALT_RT, REMDR_RSK_PNT, REMDR_RSK_GD_C, DR_DT, DR_TIME, DR_OP_JKW_NO)
+		SELECT
+		    BAS_YYMM
+		    ,PROC_FLD_C
+		    ,PROC_LGDV_C
+		    ,PROC_MDDV_C
+		    ,PROC_SMDV_C
+		    ,VALT_BRNO
+		    ,RSK_VALT_PNT
+		    ,RSK_VALT_RT
+		    ,TONGJE_VALT_PNT
+		    ,TONGJE_VALT_RT
+		    ,REMDR_RSK_PNT
+		    ,NVL(GET_LEVE_CODE(#{basYymm},REMDR_RSK_PNT),'G') REMDR_RSK_GD_C
+		    ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		    ,TO_CHAR(SYSDATE, 'HH24MISS')
+			,'SYSTEM'
+		FROM
+		(
+		    SELECT 
+		        M.BAS_YYMM
+		        ,M.PROC_FLD_C
+		        ,M.PROC_LGDV_C
+		        ,M.PROC_MDDV_C
+		        ,M.PROC_SMDV_C
+		        ,M.VALT_BRNO
+		        ,VALT_PNT RSK_VALT_PNT
+		        ,RSK_VALT_RT
+		        ,TONGJE_VALT_PNT
+		        ,TONGJE_VALT_RT
+		        ,ROUND((RSK_VALT_RT * (100 -TONGJE_VALT_RT)) / 100 ,2) REMDR_RSK_PNT
+		    FROM SRBA_V_LST_RSK_R M ,SRBA_V_PROC_TONGJE_R A 
+		    WHERE 1=1
+		    AND M.BAS_YYMM = A.BAS_YYMM
+		    AND M.PROC_FLD_C = A.PROC_FLD_C
+		    AND M.PROC_LGDV_C = A.PROC_LGDV_C
+		    AND M.PROC_MDDV_C = A.PROC_MDDV_C
+		    AND M.PROC_SMDV_C = A.PROC_SMDV_C
+		    AND M.VALT_BRNO = A.VALT_BRNO
+		    -- AND M.VALT_BRNO NOT IN ( SELECT DTL_C FROM SRBA_DTL_C WHERE GRP_C = 'R999' )        
+		    AND M.BAS_YYMM = #{basYymm}
+		) M    
+	</insert>
+	
+		<!-- 최종(지점별) 잔여위험 결과 등록 -->
+	<insert id="insertVLstRemdrR" parameterType="schdVO">
+		INSERT INTO SRBA_V_LST_REMDR_R(BAS_YYMM, VALT_BRNO, RSK_VALT_PNT, RSK_VALT_RT, TONGJE_VALT_PNT, TONGJE_VALT_RT, REMDR_RSK_PNT, REMDR_RSK_GD_C, DR_DT, DR_TIME, DR_OP_JKW_NO)
+		SELECT BAS_YYMM,		
+			   VALT_BRNO,    		
+		       ROUND(AVG(RSK_VALT_PNT),2) AS RSK_VALT_PNT,		
+		       ROUND(AVG(RSK_VALT_RT),2) AS RSK_VALT_RT,		
+		       ROUND(AVG(TONGJE_VALT_PNT),2) AS TONGJE_VALT_PNT,		
+		       ROUND(AVG(TONGJE_VALT_RT),2) AS TONGJE_VALT_RT,		
+		       (CASE WHEN VALT_BRNO IN (SELECT DTL_C FROM SRBA_DTL_C WHERE GRP_C = 'R328') THEN ROUND(AVG(TONGJE_VALT_RT),2)		
+		            ELSE  ROUND(AVG(RSK_VALT_RT)*(100-AVG(TONGJE_VALT_RT))/100,2)		
+		       END) AS REMDR_RSK_PNT,		
+		       (CASE WHEN VALT_BRNO IN (SELECT DTL_C FROM SRBA_DTL_C WHERE GRP_C = 'R328') THEN
+				            CASE WHEN AVG(TONGJE_VALT_PNT) &lt; (0.8*AVG(TONGJE_VALT_RT)) THEN 'R'
+				                   WHEN AVG(TONGJE_VALT_PNT) >= (0.8*AVG(TONGJE_VALT_RT)) AND AVG(TONGJE_VALT_PNT) &lt; (0.9*AVG(TONGJE_VALT_RT)) THEN 'Y'
+		              ELSE 'G'END
+		       ELSE NVL(GET_LEVE_CODE(#{basYymm},ROUND(AVG(RSK_VALT_RT)*(100-AVG(TONGJE_VALT_RT))/100,2)),'G') 
+		       END) AS REMDR_RSK_GD_C,		
+		       TO_CHAR(SYSDATE, 'YYYYMMDD'),		
+			   TO_CHAR(SYSDATE, 'HH24MISS'),		
+			   'SYSTEM'		
+		FROM SRBA_V_REMDR_R		
+		WHERE BAS_YYMM = #{basYymm}		
+		GROUP BY BAS_YYMM,VALT_BRNO
+	</insert>
+	
+	<!-- RBA 결과보고 위험평가 등록 -->
+	<insert id="insertRptValtI" parameterType="schdVO">
+	INSERT INTO SRBA_RPT_VALT_I(BAS_YYMM, VALT_YYMM, R5_RSK_R, R5_RSK_Y, R5_RSK_G, R5_TONGJE_R, R5_TONGJE_Y, R5_TONGJE_G, DR_DT, DR_TIME, DR_OP_JKW_NO)
+    SELECT 
+    	BAS_YYMM,
+           BAS_YYMM, 
+            SUM(DECODE(NVL(GET_LEVE_CODE(#{basYymm},RSK_VALT_RT),'G'),'R',1,0))  AS R5_RSK_R,
+            SUM(DECODE(NVL(GET_LEVE_CODE(#{basYymm},RSK_VALT_RT),'G'),'Y',1,0))  AS R5_RSK_Y,
+            SUM(DECODE(NVL(GET_LEVE_CODE(#{basYymm},RSK_VALT_RT),'G'),'G',1,0))  AS R5_RSK_G,
+            SUM(DECODE(NVL(GET_LEVE_CODE(#{basYymm},TONGJE_VALT_RT),'G'),'R',1,0))  AS R5_TONGJE_R,
+            SUM(DECODE(NVL(GET_LEVE_CODE(#{basYymm},TONGJE_VALT_RT),'G'),'Y',1,0))  AS R5_TONGJE_Y,
+            SUM(DECODE(NVL(GET_LEVE_CODE(#{basYymm},TONGJE_VALT_RT),'G'),'G',1,0))  AS R5_TONGJE_G,
+            TO_CHAR(SYSDATE, 'YYYYMMDD'),
+	        TO_CHAR(SYSDATE, 'HH24MISS'),
+	        'SYSTEM'
+       FROM SRBA_V_LST_REMDR_R
+       WHERE BAS_YYMM = #{basYymm}
+        GROUP BY BAS_YYMM	
+	</insert>
+	
+	<!-- 프로세스별 통재결과 (전사부점) 등록 -->
+	<insert id="insertVProcTongHeadqR" parameterType="schdVO">
+		INSERT INTO SRBA_V_PROC_TONGJE_R(BAS_YYMM, PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C, VALT_BRNO, TONGJE_VALT_PNT, TONGJE_VALT_RT, DR_DT, DR_TIME, DR_OP_JKW_NO)
+        SELECT
+             M.BAS_YYMM
+             ,M.PROC_FLD_C
+             ,M.PROC_LGDV_C
+             ,M.PROC_MDDV_C
+             ,M.PROC_SMDV_C
+             ,VALT_BRNO
+             ,NVL(TONGJE_VALT_PNT, 0) TONGJE_VALT_PNT
+             ,( SELECT 
+                    NVL(ROUND(AVG(TONGJE_VALT_PNT),2),0) 
+                FROM SRBA_V_PROC_TONGJE_R
+                WHERE VALT_BRNO = M.VALT_BRNO
+                AND PROC_SMDV_C = M.PROC_SMDV_C
+                AND BAS_YYMM BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{basYymm},'YYYYMM'), -36),'YYYYMM') AND #{basYymm}
+             ) TONGJE_VALT_RT
+             ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+             ,TO_CHAR(SYSDATE, 'HH24MISS')
+             ,'SYSTEM'
+    	FROM
+		(  
+            SELECT
+                M.BAS_YYMM 
+                ,PROC_FLD_C 
+                ,PROC_LGDV_C
+                ,PROC_MDDV_C
+                ,PROC_SMDV_C
+                ,VALT_BRNO 
+                ,SUM(TONGJE_VALT_PNT)TONGJE_VALT_PNT
+            FROM
+            (
+                SELECT
+                     M.BAS_YYMM
+                    ,M.PROC_FLD_C
+                    ,M.PROC_LGDV_C
+                    ,M.PROC_MDDV_C
+                    ,M.PROC_SMDV_C
+                    ,TONGJE_FLD_C
+                    ,TONGJE_LGDV_C
+                    ,TONGJE_MDDV_C
+                FROM SRBA_V_PROC_M M ,SRBA_V_PROC_TJ_MP A
+                WHERE 1=1
+                AND M.BAS_YYMM = #{basYymm}
+                AND M.BAS_YYMM = A.BAS_YYMM
+                AND M.PROC_FLD_C = A.PROC_FLD_C
+                AND M.PROC_LGDV_C = A.PROC_LGDV_C
+                AND M.PROC_MDDV_C = A.PROC_MDDV_C
+                AND M.PROC_SMDV_C = A.PROC_SMDV_C
+                AND M.PROC_FLD_C = '2'
+                AND USYN = 1
+            ) M ,SRBA_V_TONGJE_R A
+            WHERE 1=1
+            AND M.BAS_YYMM = A.BAS_YYMM
+            AND M.TONGJE_FLD_C = A.TONGJE_FLD_C
+            AND M.TONGJE_LGDV_C = A.TONGJE_LGDV_C
+            AND M.TONGJE_MDDV_C = A.TONGJE_MDDV_C    
+            AND M.BAS_YYMM = #{basYymm}
+            AND VALT_BRNO IN ( SELECT DTL_C FROM SRBA_DTL_C WHERE GRP_C = 'R999' )          
+            GROUP BY  M.BAS_YYMM ,PROC_FLD_C ,PROC_LGDV_C ,PROC_MDDV_C ,PROC_SMDV_C ,VALT_BRNO     
+        ) M   
+	</insert>
+	
+	
+	
+	<!-- 잔여위험 결과 (전사부점) 등록 -->
+	<insert id="insertVRemdrHeadqR" parameterType="schdVO">
+		INSERT INTO SRBA_V_REMDR_R(BAS_YYMM, PROC_FLD_C, PROC_LGDV_C, PROC_MDDV_C, PROC_SMDV_C, VALT_BRNO, RSK_VALT_PNT, RSK_VALT_RT, TONGJE_VALT_PNT, TONGJE_VALT_RT, REMDR_RSK_PNT, REMDR_RSK_GD_C, DR_DT, DR_TIME, DR_OP_JKW_NO)
+		SELECT 
+             M.BAS_YYMM
+             ,M.PROC_FLD_C
+             ,M.PROC_LGDV_C
+             ,M.PROC_MDDV_C
+             ,M.PROC_SMDV_C
+             ,M.VALT_BRNO
+             ,0 RSK_VALT_PNT
+             ,0 RSK_VALT_RT
+             ,TONGJE_VALT_PNT
+             ,TONGJE_VALT_RT
+             ,TONGJE_VALT_PNT REMDR_RSK_PNT
+             ,(CASE WHEN TONGJE_VALT_PNT &lt; (0.8*TONGJE_VALT_RT) THEN 'R'
+                    WHEN TONGJE_VALT_PNT >= (0.8*TONGJE_VALT_RT) AND TONGJE_VALT_PNT &lt; (0.9*TONGJE_VALT_RT) THEN 'Y'
+               ELSE 'G'     
+               END) REMDR_RSK_GD_C
+             ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+             ,TO_CHAR(SYSDATE, 'HH24MISS')
+             ,'SYSTEM'
+         FROM SRBA_V_PROC_TONGJE_R M 
+         WHERE 1=1          
+         AND M.VALT_BRNO IN ( SELECT DTL_C FROM SRBA_DTL_C WHERE GRP_C = 'R999' )        
+         AND M.BAS_YYMM = #{basYymm}
+	</insert>
+	
+	<!-- 진행상태 업데이트 -->
+	<update id="updateSchdIngStep" parameterType="schdVO">
+		UPDATE SRBA_VALT_SCHD_M SET ING_STEP = #{ingStep}
+		 WHERE BAS_YYMM = #{basYymm}
+	</update>
+
+	<!-- 최종 잔여위험 결과 체크 (재실행시 사용) -->
+	<select id="selectLastChk" parameterType="schdVO" resultType="int">
+		 SELECT 
+            COUNT(*)
+        FROM SRBA_V_REMDR_R 
+        WHERE 1=1
+        AND BAS_YYMM = #{basYymm}
+	</select>
+
+</mapper>	

@@ -1,0 +1,1753 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper  namespace="AML_20_SS">
+
+<update id="AML_20_01_01_08_DELETE_NIC71B_ACCOUNT" parameterType="hashMap" >
+DELETE FROM NIC71B
+ WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+   AND SSPS_DL_ID = #{SSPS_DL_ID}
+   AND GNL_AC_NO = #{GNL_AC_NO}
+</update>
+
+<update id="AML_20_01_01_08_DELETE_NIC75B_ACCOUNT" parameterType="hashMap" >
+DELETE FROM NIC75B
+ WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+   AND SSPS_DL_ID = #{SSPS_DL_ID}
+   AND GNL_AC_NO = #{GNL_AC_NO}
+</update>
+
+<select id="AML_20_01_01_08_SELECT_NIC61B_CUS" parameterType="hashMap" resultType="DataObj">
+SELECT RNMCNO
+  FROM NIC61B
+ WHERE GNL_AC_NO = #{GNL_AC_NO}
+   AND DL_DT = #{DL_DT}
+   AND DL_SQ = #{DL_SQ}
+</select>
+
+<update id="AML_20_01_01_08_INSERT_NIC70B_CUS" parameterType="hashMap" >
+ INSERT INTO NIC70B
+ ( SSPS_DL_CRT_DT
+ , DL_P_RNMCNO
+ , CS_NO
+ , DL_P_RNM_NO_CCD
+ , DL_P_NM
+ , DL_P_NTNLT_CD
+ , DL_P_NTNLT_NM
+ , RNM_PR_DL_SQ
+ , RNM_PR_TL_DL_CNT
+ , HNDL_DY_TM
+ , HNDL_P_ENO
+ , INDV_CORP_CCD
+ , DL_OBJ_CD
+ )
+  ( SELECT
+  #{SSPS_DL_CRT_DT}
+ , RNMCNO
+ , CS_NO
+ , RNM_CNFR_CCD
+ , CS_NM
+ , NTN_CD
+ , (SELECT CD_NM FROM NIC92B WHERE CD = 'M004' AND CNTNT = RTRIM(T1.NTN_CD))
+ , 0
+ , 0
+ , SYSDATE
+ , #{HNDL_P_ENO}
+ , INDV_CORP_CCD
+ , (SELECT DL_OBJ_CD FROM NIC10B T2 WHERE RNMCNO = T1.RNMCNO)
+  FROM NIC01B T1
+  WHERE RNMCNO = #{RNMCNO}
+    AND NOT EXISTS (
+    	SELECT 1
+    	  FROM NIC70B
+    	 WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+    	   AND DL_P_RNMCNO = #{RNMCNO}
+    )
+ )
+</update>
+
+<update id="AML_20_01_01_08_INSERT_NIC78B_CUS" parameterType="hashMap" >
+INSERT INTO NIC78B
+(SSPS_DL_CRT_DT
+,DL_P_RNMCNO       
+,HNDL_DY_TM
+,HNDL_P_ENO)
+SELECT 
+ #{SSPS_DL_CRT_DT}
+,#{RNMCNO}
+,SYSDATE
+,#{HNDL_P_ENO}
+FROM DUAL
+WHERE 1=1
+    AND NOT EXISTS (
+    	SELECT 1
+    	  FROM NIC78B
+    	 WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+    	   AND DL_P_RNMCNO = #{RNMCNO}
+    )
+</update>
+
+<update id="AML_20_01_01_08_UPDATE_NIC78B_CUS" parameterType="hashMap" >
+UPDATE NIC78B T1
+SET (DL_P_BRTDY
+   , DL_P_SEX_CD
+   , WP_NM
+   , DTY_DPRT_NM
+   , OCPTN_CCD
+   , OCPTN_CCD_NM
+   , CS_PSTN_CD
+   , DL_P_PSPT_NO
+   , IND_TYP_CD
+   , IND_TYP_CD_NM
+   , LG_AMT_ASTS_F
+) = (
+SELECT B.BRTDY
+     , B.SEX_CD
+     , B.WP_NM
+     , B.DTY_DPRT_NM
+     , A.STR_JOB_GUBN
+     , (SELECT CD_NM FROM NIC92B WHERE CD = 'M059' AND CNTNT = A.STR_JOB_GUBN) AS DD1             
+     , B.PSTN_CD
+     , B.PSPT_NO
+     , A.INDST_RSK_DVD_CD
+     , (SELECT CD_NM FROM NIC92B WHERE CD = 'M008' AND CNTNT = RTRIM(A.INDST_RSK_DVD_CD))
+     , A.LG_AMT_ASTS_F
+        
+FROM NIC01B A, NIC02B B
+WHERE A.RNMCNO = T1.DL_P_RNMCNO
+  AND A.RNMCNO = B.RNMCNO
+)
+        
+, (DL_P_HSE_BSC_ADDR, DL_P_HSE_DNG_ADDR, DL_P_HSE_PST_NO)
+  = (
+    SELECT BSC_ADDR, DNG_FLWG_ADDR, PST_NO
+    FROM NIC05B T2
+    WHERE T2.RNMCNO = T1.DL_P_RNMCNO
+      AND T2.ADDR_TYP_CD = '1'
+    )
+        
+, (DL_P_WP_BSC_ADDR, DL_P_WP_DNG_ADDR, DL_P_WP_PST_NO)
+  = (
+    SELECT BSC_ADDR, DNG_FLWG_ADDR, PST_NO
+    FROM NIC05B T2
+    WHERE T2.RNMCNO = T1.DL_P_RNMCNO
+      AND T2.ADDR_TYP_CD = '2'
+    )
+        
+, (DL_P_HSE_NATI, DL_P_HSE_AREA, DL_P_HSE_ECNO, DL_P_HSE_NO)
+  = (
+    SELECT CNTY_NATI_CRYP, CNTY_AREA_CRYP, CNTY_ECNO_CRYP, CNTY_NO_CRYP
+    FROM NIC04B T2
+    WHERE T2.RNMCNO = T1.DL_P_RNMCNO
+      AND T2.CNTC_TYP_CD = '1'
+    )
+        
+, (DL_P_WP_NATI, DL_P_WP_AREA, DL_P_WP_ECNO, DL_P_WP_NO)
+  = (
+    SELECT CNTY_NATI_CRYP, CNTY_AREA_CRYP, CNTY_ECNO_CRYP, CNTY_NO_CRYP
+    FROM NIC04B T2
+    WHERE T2.RNMCNO = T1.DL_P_RNMCNO
+      AND T2.CNTC_TYP_CD = '2'
+    )
+        
+, (DL_P_MBL_NATI, DL_P_MBL_AREA, DL_P_MBL_ECNO, DL_P_MBL_NO)
+  = (
+    SELECT CNTY_NATI_CRYP, CNTY_AREA_CRYP, CNTY_ECNO_CRYP, CNTY_NO_CRYP
+    FROM NIC04B T2
+    WHERE T2.RNMCNO = T1.DL_P_RNMCNO
+      AND T2.CNTC_TYP_CD = '3'
+    )
+        
+, (RPRST_P_RNM_NO, RPRST_P_NM)
+  = (
+    SELECT '' RPRST_P_RNMCNO, RPRST_P_NM
+    FROM NIC03B T2
+    WHERE T2.RNMCNO = T1.DL_P_RNMCNO
+    )
+        
+WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+  AND DL_P_RNMCNO = #{RNMCNO}
+</update>
+
+<update id="AML_20_01_01_08_INSERT_NIC79B_CUS" parameterType="hashMap" >
+INSERT INTO NIC79B
+( SSPS_DL_CRT_DT
+, DL_P_RNMCNO
+, CORP_RGST_NO
+, INDST_RSK_DVD_CD
+, NPRFT_GROUP_F
+, IND_TYP_CD
+, IND_TYP_CD_NM
+, HNDL_DY_TM
+, HNDL_P_ENO
+)
+SELECT
+ #{SSPS_DL_CRT_DT}
+, RNMCNO
+, CORP_RGST_NO
+, INDST_RSK_DVD_CD
+, NPRFT_GROUP_F
+, INDST_RSK_DVD_CD
+, (SELECT CD_NM FROM NIC92B WHERE CD = 'M008' AND CNTNT = RTRIM(INDST_RSK_DVD_CD))
+, SYSDATE
+, #{HNDL_P_ENO}
+ FROM NIC01B
+ WHERE RNMCNO = #{RNMCNO}
+    AND NOT EXISTS (
+    	SELECT 1
+    	  FROM NIC79B
+    	 WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+    	   AND DL_P_RNMCNO = #{RNMCNO}
+    )
+</update>
+
+<update id="AML_20_01_01_08_UPDATE_NIC79B_CUS" parameterType="hashMap" >
+UPDATE NIC79B T1
+ SET (RPRST_P_NM1, RPRST_P_RNM_NO_CCD1
+    , RPRST_P_NTNLT_CD1, RPRST_P_NTNLT_NM1
+    , RPRST_P_BRDY1)
+ = ( SELECT RPRST_P_NM1, '' RPRST_P_RNM_NO_CCD
+          , RPRST_P_NTNLT1, (SELECT CD_NM FROM NIC92B WHERE CD = 'M004' AND CNTNT = RTRIM(RPRST_P_NTNLT1))      
+          , RPRST_P_BRDY1      
+     FROM NIC03B T2
+     WHERE RNMCNO = T1.DL_P_RNMCNO
+ )
+        
+ , (HD_BRNCH_NATI, HD_BRNCH_AREA, HD_BRNCH_ECNO, HD_BRNCH_NO)
+   = (
+     SELECT CNTY_NATI_CRYP, CNTY_AREA_CRYP, CNTY_ECNO_CRYP, CNTY_NO_CRYP
+     FROM NIC04B T2
+     WHERE T2.RNMCNO = T1.DL_P_RNMCNO
+       AND T2.CNTC_TYP_CD = '1'
+     )
+        
+ , (HD_BRNCH_BSC_ADDR, HD_BRNCH_DNG_ADDR, HD_BRNCH_PST_NO)
+   = (
+     SELECT BSC_ADDR, DNG_FLWG_ADDR, PST_NO
+     FROM NIC05B T2
+     WHERE T2.RNMCNO = T1.DL_P_RNMCNO
+       AND T2.ADDR_TYP_CD = '1'
+     )            
+        
+ , (BSNS_CMPNY_NATI, BSNS_CMPNY_AREA, BSNS_CMPNY_ECNO, BSNS_CMPNY_NO)
+   = (
+     SELECT CNTY_NATI_CRYP, CNTY_AREA_CRYP, CNTY_ECNO_CRYP, CNTY_NO_CRYP
+     FROM NIC04B T2
+     WHERE T2.RNMCNO = T1.DL_P_RNMCNO
+       AND T2.CNTC_TYP_CD = '2'
+     ) 
+        
+ , (BSNS_CMPNY_BSC_ADDR, BSNS_CMPNY_DNG_ADDR, BSNS_CMPNY_PST_NO)
+   = (
+     SELECT BSC_ADDR, DNG_FLWG_ADDR, PST_NO
+     FROM NIC05B T2
+     WHERE T2.RNMCNO = T1.DL_P_RNMCNO
+       AND T2.ADDR_TYP_CD = '2'
+     )
+        
+ WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+   AND DL_P_RNMCNO = #{RNMCNO}
+</update>
+
+<update id="AML_20_01_01_08_UPDATE_NIC79B_CU1" parameterType="hashMap" >
+UPDATE NIC79B T1
+ SET ( BSNSG_FNDTN_DT) 
+      = ( SELECT FNDTN_DT 
+     FROM NIC03B T2
+     WHERE RNMCNO = T1.DL_P_RNMCNO
+ )
+ WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+   AND DL_P_RNMCNO = #{RNMCNO}
+</update>
+
+<update id="AML_20_01_01_08_UPDATE_NIC79B_CU2" parameterType="hashMap" >
+UPDATE NIC79B T1
+ SET (ENTP_SCL_CCD, ENTP_SCL_CCD_NM, HMPG_ADDR, LSTNG_F, LSTNG_INFO)
+ = ( SELECT CORP_CCD 
+           , (SELECT CD_NM FROM NIC92B WHERE CD = 'M030' AND CNTNT = RTRIM(CORP_CCD))            
+           , HMPG_ADDR 
+           , CASE WHEN (LSTNG_CLSF_DMSTC_CD IS NOT NULL) THEN '1'
+             WHEN (LSTNG_CLSF_ABRD_CD IS NOT NULL) THEN '1'
+             ELSE '2'
+        END AS LSTNG_F,
+        CASE WHEN (LSTNG_CLSF_DMSTC_CD IS NOT NULL AND LSTNG_CLSF_ABRD_CD IS NOT NULL)
+                  THEN '0' || LSTNG_CLSF_DMSTC_CD  || '||' || '1' || LSTNG_CLSF_ABRD_CD
+             WHEN (LSTNG_CLSF_DMSTC_CD IS NOT NULL) THEN '0' || LSTNG_CLSF_DMSTC_CD
+             WHEN (LSTNG_CLSF_ABRD_CD IS NOT NULL) THEN '1' || LSTNG_CLSF_ABRD_CD
+        END AS  LSTNG_INFO            
+     FROM NIC14B T2
+     WHERE RNMCNO = T1.DL_P_RNMCNO
+ )
+ WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+   AND DL_P_RNMCNO = #{RNMCNO}
+</update>
+
+<update id="AML_20_01_01_08_INSERT_NIC71B_ACC_old" parameterType="hashMap" >
+ MERGE INTO NIC71B A 
+	USING  (
+			SELECT    #{SSPS_DL_CRT_DT} AS SSPS_DL_CRT_DT
+			        , #{SSPS_DL_ID} AS SSPS_DL_ID
+			        , T2.GNL_AC_NO
+			        , SYSDATE AS HNDL_DY_TM
+			        , #{HNDL_P_ENO} AS HNDL_P_ENO
+			        , T2.AC_OPN_DT
+			        , T2.OPN_BRN_CD
+			        , T9.DPRT_NM  AS AC_OPN_BRN_NM
+			        , T9.DPRT_POST_NO AS AC_OPN_BRN_PST_NO
+			        , T2.MNGG_BRN_CD AS MN_DL_DPRT_CD
+			        , (SELECT DPRT_NM FROM NIC41B T3 WHERE DPRT_CD = T2.MNGG_BRN_CD) AS MN_DL_DPRT_NM
+			        , T2.RNMCNO
+			        , (SELECT CS_NM FROM NIC01B WHERE RNMCNO = T2.RNMCNO) AS CS_NM
+			        , T2.AC_RE_OBJ_CCD AS AC_OPN_OBJ_CCD
+			        , T2.ACNT_NO
+			        , T2.PRFT_BRN_CD
+			        , (SELECT DPRT_NM FROM NIC41B WHERE DPRT_CD = T2.PRFT_BRN_CD) AS PRFT_BRN_NM
+			        , (SELECT CASE WHEN COUNT(*) > 0 THEN '1' ELSE '2' END
+			             FROM NIC18B T4
+			            WHERE GNL_AC_NO = #{GNL_AC_NO}) AS AC_OPN_PRXY_F
+			     FROM NIC17B T2, NIC41B T9
+			    WHERE GNL_AC_NO = #{GNL_AC_NO}
+			      AND T2.OPN_BRN_CD = T9.DPRT_CD(+)
+			      AND NOT EXISTS (
+							      		SELECT 1
+							      		  FROM NIC71B
+							      		 WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+							      		   AND SSPS_DL_ID = #{SSPS_DL_ID}
+							      		   AND GNL_AC_NO = #{GNL_AC_NO}
+							      ) 
+	       ) B
+	ON ( A.SSPS_DL_CRT_DT =  #{SSPS_DL_CRT_DT} AND A.SSPS_DL_ID = #{SSPS_DL_ID} AND A.GNL_AC_NO = B.GNL_AC_NO ) 
+ WHEN NOT MATCHED THEN
+	INSERT 
+	 ( SSPS_DL_CRT_DT
+	 , SSPS_DL_ID
+	 , GNL_AC_NO
+	 , HNDL_DY_TM
+	 , HNDL_P_ENO
+	 , AC_OPN_DT
+	 , OPN_BRN_CD
+	 , AC_OPN_BRN_NM
+	 , AC_OPN_BRN_PST_NO
+	 , MN_DL_DPRT_CD
+	 , MN_DL_DPRT_NM
+	 , RNMCNO
+	 , CS_NM
+	 , AC_OPN_OBJ_CCD
+	 , ACNT_NO
+	 , PRFT_BRN_CD
+	 , PRFT_BRN_NM
+	 , AC_OPN_PRXY_F
+	 )
+	 VALUES (
+	   B.SSPS_DL_CRT_DT
+	 , B.SSPS_DL_ID
+	 , B.GNL_AC_NO
+	 , B.HNDL_DY_TM
+	 , B.HNDL_P_ENO
+	 , B.AC_OPN_DT
+	 , B.OPN_BRN_CD
+	 , B.AC_OPN_BRN_NM
+	 , B.AC_OPN_BRN_PST_NO
+	 , B.MN_DL_DPRT_CD
+	 , B.MN_DL_DPRT_NM
+	 , B.RNMCNO
+	 , B.CS_NM
+	 , B.AC_OPN_OBJ_CCD
+	 , B.ACNT_NO
+	 , B.PRFT_BRN_CD
+	 , B.PRFT_BRN_NM
+	 , B.AC_OPN_PRXY_F
+	 )
+</update>
+
+<update id="AML_20_01_01_08_INSERT_NIC75B_TRX_old" parameterType="hashMap" >
+ MERGE INTO NIC75B A
+	 USING (
+			 SELECT
+			   #{SSPS_DL_CRT_DT} AS SSPS_DL_CRT_DT
+			 , #{SSPS_DL_ID} AS SSPS_DL_ID
+			 , T1.GNL_AC_NO
+			 , T1.GDS_NO
+			 , T1.DL_DT
+			 , T1.DL_SQ
+			 , T1.DL_WY_CD
+			 , (SELECT CD_NM FROM NIC92B WHERE CD = 'M046' AND CNTNT = RTRIM(T1.DL_WY_CD)) AS DL_WY_NM
+			 , T1.DL_CHNNL_CD
+			 , (SELECT CD_NM FROM NIC92B WHERE CD = 'M044' AND CNTNT = RTRIM(T1.DL_CHNNL_CD)) AS DL_CHNNL_NM
+			 , '' AS SMRY_TYP_CD
+			 , '' AS SMRY_TYP_NM
+			 , T1.DL_TM
+			 , NVL(T1.DL_AMT,0) AS DL_AMT
+			 , T1.CHCK_AMT
+			 , T1.CSH
+			 , T1.FCRNCY_DL_AMT
+			 , 0 AS USD_EXCH_AMT
+			 , T1.TFND_RA
+			 , T1.CRNCY_CD
+			 , T1.HANDLNG_BRN_CD
+			 , T2.DPRT_NM AS HANDLNG_BRN_NM
+			 , T2.DPRT_POST_NO AS HANDLNG_BRN_PST_NO
+			 , T1.DL_TYP_CD
+			 , '' AS FXCH_DL_OBJ_CD
+			 , SYSDATE AS HNDL_DY_TM
+			 , T1.L_HNDL_P_ENO AS HNDL_P_ENO
+			 , T1.I_AMT_P_NM
+			 , T1.I_AMT_P_RNM_NO
+			 , T1.I_AMT_P_RNM_NO_CCD
+			 , T1.I_AMT_P_TEL_NO
+			 , T1.TRDG_CODE
+			 , T1.DTLS_TRDG_NAME
+			 , T1.FUNS_SCRS_CODE
+			 , T1.TRTY_DTLS_CODE
+			 , T1.ACNT_TYPE_CLSN_CODE
+			 , T1.PRDT_CLSN_CODE
+			 , T1.SERV_CLSN_CODE
+			 , T1.ISUS_PRDT_ID
+			 , T1.RLTV_ACNT_ID
+			 , T1.RNMCNO
+			 , T1.MNGG_BRN_CD
+			 , T1.PRFT_BRN_CD
+			 , T1.GDS_DIT_CD
+			  FROM NIC61B T1, NIC41B T2
+			  WHERE T1.GNL_AC_NO = #{GNL_AC_NO}
+			    AND T1.DL_DT = #{DL_DT}
+			    AND T1.DL_SQ = #{DL_SQ}
+			    AND T1.HANDLNG_BRN_CD = T2.DPRT_CD(+)
+			    AND NOT EXISTS (
+							    	SELECT 1
+							    	  FROM NIC75B
+							    	 WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+									   AND SSPS_DL_ID = #{SSPS_DL_ID}
+									   AND GNL_AC_NO = #{GNL_AC_NO}
+									   AND DL_DT = #{DL_DT}
+									   AND DL_SQ = #{DL_SQ}
+							    ) 
+	       ) B
+	 ON ( A.SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT} AND A.SSPS_DL_ID = #{SSPS_DL_ID} AND A.GNL_AC_NO = B.GNL_AC_NO AND A.DL_DT = B.DL_DT AND A.DL_SQ = B.DL_SQ)
+ WHEN NOT MATCHED THEN 
+	 INSERT  
+	 ( SSPS_DL_CRT_DT
+	 , SSPS_DL_ID
+	 , GNL_AC_NO
+	 , GDS_NO
+	 , DL_DT
+	 , DL_SQ
+	 , DL_WY_CD
+	 , DL_WY_NM
+	 , DL_CHNNL_CD
+	 , DL_CHNNL_NM
+	 , SMRY_TYP_CD
+	 , SMRY_TYP_NM
+	 , DL_TM
+	 , DL_AMT
+	 , CHCK_AMT
+	 , CSH
+	 , FCRNCY_DL_AMT
+	 , USD_EXCH_AMT
+	 , TFND_RA
+	 , CRNCY_CD
+	 , HANDLNG_BRN_CD
+	 , HANDLNG_BRN_NM
+	 , HANDLNG_BRN_PST_NO
+	 , DL_TYP_CD
+	 , FXCH_DL_OBJ_CD
+	 , HNDL_DY_TM
+	 , HNDL_P_ENO
+	 , I_AMT_P_NM
+	 , I_AMT_P_RNM_NO
+	 , I_AMT_P_RNM_NO_CCD
+	 , I_AMT_P_TEL_NO
+	 , TRDG_CODE
+	 , DTLS_TRDG_NAME
+	 , FUNS_SCRS_CODE
+	 , TRTY_DTLS_CODE
+	 , ACNT_TYPE_CLSN_CODE
+	 , PRDT_CLSN_CODE
+	 , SERV_CLSN_CODE
+	 , ISUS_PRDT_ID
+	 , RLTV_ACNT_ID
+	 , RNMCNO
+	 , MNGG_BRN_CD
+	 , PRFT_BRN_CD
+	 , GDS_DIT_CD
+	 )
+	 VALUES (
+	   B.SSPS_DL_CRT_DT
+	 , B.SSPS_DL_ID
+	 , B.GNL_AC_NO
+	 , B.GDS_NO
+	 , B.DL_DT
+	 , B.DL_SQ
+	 , B.DL_WY_CD
+	 , B.DL_WY_NM
+	 , B.DL_CHNNL_CD
+	 , B.DL_CHNNL_NM
+	 , B.SMRY_TYP_CD
+	 , B.SMRY_TYP_NM
+	 , B.DL_TM
+	 , B.DL_AMT
+	 , B.CHCK_AMT
+	 , B.CSH
+	 , B.FCRNCY_DL_AMT
+	 , B.USD_EXCH_AMT
+	 , B.TFND_RA
+	 , B.CRNCY_CD
+	 , B.HANDLNG_BRN_CD
+	 , B.HANDLNG_BRN_NM
+	 , B.HANDLNG_BRN_PST_NO
+	 , B.DL_TYP_CD
+	 , B.FXCH_DL_OBJ_CD
+	 , B.HNDL_DY_TM
+	 , B.HNDL_P_ENO
+	 , B.I_AMT_P_NM
+	 , B.I_AMT_P_RNM_NO
+	 , B.I_AMT_P_RNM_NO_CCD
+	 , B.I_AMT_P_TEL_NO
+	 , B.TRDG_CODE
+	 , B.DTLS_TRDG_NAME
+	 , B.FUNS_SCRS_CODE
+	 , B.TRTY_DTLS_CODE
+	 , B.ACNT_TYPE_CLSN_CODE
+	 , B.PRDT_CLSN_CODE
+	 , B.SERV_CLSN_CODE
+	 , B.ISUS_PRDT_ID
+	 , B.RLTV_ACNT_ID
+	 , B.RNMCNO
+	 , B.MNGG_BRN_CD
+	 , B.PRFT_BRN_CD
+	 , B.GDS_DIT_CD 
+	 )
+</update>
+
+<update id="AML_20_01_01_08_INSERT_NIC71B_ACC" parameterType="hashMap" >
+ INSERT INTO NIC71B
+ ( SSPS_DL_CRT_DT
+ , SSPS_DL_ID
+ , GNL_AC_NO
+ , HNDL_DY_TM
+ , HNDL_P_ENO
+ , AC_OPN_DT
+ , OPN_BRN_CD
+ , AC_OPN_BRN_NM
+ , AC_OPN_BRN_PST_NO
+ , MN_DL_DPRT_CD
+ , MN_DL_DPRT_NM
+ , RNMCNO
+ , CS_NM
+ , AC_OPN_OBJ_CCD
+ , ACNT_NO
+ , PRFT_BRN_CD
+ , PRFT_BRN_NM
+ , AC_OPN_PRXY_F
+ )
+ (
+   SELECT #{SSPS_DL_CRT_DT}
+        , #{SSPS_DL_ID}
+        , T2.GNL_AC_NO
+        , SYSDATE
+        , #{HNDL_P_ENO}
+        , T2.AC_OPN_DT
+        , T2.OPN_BRN_CD
+        , T9.DPRT_NM
+        , T9.DPRT_POST_NO
+        , T2.MNGG_BRN_CD
+        , (SELECT DPRT_NM FROM NIC41B T3 WHERE DPRT_CD = T2.MNGG_BRN_CD)
+        , T2.RNMCNO
+        , (SELECT CS_NM FROM NIC01B WHERE RNMCNO = T2.RNMCNO)
+        , T2.AC_RE_OBJ_CCD
+        , T2.ACNT_NO
+        , T2.PRFT_BRN_CD
+        , (SELECT DPRT_NM FROM NIC41B WHERE DPRT_CD = T2.PRFT_BRN_CD)
+        , (SELECT CASE WHEN COUNT(*) > 0 THEN '1' ELSE '2' END
+             FROM NIC18B T4
+            WHERE GNL_AC_NO = #{GNL_AC_NO})
+     FROM NIC17B T2, NIC41B T9
+    WHERE GNL_AC_NO = #{GNL_AC_NO}
+      AND T2.OPN_BRN_CD = T9.DPRT_CD(+)
+      AND NOT EXISTS (
+      		SELECT 1
+      		  FROM NIC71B
+      		 WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+      		   AND SSPS_DL_ID = #{SSPS_DL_ID}
+      		   AND GNL_AC_NO = #{GNL_AC_NO}
+      )
+ )
+</update>
+
+<update id="AML_20_01_01_08_INSERT_NIC75B_TRX" parameterType="hashMap" >
+ INSERT INTO NIC75B
+ (SSPS_DL_CRT_DT
+ , SSPS_DL_ID
+ , GNL_AC_NO
+ , GDS_NO
+ , DL_DT
+ , DL_SQ
+ , DL_WY_CD
+ , DL_WY_NM
+ , DL_CHNNL_CD
+ , DL_CHNNL_NM
+ , SMRY_TYP_CD
+ , SMRY_TYP_NM
+ , DL_TM
+ , DL_AMT
+ , CHCK_AMT
+ , CSH
+ , FCRNCY_DL_AMT
+ , USD_EXCH_AMT
+ , TFND_RA
+ , CRNCY_CD
+ , HANDLNG_BRN_CD
+ , HANDLNG_BRN_NM
+ , HANDLNG_BRN_PST_NO
+ , DL_TYP_CD
+ , FXCH_DL_OBJ_CD
+ , HNDL_DY_TM
+ , HNDL_P_ENO
+ , I_AMT_P_NM
+ , I_AMT_P_RNM_NO
+ , I_AMT_P_RNM_NO_CCD
+ , I_AMT_P_TEL_NO
+ , TRDG_CODE
+ , DTLS_TRDG_NAME
+ , FUNS_SCRS_CODE
+ , TRTY_DTLS_CODE
+ , ACNT_TYPE_CLSN_CODE
+ , PRDT_CLSN_CODE
+ , SERV_CLSN_CODE
+ , ISUS_PRDT_ID
+ , RLTV_ACNT_ID
+ , RNMCNO
+ , MNGG_BRN_CD
+ , PRFT_BRN_CD
+ , GDS_DIT_CD
+ )
+  ( SELECT
+  #{SSPS_DL_CRT_DT}
+ , #{SSPS_DL_ID}
+ , T1.GNL_AC_NO
+ , T1.GDS_NO
+ , T1.DL_DT
+ , T1.DL_SQ
+ , T1.DL_WY_CD
+ , (SELECT CD_NM FROM NIC92B WHERE CD = 'M046' AND CNTNT = RTRIM(T1.DL_WY_CD))
+ , T1.DL_CHNNL_CD
+ , (SELECT CD_NM FROM NIC92B WHERE CD = 'M044' AND CNTNT = RTRIM(T1.DL_CHNNL_CD))
+ , '' AS SMRY_TYP_CD
+ , '' AS SMRY_TYP_NM
+ , T1.DL_TM
+ , NVL(T1.DL_AMT,0) AS DL_AMT
+ , T1.CHCK_AMT
+ , T1.CSH
+ , T1.FCRNCY_DL_AMT
+ , 0 AS USD_EXCH_AMT
+ , T1.TFND_RA
+ , T1.CRNCY_CD
+ , T1.HANDLNG_BRN_CD
+ , T2.DPRT_NM
+ , T2.DPRT_POST_NO
+ , T1.DL_TYP_CD
+ , '' AS FXCH_DL_OBJ_CD
+ , SYSDATE
+ , T1.L_HNDL_P_ENO
+ , T1.I_AMT_P_NM
+ , T1.I_AMT_P_RNM_NO
+ , T1.I_AMT_P_RNM_NO_CCD
+ , T1.I_AMT_P_TEL_NO
+ , T1.TRDG_CODE
+ , T1.DTLS_TRDG_NAME
+ , T1.FUNS_SCRS_CODE
+ , T1.TRTY_DTLS_CODE
+ , T1.ACNT_TYPE_CLSN_CODE
+ , T1.PRDT_CLSN_CODE
+ , T1.SERV_CLSN_CODE
+ , T1.ISUS_PRDT_ID
+ , T1.RLTV_ACNT_ID
+ , T1.RNMCNO
+ , T1.MNGG_BRN_CD
+ , T1.PRFT_BRN_CD
+ , T1.GDS_DIT_CD
+  FROM NIC61B T1, NIC41B T2
+  WHERE T1.GNL_AC_NO = #{GNL_AC_NO}
+    AND T1.DL_DT = #{DL_DT}
+    AND T1.DL_SQ = #{DL_SQ}
+    AND T1.HANDLNG_BRN_CD = T2.DPRT_CD(+)
+    AND NOT EXISTS (
+    	SELECT 1
+    	  FROM NIC75B
+    	 WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+		   AND SSPS_DL_ID = #{SSPS_DL_ID}
+		   AND GNL_AC_NO = #{GNL_AC_NO}
+		   AND DL_DT = #{DL_DT}
+		   AND DL_SQ = #{DL_SQ}
+    )
+ )
+</update>
+<update id="AML_20_01_01_08_INSERT_NIC102B_CUS" parameterType="hashMap" >
+ INSERT INTO NIC102B
+ (   SSPS_DL_CRT_DT
+   , SSPS_DL_ID
+   , SQ 
+   , SSPS_DL_CRT_CCD 
+   , GNL_AC_NO 
+   , AFPR_NM
+   , AFPR_RNMCNO
+   , HNDL_DY_TM 
+   , HNDL_P_ENO
+ )
+  ( SELECT
+			  #{SSPS_DL_CRT_DT}
+			  , #{SSPS_DL_ID}
+			  , (SELECT NVL(MAX(SQ), 0) + 1 FROM NIC102B WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT} AND SSPS_DL_ID = #{SSPS_DL_ID} )
+			  , 'STR'
+			  , #{GNL_AC_NO}
+			  , CS_NM
+			  , RNMCNO
+			  , SYSDATE
+			  , #{HNDL_P_ENO}
+     FROM NIC01B T1
+    WHERE RNMCNO = #{RNMCNO}
+      AND NOT EXISTS (
+     					SELECT 1
+    					  FROM NIC102B
+    					 WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+    					   AND SSPS_DL_ID = #{SSPS_DL_ID}
+    					   AND AFPR_RNMCNO = #{RNMCNO}
+    )
+ )
+</update>
+<select id="AML_20_01_01_08_doSearchTrx" parameterType="hashMap" resultType="DataObj">
+SELECT   /*+ FULL(A) INDEX(B SSQ.NIC_61B_IX1) */ -- 2021.01.07 힌트 추가, 2021.01.06 DBA 가이드로 힌트 제거  FULL(B) PARALLEL(B 8) 
+         A.DL_DT,    				-- 거래일자                          			                                 
+         TO_CHAR(TO_DATE(A.DL_TM,'HH24MISS'),'HH24:MI:SS') DL_TM, -- 거래시간                                     
+         A.DL_SQ,                  -- 거래일련번호                                                                
+         A.DL_TYP_CD,              -- 거래수단코드                                                                
+         GET_CODE_NAME('M045',A.DL_TYP_CD) AS DL_TYP_NM,        -- 거래종류명                                                           
+         '' AS SMRY_TYP_CD,            -- 적요유형코드                                                                
+         '' AS SMRY_TYP_NM,                                                                                           
+         A.DL_WY_CD,               -- 거래수단코드                                                                
+         GET_CODE_NAME('M046',A.DL_WY_CD) as DL_WY_NM,          -- 거래수단명                                                                  
+         A.DL_CHNNL_CD,            -- 거래채널코드                                                                
+         GET_CODE_NAME('M044',A.DL_CHNNL_CD) AS DL_CHNNL_NM,    -- 거래채널명                                                                  
+         A.DL_AMT,                 -- 거래금액                                                                    
+         A.CSH,                    -- 현금                                                                        
+         A.CHCK_AMT,               -- 수표금액                                                                    
+         A.ADJST_AMT AS EC_AMT,                 -- 정산금액                                                                    
+         A.TFND_RA,                -- 예수금잔액                                                                  
+         0 AS LN_AMT,				  -- 대출원금상환금액					 
+         '' AS SPC,                    -- 거래매체                                                                
+         A.RLTV_FNC_ACNT_NO_CRYP AS CPRTY_TRSNS_AC_NO,      -- 상대대체계좌번호					 
+         A.RLTV_BANK_ACNT_NAME AS CPRTY_TRSNS_AC_NM,      -- 상대대체계좌명                                                              
+         A.RLBK_CODE AS CPRTY_TRSNS_OGN_CD,     -- 상대대체기관코드                                                            
+         '' AS CPRTY_TRSNS_OGN_NM,                                                                                
+         A.RLBK_NAME AS CPRTY_TRSNS_FOGN_NM,    -- 상대대체금융기관명                                                          
+         A.CRNCY_CD,               -- 통화코드                                                                    
+         GET_CODE_NAME('M048',A.CRNCY_CD) AS CRNCY_NM,                                                            
+         A.FCRNCY_DL_AMT,          -- 외화거래금액                                                                
+         A.USD_EXCH_AMT,           -- 달러환산금액                                                                
+         A.DL_Q,                   -- 거래수량                                                                    
+         A.DL_UPRC,                -- 거래단가                                                                    
+         A.STND_IS_CD,             -- 표준종목코드                                                                
+         A.STND_IS_NM,             -- 표준종목코드명                                                              
+         '' AS STR_DL_KND_CD,          -- STR거래종류코드                                                             
+         '' AS STR_DL_KND_NM,                                                                                     
+         A.HANDLNG_BRN_CD,         -- 취급지점코드                                                                
+         Fn_Cdinfo_Var('DPT',A.HANDLNG_BRN_CD,'') AS HANDLNG_BRN_NM,         -- 취급지점명                                                                     
+         A.L_HNDL_P_ENO,             -- 처리자사번                                                                  
+         Fn_Cdinfo_Var('USER',A.L_HNDL_P_ENO,'') AS HNDL_P_ENO_NM,             -- 처리자명                                                
+         '' AS CRCT_CCD,               -- 정정구분코드                                                                
+         '' AS CHRG_P_RPR_ST_CCD,      -- 담당자보고상태구분코드                                                      
+         '' AS RPR_TRGT_XCL_DL_CCD,    -- 보고대상제외거래구분코드                                                    
+         '' AS SSPS_DL_CRT_DT,     -- 혐의거래생성일자                                                            
+         '' AS SSPS_DL_ID,         -- 혐의거래ID                                                                  
+         A.GNL_AC_NO,              -- 종합계좌번호     
+         C.CS_NM AS DL_P_NM,
+         TRIM(B.ACNT_NO) AS ACNT_NO,                                                           
+         A.GDS_NO                  -- 상품번호
+    FROM NIC61B A   
+       , NIC17B B
+       , NIC01B C
+   WHERE A.GNL_AC_NO = B.GNL_AC_NO
+     AND A.DL_DT BETWEEN #{stDate} AND #{edDate}
+     AND B.ACNT_NO = #{ACNT_NO}
+	<if test="DL_TYP_CD != '' and DL_TYP_CD != 'ALL'">
+	  AND A.DL_TYP_CD = #{DL_TYP_CD}
+	</if>     
+     AND A.RNMCNO = C.RNMCNO                                                                               
+   ORDER BY A.GNL_AC_NO, A.DL_DT, A.DL_TM, A.DL_SQ
+</select>
+
+<select id="AML_20_01_01_07_searchTsusRjctHistory" parameterType="hashMap" resultType="DataObj">
+SELECT CASE WHEN LENGTH(A.RGSN_DATE) = 8 THEN SUBSTR(A.RGSN_DATE,1,4)||'-'||SUBSTR(A.RGSN_DATE,5,2)||'-'||SUBSTR(A.RGSN_DATE,7,2) END AS RGSN_DATE  /* 등록일자         */
+     , CASE WHEN A.RGSN_CNCL_SECT_CODE = '1' THEN '등록' ELSE '해제' END AS RGSN_STAT /* 등록상태         */
+     , CASE WHEN A.OWCM_OTCP_SECT_CODE = '1' THEN '당사' ELSE '타사' END AS RGSN_GBN /* 등록구분         */
+     , NVL((SELECT M.CMN_CDVL_NAME FROM SID.IDO_A_UWB_COM_CD_DTL M WHERE M.CMN_CODE_ID = '01035' AND M.CMN_CDVL = A.CNGR_SECT_CODE), ' ') AS CNGR_SECT_NAME /* 위탁자구분명 */
+     , NVL(F.ENTY_NAME, ' ') AS CS_NM                                     /* 고객명           */
+     , G.CS_NO
+     , NVL((SELECT M.CMN_CDVL_NAME FROM SID.IDO_A_UWB_COM_CD_DTL M WHERE M.CMN_CODE_ID = '00799' AND M.CMN_CDVL = A.TSUS_RJCT_RESN_CODE), ' ') AS TSUS_RJCT_RESN_NAME /* 수탁거부사유명 */
+     , CASE WHEN LENGTH(A.TSUS_RJCT_STRT_DATE) = 8 
+            THEN SUBSTR(A.TSUS_RJCT_STRT_DATE,1,4)||'-'||SUBSTR(A.TSUS_RJCT_STRT_DATE,5,2)||'-'||SUBSTR(A.TSUS_RJCT_STRT_DATE,7,2) END AS TSUS_RJCT_STRT_DATE /* 수탁거부시작일자 */
+     , CASE WHEN LENGTH(A.TSUS_RJCT_END_DATE) = 8 
+            THEN SUBSTR(A.TSUS_RJCT_END_DATE,1,4)||'-'||SUBSTR(A.TSUS_RJCT_END_DATE,5,2)||'-'||SUBSTR(A.TSUS_RJCT_END_DATE,7,2) END AS TSUS_RJCT_END_DATE /* 수탁거부종료일자 */
+     , CASE WHEN LENGTH(A.TSUS_RJCT_ACTN_DATE) = 8 
+            THEN SUBSTR(A.TSUS_RJCT_ACTN_DATE,1,4)||'-'||SUBSTR(A.TSUS_RJCT_ACTN_DATE,5,2)||'-'||SUBSTR(A.TSUS_RJCT_ACTN_DATE,7,2) END AS TSUS_RJCT_ACTN_DATE /* 수탁거부조치일자 */
+     ---------------------------------------
+     , A.CNGR_SECT_CODE                                                   /* 위탁자구분코드   */
+     , A.CLNT_ENTY_ID
+     , A.TSUS_RJCT_RESN_CODE                                              /* 수탁거부사유코드 */
+  FROM SID.IDO_A_MAH_TSUS_RJCT_RGSN_CL A /* 수탁거부등록고객내역 */
+  LEFT OUTER JOIN SID.IDO_A_UUE_ENTY_NAME F
+    ON A.CLNT_ENTY_ID        = F.ENTY_ID
+   AND F.LANG_CODE           = 'KO'
+  LEFT JOIN SSQ.NIC01B G
+    ON A.CLNT_ENTY_ID = 0+G.RNMCNO
+ WHERE G.CS_NO = #{CS_NO}
+ ORDER BY A.RGSN_DATE DESC
+</select>
+
+<!-- 삼성증권용  -->
+<select id="AML_00_02_01_01_getApprovalCount_STR_CRITV" parameterType="hashMap" resultType="DataObj">
+  SELECT  GYLJ_LINE_G_C, count(*) AS CNT
+    FROM AML_APPR A
+    INNER JOIN TMS_APPL B
+       ON A.APP_NO = B.LST_APP_NO
+    INNER JOIN TMS_REQ C
+       ON B.SCNR_ID = C.SCNR_ID
+   WHERE A.GYLJ_LINE_G_C IN ('TMS1', 'TMS2')
+     AND A.TARGET_ROLE_ID = #{ROLE_CD}
+     AND A.SN_CCD != 'E'  
+  group by GYLJ_LINE_G_C
+</select>
+
+
+<select id="AML_00_02_01_01_getApprovalCount_STR_CRITV_old_samsung" parameterType="hashMap" resultType="DataObj">
+select e.inst_ccd , count(*) as CNT from NIC58B E, WF_PROC_INSTANCE a, WF_PROC_INSTANCE d,  
+  WF_WORK_PARTICIPANT b left outer join   
+  wf_work_performer c on   
+  ( c.WORK_STATUS_CD ='FINISHED' and b.work_id=c.work_id and b.PARTICIPANT_ID=c.PERFORMER_ID)  
+  where   
+  a.WORK_ID=b.WORK_ID and c.PERFORMER_ID is null  
+  and ((b.PERSON_YN='Y' AND b.PARTICIPANT_ID = #{USER_ID}) 
+     OR 
+     (b.PERSON_YN='N' AND b.PARTICIPANT_ID 
+     IN (SELECT BB.DEP_ID || '.' || ROLE_ID FROM C_USER_GROUP_ROLE AA, C_USER BB 
+     WHERE AA.USER_ID= #{USER_ID}  AND AA.USER_ID = BB.USER_ID 
+         AND BB.DEP_ID || '.' || ROLE_ID = #{ROLE_ID}) ) 
+     )   
+  and a.PAR_INST_ID=d.INST_ID  
+  and e.INST_ID=d.INST_ID and e.SN_PRGRS_CCD IN ('1','2')  
+  group by e.inst_ccd  
+</select>
+
+<select id="AML_20_01_10_03_getExcelInfo_01_SS" parameterType="hashMap" resultType="DataObj">
+SELECT (SELECT RPR_OGN_NM FROM NIC86B WHERE BRN_CD='122') AS ORG_NM  --계좌개설 금융기관
+	        , (SELECT TRNS_OGN_CD FROM NIC86B WHERE BRN_CD='122') AS ORG_C --개설금융기관코드,
+             , A.ACNT_NO  --계좌번호
+             , A.GNL_AC_NO	--계좌ID    
+	        , A.AC_OPN_DT --계좌개설일자
+	        , A.OPN_BRN_CD --계좌개설점코드
+	        , A.AC_OPN_BRN_NM -- 계좌개설점명
+	        , A.MN_DL_DPRT_CD --계좌관리점코드
+	        , A.MN_DL_DPRT_NM --계좌관리점명
+	        , A.AC_TY_CD --계좌유형코드
+	        , GET_CODE_NAME('M034',A.AC_TY_CD) AS AC_TY_NM--계좌유형
+	        , A.CS_NM
+	        , A.ACNT_NO AS ACNT_NO_DEC
+FROM NIC71B A, NIC70B B, NIC66B C
+WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT(+)
+AND A.RNMCNO = B.DL_P_RNMCNO(+)
+AND A.RNMCNO = C.DL_P_RNMCNO
+AND A.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT
+AND A.SSPS_DL_ID = C.SSPS_DL_ID
+	      AND A.SSPS_DL_CRT_DT=#{SSPS_DL_CRT_DT}
+	      AND A.SSPS_DL_ID =#{SSPS_DL_ID}
+</select>
+
+<select id="AML_20_01_10_03_getExcelInfo_02_SS" parameterType="HashMap" resultType="DataObj">
+SELECT A.CS_NM,                                                  --고객명                                                                             
+         A.RNM_CNFR_CCD,                                          --실명번호구분코드                                                                
+         GET_CODE_NAME('M002',A.RNM_CNFR_CCD) RNM_CNFR_CCD_NM,    --실명번호구분코드명     
+         A.CS_NO,                                                      
+         A.CS_NO AS CS_NO_DEC,               --실명번호
+         A.RNMCNO,												-- 고객번호 
+         A.NTN_CD,                                                --국가코드                                                           
+         A.INDST_RSK_DVD_CD,                                              --직업코드                                                      
+         F.RPR_OGN_NM,                                        --계좌개설금융기관
+         C.ACNT_NO,
+         C.ACNT_NO AS ACNT_NO_DEC,
+         C.GNL_AC_NO,    --계좌번호                           
+         --GET_CODE_NAME('M034',C.AC_TY_CD) AS GOODS ,                --계좌유형
+         GET_CODE_NAME('M034', '99') AS GOODS,                                      
+         FN_CDINFO_VAR('DPT',C.OPN_BRN_CD,'') OPN_BRN_CD_NM, --상품개설지점명                                                         
+         FN_CDINFO_VAR('DPT',C.MNGG_BRN_CD,'') MN_DL_DPRT_CD_NM,   --주거래부점명         
+         '' AS AC_BAL,                                            --계좌잔액                                              
+         (SELECT DPRT_POST_NO FROM NIC41B WHERE DPRT_CD = C.OPN_BRN_CD) AS OPN_BRN_CD_POST,--계좌개설지점우편번호       
+         C.AC_OPN_DT,                 
+         FN_CDINFO_VAR('DT',C.AC_OPN_DT,'') AS GDS_OPN_DT,   --계좌개설일자                                                                
+         E.PRXY_NM,                                               --대리인명
+         E.PRXY_RLTNS_CD,                                         --대리인계좌주와의관계                                                  
+         E.PRXY_RNM_NO_CCD,                                       --대리인실명구분                                                        
+         GET_CODE_NAME('M002',E.PRXY_RNM_NO_CCD) as PRXY_RNM_NO_CCD_NM,   --대리인실명구분                                                
+         FN_CDINFO_VAR('NO',
+			(SELECT CS_NO FROM NIC01B Z WHERE Z.RNMCNO = E.PRXY_RNMCNO),'') AS PRXY_RNMCNO,                         --대리인실명번호                  
+         E.PRXY_CNTY_NATI_CRYP||E.PRXY_CNTY_AREA_CRYP||E.PRXY_CNTY_ECNO_CRYP||E.PRXY_CNTY_NO_CRYP AS PRXY_TEL_NO,   --대리인전화번호  
+         E.NTN_CD,                                                --대리인국적
+         F.BRN_NM,                                                                                                                        
+         --F.BRN_CD,                                      
+         F.TRNS_OGN_CD,                                           --계좌개설금융기관코드
+         --C.AC_TY_CD,                                                --계좌유형코드
+         '99' AS AC_TY_CD,
+         NVL((SELECT TRIM(KFB_DPRT_CD) FROM NIC41B WHERE DPRT_CD = C.OPN_BRN_CD),'ZZZZZZZ') AS OPN_BRN_CD,                                            --계좌개설지점코드
+         NVL((SELECT TRIM(KFB_DPRT_CD) FROM NIC41B WHERE DPRT_CD = C.MNGG_BRN_CD),'ZZZZZZZ') AS MN_DL_DPRT_CD,                                         --계좌관리점코드
+         F.BRN_NM, -- 조회점명                                                                                                                      
+         'ZZZZZZZ' AS BRN_CD, -- 조회점코드                          
+         GET_CODE_NAME('M059', NVL(TRIM(A.STR_JOB_GUBN),'91')) AS STR_JOB_GUBN,                                                                                                     
+         TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') RP_DT,   --조회일시,
+         TO_CHAR(SYSDATE-30, 'yyyy-MM-dd HH:MM:SS') RP_DT_BE                                                                                               
+    FROM NIC01B A,                                                                                                                        
+         NIC17B C,                                                                                                                        
+         NIC18B E,                                                                                                                        
+         NIC86B F                                                                                                                         
+   WHERE C.RNMCNO = A.RNMCNO                                                                                                              
+     AND C.GNL_AC_NO = E.GNL_AC_NO(+)                                                                                                     
+     AND C.GNL_AC_NO = #{GNL_AC_NO}
+</select>
+
+<select id="AML_20_01_10_03_getExcelInfo_03_SS" parameterType="HashMap" resultType="DataObj">
+
+SELECT  GNL_AC_NO||LPAD(ROWNUM,5,'0') AS GNL_SQ, --거래일련번호(계좌번호 + 순번 ex) 11100001123456 + 000001)
+        ROWNUM AS DL_SQ,                         --거래순번
+        A.*
+   FROM (
+         SELECT /*+ LEADING(A) ORDERED */
+                TO_CHAR(TO_DATE(A.DL_DT || LPAD(TRIM(A.DL_TM),6,'0'),'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS') AS DL_DT_TM, --거래발생일시
+                GET_CODE_NAME('M045',A.DL_TYP_CD) AS DL_TYP_NM,    --거래종류명
+                GET_CODE_NAME('M046',A.DL_WY_CD) AS DL_WY_NM,      --거래수단명
+                GET_CODE_NAME('M044',A.DL_CHNNL_CD) AS DL_CHNNL_NM,--거래채널명
+                A.CRNCY_CD,    --통화구분코드
+                NVL(A.FCRNCY_DL_AMT, 0) AS FCRNCY_DL_AMT,          -- 외화거래금액
+                CASE WHEN A.DL_TYP_CD IN ('01','04','07','08','12','14','16','20') THEN A.DL_AMT END AS IN_AMT, --입금금액
+                CASE WHEN A.DL_TYP_CD IN ('02','05','09','13','15','21' ) THEN A.DL_AMT END AS OUT_AMT, --지급금액
+                A.TFND_RA,    --잔액금액
+                F.RPR_OGN_NM, --취급금융기관명
+                DECODE(FN_CDINFO_VAR('DPT',A.HANDLNG_BRN_CD,''),'','',FN_CDINFO_VAR('DPT',A.HANDLNG_BRN_CD,'')) AS HANDLNG_BRN_NM,      -- 취급점명
+                GET_CODE_NAME('M052', C.CHCK_KND_CD) AS CHCK_KND_NM, --유가증권명
+                C.CHCK_STRT_NO,                  --시작번호
+                C.CHCK_END_NO,                   --끝번호
+                CASE WHEN A.DL_WY_CD = '01' AND A.CHCK_AMT = 0 THEN F.RPR_OGN_NM END AS CSH_ORG, --현금지급금융기관명
+                CASE WHEN A.DL_WY_CD = '01' AND A.CHCK_AMT = 0 THEN DECODE(FN_CDINFO_VAR('DPT',A.HANDLNG_BRN_CD,''),'','',FN_CDINFO_VAR('DPT',A.HANDLNG_BRN_CD,'')) END AS CSH_BRN, --현금지급영업점명
+                B.PRXY_NM,                       --의뢰인명
+                GET_CODE_NAME('M002',B.PRXY_RNM_NO_CCD) PRXY_RNM_NO_CCD_NM, --의뢰인실명구분
+                B.PRXY_RNMCNO,                   --의뢰인실명번호
+                B.NTN_CD,                        --의뢰인국적
+
+             -- CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL
+             --            AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN G.CPRTY_TRSNS_FOGN_NM END    AS   CPRTY_TRSNS_FOGN_NM,         --상대금융기관명
+             -- CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL
+             --            AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN G.CPRTY_TRSNS_AC_NO END        AS   CPRTY_TRSNS_AC_NO,             --상대계좌번호
+             -- CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL
+             --            AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN G.CPRTY_TRSNS_AC_NM END        AS   CPRTY_TRSNS_AC_NM,             --상대계좌주명
+             -- G.CPRTY_TRSNS_AC_RNM_NO,         --상대계좌주실명번호
+             -- GET_CODE_NAME('M002',G.CPRTY_TRSNS_AC_RNM_CNFR_CCD) CPRTY_TRSNS_AC_RNM_CNFR_CCD_NM,   --상대계좌주실명구분
+
+
+
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN '삼성증권'
+                          ELSE
+                               NVL((SELECT TRIM(I.INSN_IDNF_NAME)
+                                      FROM SID.IDO_A_UUS_INSTITUTION_CODE I
+                                     WHERE I.INSN_TYPE_CODE = 'KSDC'
+                                       AND I.INSN_IDNF_CODE = T.KSD_DPSD_INSN_CODE), ' ')
+                      END
+                     ELSE
+                CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL
+                           AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN G.CPRTY_TRSNS_FOGN_NM END  END  AS   CPRTY_TRSNS_FOGN_NM,         --상대금융기관명
+
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN
+                          NVL(TRIM(U.ACNT_NO), ' ')
+                          ELSE NVL(TRIM(T.OTCP_ACNT_NO_CRYP), ' ')
+                      END
+                     ELSE
+                CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL
+                           AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN G.CPRTY_TRSNS_AC_NO END  END      AS   CPRTY_TRSNS_AC_NO,             --상대계좌번호
+
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN
+                          NVL(TRIM(S.CS_NM), ' ')
+                          ELSE NVL(TRIM(T.OTCP_SBTT_CLNT_NAME), ' ')
+                      END
+                     ELSE
+                CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL
+                           AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN G.CPRTY_TRSNS_AC_NM END  END      AS   CPRTY_TRSNS_AC_NM,             --상대계좌주명
+
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN
+                          NVL(TRIM(S.CS_NO), ' ')
+                          ELSE ' '
+                      END
+                     ELSE G.CPRTY_TRSNS_AC_RNM_NO
+                 END     AS CPRTY_TRSNS_AC_RNM_NO,         --상대계좌주실명번호
+
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN
+                          SSQ.GET_CODE_NAME('M002',S.RNM_CNFR_CCD)
+                          ELSE '기타'
+                      END
+                     ELSE SSQ.GET_CODE_NAME('M002',G.CPRTY_TRSNS_AC_RNM_CNFR_CCD) END AS CPRTY_TRSNS_AC_RNM_CNFR_CCD_NM,   --상대계좌주실명구분
+
+
+
+
+                '' AS CPRTY_TRSNS_AC_OWN_NTN_CD,     --상대계좌주국적(데이터 없음)
+                A.DL_TYP_CD,   --거래종류코드
+                A.DL_WY_CD,    --거래수단코드
+                A.DL_CHNNL_CD, --거래채널코드
+                F.TRNS_OGN_CD_NEW AS OGN_CD,      --취급금융기관코드
+                (SELECT TRIM(KFTC_BRHN_CODE) FROM SSQ.NIC41B WHERE DPRT_CD = A.HANDLNG_BRN_CD) AS HANDLNG_BRN_CD,  --취급점코드
+                C.CHCK_KND_CD,     --유가증권코드
+                CASE WHEN A.DL_WY_CD = '01' AND A.CHCK_AMT = 0 THEN F.TRNS_OGN_CD_NEW END AS CSH_ORG_CD, --현금지급금융기관명
+                CASE WHEN A.DL_WY_CD = '01' AND A.CHCK_AMT = 0
+                     THEN (SELECT TRIM(KFTC_BRHN_CODE) FROM SSQ.NIC41B WHERE DPRT_CD = A.HANDLNG_BRN_CD) END AS CSH_BRN_CD, --현금지급영업점명
+                B.PRXY_RNM_NO_CCD, --의뢰인실명구분코드
+
+
+
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN 'GC0025'
+                          ELSE
+                               NVL((SELECT TRIM(I.TRNSFRM_CD)
+                                      FROM SSQ.NIC95B I
+                                     WHERE I.CD = 'L189'
+                                       AND I.CD_VL9 = SUBSTR(T.KSD_DPSD_INSN_CODE, 1, 6)), ' ')
+                      END
+                     ELSE (SELECT TRNSFRM_CD FROM SSQ.NIC95B WHERE CD='L188' AND CD_VL9 = G.CPRTY_TRSNS_OGN_CD) END AS CPRTY_TRSNS_OGN_CD,--상대금융기관코드
+
+
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN
+                          S.RNM_CNFR_CCD
+                          ELSE '99'
+                      END
+                     ELSE CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN
+                               G.CPRTY_TRSNS_AC_RNM_CNFR_CCD
+                               ELSE ' ' END END AS CPRTY_TRSNS_AC_RNM_CNFR_CCD,   --상대계좌주실명구분코드
+
+
+
+                'A' AS GBN_CD, --정정구분코드
+                A.GNL_AC_NO,
+                H.ACNT_NO AS ACNT_NO_DEC,
+                A.DTLS_TRDG_NAME AS A1,  --적요(거래코드명)
+                J.RPRS_ISCD AS A2,
+                J.PRDT_NAME AS A3,
+                A.DL_UPRC AS A4,
+                TRUNC(A.DL_Q) AS A5,
+                A.DL_AMT AS A6,
+                CASE WHEN A.CHCK_AMT &gt; 0 THEN A.CHCK_AMT END AS CHCK_AMT,   --수표금액
+                A.ADJST_AMT,  --정산금액
+                A.SECBAL_EVAL_AMT,  --유가잔고
+                A.DPS_AMT,  --예수금잔고
+                A.RCVBL_BAL_AMT,  --미수금잔고
+                A.MLOAN_SLOAN_AMT  --융자금/대주금
+           FROM SSQ.NIC61B A,
+                SSQ.NIC99B B,
+                SSQ.NIC63B C,
+                SSQ.NIC01B D,
+                SSQ.NIC04B E,
+                SSQ.NIC86B F,
+                SSQ.NIC62B G,
+                SSQ.NIC17B H,
+                SID.IDO_A_UUP_PRODUCT J,
+                SID.IDO_A_TLP_STCK_ISUS_BSC L,
+
+                SID.IDO_A_MBA_TRDG T,
+                SSQ.NIC17B U,
+                SSQ.NIC01B S
+
+          WHERE A.GNL_AC_NO = B.GNL_AC_NO(+)
+            AND A.DL_DT = B.DL_DT(+)
+            AND A.DL_SQ = B.DL_SQ(+)
+            AND A.GNL_AC_NO = C.GNL_AC_NO(+)
+            AND A.DL_DT = C.DL_DT(+)
+            AND A.DL_SQ = C.DL_SQ(+)
+            AND A.RNMCNO = D.RNMCNO
+            AND D.RNMCNO = E.RNMCNO(+)
+            AND E.CNTC_TYP_CD(+) = '1'
+            AND A.GNL_AC_NO = G.GNL_AC_NO(+)
+            AND A.DL_DT = G.DL_DT(+)
+            AND A.DL_SQ = G.DL_SQ(+)
+            AND A.GNL_AC_NO = H.GNL_AC_NO(+)
+            AND A.ISUS_PRDT_ID = J.PRDT_ID(+)
+            AND J.PRDT_ID = L.PRDT_ID(+)
+
+            AND A.DL_DT = T.TRDG_DATE(+)
+            AND A.DL_SQ = T.TRDG_NO(+)
+            AND A.GNL_AC_NO = T.ACNT_ID(+)
+
+            AND T.RLTV_ACNT_ID = U.GNL_AC_NO(+)
+            AND U.RNMCNO       = S.RNMCNO(+)
+            
+            AND A.GNL_AC_NO = #{GNL_AC_NO}
+            AND A.DL_DT BETWEEN #{stDate} AND #{edDate}
+          ORDER BY A.DL_DT DESC, LPAD(TRIM(A.DL_TM),6,'0') DESC
+        ) A
+WHERE ROWNUM &lt;= 500
+</select>
+
+<select id="AML_20_01_10_08_doSearch" parameterType="hashMap" resultType="DataObj">
+SELECT '0' AS SELECTED                                                  
+      , (T1.SSPS_DL_CRT_DT || '-' || T1.SSPS_DL_ID) AS SSPS_DL_CRT_DT_A  
+      , T2.CS_NM AS DL_P_NM                                              
+      , FN_CDINFO_VAR('NO',T1.DL_P_RNMCNO,'') AS DL_P_RNMCNO_VIEW        
+      , GET_CODE_NAME('M002',T2.RNM_CNFR_CCD) AS DL_P_RNM_NO_CCD_NM      
+      , GET_SYNARIO_NAME(T1.SSPS_TYP_CD) AS SSPS_TYP_NM                  
+      , T3.LST_RSK_EAL_SOR AS RSK_GRD_MRK                                
+      , T3.RSK_GRD_CD AS RSK_GRD_CD                         			 
+      , GET_CODE_NAME('A004',T3.RSK_GRD_CD) AS RSK_GRD_CD_NM             
+      , T1.RSK_MRK AS RSK_MRK                                            
+      , T1.RSK_GRD_CD AS RSK_GRD                                         
+      , GET_CODE_NAME('A004',T1.RSK_GRD_CD) AS RSK_GRD_NM                
+      , T1.DL_P_RNMCNO                                                   
+      , V1.ACT_NAME                                                      
+      , (NVL(T1.OK_CCD, '0')) AS OK_CCD                                  
+      , T1.XCL_RSN_CNTNT                                                 
+      , T1.SSPS_DL_CRT_DT                                                
+      , T1.SSPS_DL_ID                                                    
+      , T1.INST_ID                                                       
+      , V1.WORK_ID                                                       
+      , V1.ACT_ID
+      , V1.PAR_INST_ID
+--      , T4.MN_DL_BRN_NM AS MN_DL_BRN_NM -- 처리점 
+--      , T4.MN_DL_BRN_CD AS MN_DL_BRN_CD -- 처리점
+      , ' ' AS MN_DL_BRN_NM -- 처리점 
+      , ' ' AS MN_DL_BRN_CD -- 처리점
+      , G.ACNT_NO
+      , T2.CS_NO
+      , T2.CS_NO AS AML_CUST_ID
+      , T1.XCL_RSN_CNTNT
+      , DECODE((SELECT COUNT(*) FROM NIC40B WHERE BAS_YYMM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.SSPS_DL_CRT_DT, 'YYYYMMDD'),-1),'YYYYMM') AND RNMCNO=T1.DL_P_RNMCNO),0,'','Y') AS LGA_AST_YN
+      , DECODE((SELECT COUNT(*) FROM NIC66B WHERE SSPS_DL_CRT_DT >= TO_CHAR(ADD_MONTHS(TO_DATE(T1.SSPS_DL_CRT_DT,'YYYYMMDD'),-3),'YYYYMMDD') AND SSPS_DL_CRT_CCD IN ('STR','KYC') AND DL_P_RNMCNO = T1.DL_P_RNMCNO AND RPR_PRGRS_CCD = '99'),0,'','Y') STR_RPR_YN
+      , (SELECT SPRN_KEEP_TAGT_YN FROM NIC70B WHERE SSPS_DL_CRT_DT = T1.SSPS_DL_CRT_DT AND DL_P_RNMCNO = T1.DL_P_RNMCNO ) AS SPRN_KEEP_TAGT_YN
+ FROM NIC66B T1                                                          
+	    , NIC01B T2                                                          
+	    , NIC35B T3
+--	    , NIC73B T4
+	    ,  ( SELECT  A.INST_ID
+				       , A.WORK_ID
+				       , A.ACT_NAME
+				       , A.ACT_ID
+				       , D.SSPS_DL_CRT_DT
+				       , D.SSPS_DL_ID
+				       , A.PAR_INST_ID  
+			    FROM V_WF_STANDBY A , NIC66B D   
+	  		  WHERE ((A.PERSON_YN='Y') OR
+					     (A.PERSON_YN='N' AND A.PARTICIPANT_ID
+					     IN (SELECT BB.DEP_ID || '.' || ROLE_ID FROM C_USER_GROUP_ROLE AA, C_USER BB
+					     WHERE AA.USER_ID = BB.USER_ID
+					        AND BB.DEP_ID || '.' || ROLE_ID  = #{param2} ) )
+					    )
+	   			AND D.INST_ID = A.PAR_INST_ID                                    
+	    		AND D.RPR_PRGRS_CCD = '2'
+	    		AND A.INST_STATUS_CD != 'RETURNED' /*회수제외*/) V1     
+		, (SELECT 
+	         	SSPS_DL_CRT_DT
+	         	, SSPS_DL_ID
+	         	, GNL_AC_NO
+	         	, MN_DL_DPRT_CD
+	         	, MN_DL_DPRT_NM
+	         	, PRFT_BRN_CD
+	         	, PRFT_BRN_NM
+	         	, ACNT_NO
+	         FROM NIC71B
+	         WHERE (SSPS_DL_CRT_DT, SSPS_DL_ID, GNL_AC_NO) 
+	         				IN (SELECT SSPS_DL_CRT_DT, SSPS_DL_ID, MIN(GNL_AC_NO) FROM NIC71B
+	         					GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID)
+	         ) G	    		
+  WHERE T1.DL_P_RNMCNO = T2.RNMCNO                                        
+   AND T1.DL_P_RNMCNO = T3.RNMCNO(+)                                     
+   AND T1.SSPS_DL_CRT_DT = V1.SSPS_DL_CRT_DT                             
+   AND T1.SSPS_DL_ID = V1.SSPS_DL_ID        
+   AND T1.SSPS_DL_CRT_DT = G.SSPS_DL_CRT_DT(+)                                                                                                                                                                                                                       
+   AND T1.SSPS_DL_ID = G.SSPS_DL_ID(+)
+--   AND T1.SSPS_DL_CRT_DT = T4.SSPS_DL_CRT_DT                             
+--   AND T1.SSPS_DL_ID = T4.SSPS_DL_ID                 
+   AND T1.SSPS_DL_CRT_CCD NOT IN ('CTR', 'CAC')
+   <if test="SSPS_DL_DT_ALL != ''"  >
+   AND T1.SSPS_DL_CRT_DT BETWEEN #{stDate} AND #{edDate}
+   </if>
+   <if test="branchCode != '' and branchCode != '99999'">        
+      AND #{branchCode} IN (SELECT MN_DL_BRN_CD FROM NIC73B                                  
+                       WHERE SSPS_DL_CRT_DT = T1.SSPS_DL_CRT_DT                         
+                         AND SSPS_DL_ID = T1.SSPS_DL_ID)                                                                        
+   </if> 
+   <if test="CS_NM != '' and CS_NM  != null"> 
+   AND T2.CS_NM  like  '%' || #{CS_NM} || '%' 
+   </if>
+	<if test="CS_NO != ''">
+	AND T2.CS_NO =  #{CS_NO}
+	</if>  
+   <if test="SSPS_TYP_CD != '' and SSPS_TYP_CD  != ALL "> 
+   AND T1.SSPS_TYP_CD = #{SSPS_TYP_CD} 
+   </if>                    
+ ORDER BY T1.SSPS_DL_CRT_DT DESC, T1.SSPS_DL_ID ASC 
+</select>
+
+<update id="AML_20_01_10_01_appStatusChange" parameterType="hashMap">
+UPDATE NIC66B SET
+           OK_CCD = #{OK_CCD}            
+         , HNDL_DY_TM = SYSDATE 
+         , HNDL_P_ENO = #{USERID}      
+ WHERE SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}  
+     AND SSPS_DL_ID = #{SSPS_DL_ID}
+</update>
+
+<update id="AML_20_01_10_08_addReturnHistory" parameterType="hashMap" >
+INSERT INTO NIC66B_W (
+  INST_ID 
+, WORK_ID
+, MN_DL_BRN_CD
+, RPR_PRGRS_CCD
+, DPRT_CD
+, DPRT_NM
+, RPR_P_ENO
+, RPR_P_NM
+, RPR_P_DY_TM
+, RPR_P_TEL_NO
+, CNTNT
+, OK_CCD
+, PAR_INST_ID 
+) VALUES (
+  #{INST_ID} 
+, #{WORK_ID}
+, #{MN_DL_BRN_CD}
+, #{RPR_PRGRS_CCD}
+, #{DPRT_CD}
+, #{DPRT_NM}
+, #{RPR_P_ENO}
+, #{RPR_P_NM}
+, TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+, #{RPR_P_TEL_NO}
+, #{CNTNT}
+, #{OK_CCD}
+, #{INST_ID}
+)
+</update>
+
+<select id="AML_20_02_01_01_doSearchReturn" parameterType="hashMap" resultType="DataObj" fetchSize="300">
+SELECT ROWNUM
+       , X.*
+       FROM( SELECT '0' AS SELECTED                                              
+		       , T1.SSPS_DL_CRT_DT||'-'||T1.SSPS_DL_ID AS SSPS_DL_CRT_DT_A    
+		       , FN_CDINFO_VAR('DT',T3.DL_DT||T3.DL_TM,'') AS DL_DT_TM_VIEW   
+		       , T5.DL_P_NM 
+		       , T1.DL_P_RNMCNO
+		       , DECODE((SELECT COUNT(*) FROM NIC40B WHERE BAS_YYMM = TO_CHAR(ADD_MONTHS(TO_DATE(T1.SSPS_DL_CRT_DT, 'YYYYMMDD'),-1),'YYYYMM') AND RNMCNO=T1.DL_P_RNMCNO),0,'','Y') AS LGA_AST_YN    
+		       , T1.RNM_PR_DL_SQ                                              
+		       , GET_CODE_NAME('M062',T3.CTR_DL_KND_CD) AS CTR_DL_KND_CD_NM   
+		       , CSH                  
+		       , CASE WHEN CTR_DL_KND_CD IN ('11','12')                       
+		              THEN T2.ACNT_NO                                       
+		              ELSE ''                                                 
+		         END AS ACNT_NO
+		       , T2.GNL_AC_NO                                        
+		       , CASE WHEN CTR_DL_KND_CD IN ('21','22')                       
+		              THEN NVL(T4.CPRTY_TRSNS_AC_NO, TRIM(T2.ACNT_NO))             
+		              ELSE ''                                                 
+		         END AS CPRTY_TRSNS_AC_NO                                     
+		       , FN_CDINFO_VAR('DPT',T3.HANDLNG_BRN_CD,'') AS HANDLNG_BRN_NM  	--거래점
+		       , CASE WHEN CTR_DL_KND_CD IN ('11','12') THEN FN_CDINFO_VAR('DPT',T2.MN_DL_DPRT_CD,'') END AS MN_DL_DPRT_NM  	--계좌관리점
+		       , CASE WHEN CTR_DL_KND_CD IN ('11','12') THEN FN_CDINFO_VAR('DPT',T2.PRFT_BRN_CD,'') END AS PRFT_BRN_NM  	--계좌실적점
+		       , V1.ACT_NAME                                                  
+		       , T1.OK_CCD                                                    
+		       , T1.XCL_RSN_CNTNT                                             
+		       , T1.SSPS_DL_CRT_DT                                            
+		       , T1.SSPS_DL_ID                                                
+		       , T1.INST_ID  
+		       , V1.PAR_INST_ID                                                 
+		       , V1.WORK_ID                                                   
+		       , V1.ACT_ID 
+		       , T5.CS_NO
+		       , T5.INDV_CORP_CCD
+		       , DECODE((SELECT COUNT(*) FROM NIC64B 
+		       			  WHERE SSPS_DL_CRT_DT=T1.SSPS_DL_CRT_DT 
+		       			    AND SSPS_DL_ID=T1.SSPS_DL_ID),0,'No','Yes') AS FILE_ATT_YN
+		       , CASE WHEN TRIM(T6.PRXY_CS_NO) IS NOT NULL
+		                OR TRIM(T6.AC_OWN_P_RLTNS_CD) IS NOT NULL
+		              THEN 'Y'
+		              ELSE NULL
+		         END PRXY_YN
+		       , T7.CS_NO AS PRXY_CS_NO
+		       , CASE WHEN TRIM(T6.AC_OWN_P_RLTNS_CD) IS NULL
+                  	  THEN ''
+                      ELSE (T6.AC_OWN_P_RLTNS_CD|| ' / ' ||(SELECT CD_VL_NM FROM NIC95B WHERE CD='L058' AND TRNSFRM_CD = AC_OWN_P_RLTNS_CD))
+            	 END AS RLTNS_CD_NM
+		       , T1.STR_YN
+		       , GET_CODE_NAME('M045',T3.DL_TYP_CD) AS DL_TYP_NM
+		       , T3.DTLS_TRDG_NAME
+		       , GET_CODE_NAME('M045',DECODE(T3.DL_TYP_CD,'01','02','02','01')) AS DL_TYP_NM_CPRTY
+		       , (SELECT SUM(CSH)
+		            FROM NIC61B_CTR
+		           WHERE RNMCNO = T1.DL_P_RNMCNO
+		             AND DL_DT = T3.DL_DT
+		             AND DL_TYP_CD = DECODE(T3.DL_TYP_CD,'01','02','02','01')) AS CSH_CPRTY
+		  FROM NIC66B T1,                                                     
+		       NIC71B T2,                                                     
+		       NIC75B T3,                                                     
+		       NIC83B T4,
+		       NIC70B T5,
+		       NIC98B T6,  
+		       NIC01B T7,                                                    
+		  (                                                                   
+		  SELECT  A.INST_ID, A.PAR_INST_ID 
+		       , A.WORK_ID 
+		       , A.ACT_NAME 
+		       , A.ACT_ID 
+		       , D.SSPS_DL_CRT_DT 
+		       , D.SSPS_DL_ID  FROM   V_WF_STANDBY A , NIC66B D    
+		  WHERE 
+		 ((A.PERSON_YN='Y') 
+		 OR 
+		 (A.PERSON_YN='N' AND A.PARTICIPANT_ID 
+		 IN (SELECT BB.DEP_ID || '.' || ROLE_ID FROM C_USER_GROUP_ROLE AA, C_USER BB 
+		 WHERE AA.USER_ID = BB.USER_ID 
+		      AND BB.DEP_ID || '.' || ROLE_ID = #{dptRole} ) ) 
+		 ) 
+		 	AND D.INST_ID = A.PAR_INST_ID                                    
+	    	AND D.RPR_PRGRS_CCD = '2'
+	    	AND A.INST_STATUS_CD != 'RETURNED' /*회수제외*/
+		  ) V1                                                                
+		  WHERE T1.SSPS_DL_CRT_DT = T2.SSPS_DL_CRT_DT                         
+		    AND T1.SSPS_DL_ID = T2.SSPS_DL_ID                                 
+		    AND T2.SSPS_DL_CRT_DT = T3.SSPS_DL_CRT_DT                         
+		    AND T2.SSPS_DL_ID = T3.SSPS_DL_ID                                 
+		    AND T2.GNL_AC_NO = T3.GNL_AC_NO                                   
+		    AND T3.SSPS_DL_CRT_DT = T4.SSPS_DL_CRT_DT(+)                      
+		    AND T3.SSPS_DL_ID = T4.SSPS_DL_ID(+)                              
+		    AND T3.GNL_AC_NO = T4.GNL_AC_NO(+)                                
+		    AND T3.DL_DT = T4.DL_DT(+)                                        
+		    AND T3.DL_SQ = T4.DL_SQ(+)
+		    AND T1.SSPS_DL_CRT_DT = T5.SSPS_DL_CRT_DT(+)
+		    AND T1.DL_P_RNMCNO = T5.DL_P_RNMCNO(+)
+		    AND T1.SSPS_DL_CRT_DT = V1.SSPS_DL_CRT_DT                         
+		    AND T1.SSPS_DL_ID = V1.SSPS_DL_ID                                 
+		    AND T1.SSPS_DL_CRT_CCD IN ('CTR', 'CAC')
+		    AND T1.SSPS_DL_CRT_DT = T6.SSPS_DL_CRT_DT(+)
+		    AND T1.SSPS_DL_ID = T6.SSPS_DL_ID(+)
+		    AND T6.PRXY_RNMCNO = T7.RNMCNO(+)
+		    <if test="branchCode != '' and branchCode != '99999'">   
+			AND  #{branchCode} IN (SELECT MN_DL_BRN_CD FROM NIC73B
+		                            WHERE SSPS_DL_CRT_DT = T1.SSPS_DL_CRT_DT
+		                              AND SSPS_DL_ID = T1.SSPS_DL_ID)
+			</if>       
+			<if test="DT_ALL != 1 and stDate != ''">
+			AND T3.DL_DT BETWEEN #{stDate} AND #{edDate}
+			</if>          
+			<if test="ACNT_NO != ''" >
+			AND T2.ACNT_NO LIKE #{ACNT_NO} || '%'
+			</if>
+			<if test="CS_NM != ''">
+			AND T5.DL_P_NM LIKE '%'|| #{CS_NM} ||'%'
+			</if>
+			<if test="CS_NO != ''">
+			AND T5.CS_NO =  #{CS_NO}
+			</if>  			                
+		ORDER BY T3.DL_DT||T3.DL_TM DESC, T1.SSPS_DL_ID DESC
+	) X
+</select>
+
+<select id="AML_20_07_01_02_getExcelTitle_New_2020" parameterType="hashMap" resultType="DataObj">
+SELECT   A.CS_NM,                                                 --계좌주(사업자)명                                                            
+         A.RNM_CNFR_CCD,                                          --실명번호구분코드                                                      
+         GET_CODE_NAME('M002',A.RNM_CNFR_CCD) RNM_CNFR_CCD_NM,    --실명번호구분코드명                                                    
+         FN_CDINFO_VAR('NO',A.RNMCNO,'') AS RNMCNO,               --고객번호         
+         A.CS_NO,   -- 실명번호          
+         A.CS_NO AS CS_NO_DEC,   -- 실명번호   
+         C.ACNT_NO AS ACNT_NO_DEC,        
+         A.NTN_CD,                                                --국가코드
+         F.RPR_OGN_NM,                                            --계좌개설금융기관
+         F.TRNS_OGN_CD_NEW,
+         FN_CDINFO_VAR('AC',C.GNL_AC_NO,'') as GNL_AC_NO,         --계좌번호        
+         C.GNL_AC_NO AS GNL_AC_NO_ORI,                                                           
+         NVL((SELECT TRNSFRM_CD_EXPL FROM NIC95B WHERE CD = 'S050' AND CD_VL9 = SUBSTR(C.GNL_AC_NO, -2)),'기타') AS GOODS,
+         (SELECT ACNT_NAME
+		    FROM SID.IDO_A_UUA_ACNT_NAME
+		   WHERE ACNT_NAME_TYPE_CODE = 'TYPE'
+		     AND LANG_CODE = 'KO'
+		     AND ACNT_ID = C.GNL_AC_NO) AS ACNT_GDS_NM,  --계좌상품명
+         C.AC_OPN_DT,        --계좌개설일자 
+         FN_CDINFO_VAR('DPT',C.OPN_BRN_CD,'') OPN_BRN_CD_NM,      --상품개설지점명                                                             
+         FN_CDINFO_VAR('DPT',C.MNGG_BRN_CD,'') MN_DL_DPRT_CD_NM,--주거래부점명  
+         NVL((SELECT TRIM(KFTC_BRHN_CODE) FROM NIC41B WHERE DPRT_CD = C.MNGG_BRN_CD),'ZZZZZZZ') AS MN_DL_DPRT_CD,                                                                           
+         '' AS AC_BAL,                                            --계좌잔액
+         F.TRNS_OGN_CD,                                           --계좌개설금융기관코드
+         NVL((SELECT TRNSFRM_CD FROM NIC95B WHERE CD = 'S050' AND CD_VL9 = SUBSTR(C.GNL_AC_NO, -2)),'99') AS AC_TY_CD,
+         NVL((SELECT TRIM(KFTC_BRHN_CODE) FROM NIC41B WHERE DPRT_CD = C.OPN_BRN_CD),'ZZZZZZZ') AS OPN_BRN_CD,                                            --계좌개설지점코드
+         F.BRN_NM, -- 조회점명                                                                                                                      
+         NVL((SELECT TRIM(KFTC_BRHN_CODE) FROM NIC41B WHERE DPRT_CD = F.BRN_CD),'ZZZZZZZ') AS BRN_CD, -- 조회점코드                                                                                                                               
+         TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') RP_DT, --조회일시
+         DECODE(A.INDV_CORP_CCD,'1',GET_CODE_NAME('M009' ,AML_JOB_GUBN),GET_CODE_NAME( 'M008',A.INDST_RSK_DVD_CD))  OCPTN_CD -- 직업                                                                             
+    FROM NIC01B A,                                                                                                                        
+         NIC17B C,                                                                                                                                                                                                                                              
+         NIC86B F                                                                                                                         
+   WHERE C.RNMCNO = A.RNMCNO                                                                                                            
+       AND C.ACNT_NO = #{ACNT_NO}
+       AND ROWNUM = 1
+</select>
+
+<select id="AML_20_01_11_04_doSearch_New" parameterType="hashMap" resultType="DataObj">
+SELECT  T1.SSPS_DL_CRT_DT /* 혐의거래일 */
+      , T1.SSPS_DL_ID /* 혐의거래ID */
+      , CASE WHEN T1.SSPS_TYP_CD = 'KYC0' THEN '수기 등록' ELSE GET_SYNARIO_NAME(T1.SSPS_TYP_CD) END AS SSPS_TYP_NM /* 혐의명 */
+      , CASE WHEN T1.RPR_PRGRS_CCD = '2'
+             THEN D.ACT_NAME
+             ELSE GET_CODE_NAME('A029',T1.RPR_PRGRS_CCD)
+        END AS ACT_NAME /* 결재단계 */
+      , GET_CODE_NAME('A301', (NVL(T1.OK_CCD, '0')) ) AS OK_CCD_NM /* 보고구분 */
+      , T1.TRIG_CTNT /* 트리거 */
+      , T2.RPR_RSN_CNTNT  /* 보고/제외 의견 */
+      , T1.XCL_RSN_CNTNT
+      , 'Y' AS DL_P_YN
+      , '' AS RL_P_YN
+ FROM NIC66B T1
+    , NIC67B T2
+    , (SELECT A.INST_ID, C.ACT_NAME
+         FROM WF_PROC_INSTANCE A
+            , WF_WORKLIST B
+            , WF_ACT C
+        WHERE A.WORK_ID = B.WORK_ID
+          AND B.ACT_ID = C.ACT_ID
+      ) D
+ WHERE T1.SSPS_DL_CRT_DT = T2.SSPS_DL_CRT_DT(+)
+   AND T1.SSPS_DL_ID = T2.SSPS_DL_ID(+)
+   AND T1.SSPS_DL_CRT_CCD IN ('STR', 'KYC')
+   AND T1.INST_ID = D.INST_ID
+   AND T1.DL_P_RNMCNO = #{DL_P_RNMCNO}
+   AND T1.SSPS_DL_CRT_DT BETWEEN #{stDate} AND #{edDate}
+UNION ALL
+SELECT  T1.SSPS_DL_CRT_DT /* 혐의거래일 */
+      , T1.SSPS_DL_ID /* 혐의거래ID */
+      , CASE WHEN T1.SSPS_TYP_CD = 'KYC0' THEN '수기 등록' ELSE GET_SYNARIO_NAME(T1.SSPS_TYP_CD) END AS SSPS_TYP_NM /* 혐의명 */
+      , CASE WHEN T1.RPR_PRGRS_CCD = '2'
+             THEN D.ACT_NAME
+             ELSE GET_CODE_NAME('A029',T1.RPR_PRGRS_CCD)
+        END AS ACT_NAME /* 결재단계 */
+      , GET_CODE_NAME('A301', (NVL(T1.OK_CCD, '0')) ) AS OK_CCD_NM /* 보고구분 */
+      , T1.TRIG_CTNT /* 트리거 */
+      , T2.RPR_RSN_CNTNT  /* 보고/제외 의견 */
+      , T1.XCL_RSN_CNTNT
+      , '' AS DL_P_YN
+      , 'Y' AS RL_P_YN
+ FROM NIC66B T1
+    , NIC67B T2
+    , NIC71B T3
+    , (SELECT A.INST_ID, C.ACT_NAME
+         FROM WF_PROC_INSTANCE A
+            , WF_WORKLIST B
+            , WF_ACT C
+        WHERE A.WORK_ID = B.WORK_ID
+          AND B.ACT_ID = C.ACT_ID
+      ) D
+ WHERE T1.SSPS_DL_CRT_DT = T2.SSPS_DL_CRT_DT(+)
+   AND T1.SSPS_DL_ID = T2.SSPS_DL_ID(+)
+   AND T1.SSPS_DL_CRT_DT = T3.SSPS_DL_CRT_DT
+   AND T1.SSPS_DL_ID = T3.SSPS_DL_ID
+   AND T1.SSPS_DL_CRT_CCD IN ('STR', 'KYC')
+   AND T1.INST_ID = D.INST_ID
+   AND T1.DL_P_RNMCNO != T3.RNMCNO
+   AND T3.RNMCNO = #{DL_P_RNMCNO}
+   AND T1.SSPS_DL_CRT_DT BETWEEN #{stDate} AND #{edDate} 
+</select>
+
+<select id="AML_20_07_01_02_getDataRow_New_2020" parameterType="HashMap" resultType="DataObj">
+SELECT  GNL_AC_NO||LPAD(ROWNUM,5,'0') AS GNL_SQ, --거래일련번호(계좌번호 + 순번 ex) 11100001123456 + 000001)
+        ROWNUM AS DL_SQ,                         --거래순번                                                                                                                                                             
+        A.*
+   FROM (
+         SELECT /*+ LEADING(A) ORDERED */ 
+                TO_CHAR(TO_DATE(A.DL_DT || LPAD(TRIM(A.DL_TM),6,'0'),'YYYYMMDDHH24MISS'),'YYYYMMDDHH24MISS') AS DL_DT_TM, --거래발생일시                                   	                          
+                GET_CODE_NAME('M045',A.DL_TYP_CD) AS DL_TYP_NM,    --거래종류명                                    	                                                          
+                GET_CODE_NAME('M046',A.DL_WY_CD) AS DL_WY_NM,      --거래수단명                                     	                                                          
+                GET_CODE_NAME('M044',A.DL_CHNNL_CD) AS DL_CHNNL_NM,--거래채널명
+                A.CRNCY_CD,    --통화구분코드   
+                NVL(A.FCRNCY_DL_AMT, 0) AS FCRNCY_DL_AMT,          -- 외화거래금액
+                CASE WHEN A.DL_TYP_CD IN ('01','04','07','08','12','14','16','20') THEN A.DL_AMT END AS IN_AMT, --입금금액
+                CASE WHEN A.DL_TYP_CD IN ('02','05','09','13','15','21' ) THEN A.DL_AMT END AS OUT_AMT, --지급금액
+                A.TFND_RA,    --잔액금액
+                F.RPR_OGN_NM, --취급금융기관명
+                DECODE(FN_CDINFO_VAR('DPT',A.HANDLNG_BRN_CD,''),'','',FN_CDINFO_VAR('DPT',A.HANDLNG_BRN_CD,'')) AS HANDLNG_BRN_NM, 	-- 취급점명
+                GET_CODE_NAME('M052', C.CHCK_KND_CD) AS CHCK_KND_NM, --유가증권명                                                                   	                                                          
+                C.CHCK_STRT_NO,                  --시작번호                                                                         	                                                          
+                C.CHCK_END_NO,                   --끝번호                                                                           	                                                          
+                CASE WHEN A.DL_WY_CD = '01' AND A.CHCK_AMT = 0 THEN F.RPR_OGN_NM END AS CSH_ORG, --현금지급금융기관명
+                CASE WHEN A.DL_WY_CD = '01' AND A.CHCK_AMT = 0 THEN DECODE(FN_CDINFO_VAR('DPT',A.HANDLNG_BRN_CD,''),'','',FN_CDINFO_VAR('DPT',A.HANDLNG_BRN_CD,'')) END AS CSH_BRN, --현금지급영업점명
+                B.PRXY_NM,                       --의뢰인명  
+                GET_CODE_NAME('M002',B.PRXY_RNM_NO_CCD) PRXY_RNM_NO_CCD_NM, --의뢰인실명구분  
+                B.PRXY_RNMCNO,                   --의뢰인실명번호 
+                B.NTN_CD,                        --의뢰인국적  
+                
+             -- CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL 
+             --            AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN G.CPRTY_TRSNS_FOGN_NM END    AS   CPRTY_TRSNS_FOGN_NM,         --상대금융기관명
+             -- CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL 
+             --            AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN G.CPRTY_TRSNS_AC_NO END        AS   CPRTY_TRSNS_AC_NO,             --상대계좌번호
+             -- CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL 
+             --            AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN G.CPRTY_TRSNS_AC_NM END        AS   CPRTY_TRSNS_AC_NM,             --상대계좌주명
+             -- G.CPRTY_TRSNS_AC_RNM_NO,         --상대계좌주실명번호
+             -- GET_CODE_NAME('M002',G.CPRTY_TRSNS_AC_RNM_CNFR_CCD) CPRTY_TRSNS_AC_RNM_CNFR_CCD_NM,   --상대계좌주실명구분
+                
+                
+
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN '삼성증권'
+                          ELSE 
+                               NVL((SELECT TRIM(I.INSN_IDNF_NAME) 
+                                      FROM SID.IDO_A_UUS_INSTITUTION_CODE I
+                                     WHERE I.INSN_TYPE_CODE = 'KSDC'
+                                       AND I.INSN_IDNF_CODE = T.KSD_DPSD_INSN_CODE), ' ')
+                      END           
+                     ELSE 
+                CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL 
+                           AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN G.CPRTY_TRSNS_FOGN_NM END  END  AS   CPRTY_TRSNS_FOGN_NM,         --상대금융기관명
+                           
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN
+                          NVL(TRIM(U.ACNT_NO), ' ')  
+                          ELSE NVL(TRIM(T.OTCP_ACNT_NO_CRYP), ' ')
+                      END    
+                     ELSE 
+                CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL 
+                           AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN G.CPRTY_TRSNS_AC_NO END  END      AS   CPRTY_TRSNS_AC_NO,             --상대계좌번호
+                           
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN
+                          NVL(TRIM(S.CS_NM), ' ')  
+                          ELSE NVL(TRIM(T.OTCP_SBTT_CLNT_NAME), ' ')
+                      END
+                     ELSE            
+                CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL 
+                           AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN G.CPRTY_TRSNS_AC_NM END  END      AS   CPRTY_TRSNS_AC_NM,             --상대계좌주명
+                           
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN
+                          NVL(TRIM(S.CS_NO), ' ')  
+                          ELSE ' '
+                      END
+                     ELSE G.CPRTY_TRSNS_AC_RNM_NO 
+                 END     AS CPRTY_TRSNS_AC_RNM_NO,         --상대계좌주실명번호
+                 
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN    
+                          SSQ.GET_CODE_NAME('M002',S.RNM_CNFR_CCD)
+                          ELSE '기타' 
+                      END     
+                     ELSE SSQ.GET_CODE_NAME('M002',G.CPRTY_TRSNS_AC_RNM_CNFR_CCD) END AS CPRTY_TRSNS_AC_RNM_CNFR_CCD_NM,   --상대계좌주실명구분
+
+
+
+                
+                '' AS CPRTY_TRSNS_AC_OWN_NTN_CD,     --상대계좌주국적(데이터 없음)
+                A.DL_TYP_CD,   --거래종류코드
+                A.DL_WY_CD,    --거래수단코드
+                A.DL_CHNNL_CD, --거래채널코드
+                F.TRNS_OGN_CD_NEW AS OGN_CD,      --취급금융기관코드 
+                (SELECT TRIM(KFTC_BRHN_CODE) FROM SSQ.NIC41B WHERE DPRT_CD = A.HANDLNG_BRN_CD) AS HANDLNG_BRN_CD,  --취급점코드
+                C.CHCK_KND_CD,     --유가증권코드
+                CASE WHEN A.DL_WY_CD = '01' AND A.CHCK_AMT = 0 THEN F.TRNS_OGN_CD_NEW END AS CSH_ORG_CD, --현금지급금융기관명
+                CASE WHEN A.DL_WY_CD = '01' AND A.CHCK_AMT = 0 
+                     THEN (SELECT TRIM(KFTC_BRHN_CODE) FROM SSQ.NIC41B WHERE DPRT_CD = A.HANDLNG_BRN_CD) END AS CSH_BRN_CD, --현금지급영업점명
+                B.PRXY_RNM_NO_CCD, --의뢰인실명구분코드
+                
+                
+                
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN 'GC0025'
+                          ELSE 
+                               NVL((SELECT TRIM(I.TRNSFRM_CD) 
+                                      FROM SSQ.NIC95B I
+                                     WHERE I.CD = 'L189'
+                                       AND I.CD_VL9 = SUBSTR(T.KSD_DPSD_INSN_CODE, 1, 6)), ' ')
+                      END           
+                     ELSE (SELECT TRNSFRM_CD FROM SSQ.NIC95B WHERE CD='L188' AND CD_VL9 = G.CPRTY_TRSNS_OGN_CD) END AS CPRTY_TRSNS_OGN_CD,--상대금융기관코드
+                
+                
+                CASE WHEN SUBSTR(A.TRDG_CODE, 1, 1) IN ('5', '6') THEN
+                     CASE WHEN NVL(T.RLTV_ACNT_ID, 0) > 0 AND NVL(T.ACNT_ID, 0) != NVL(T.RLTV_ACNT_ID, 0)  THEN    
+                          S.RNM_CNFR_CCD 
+                          ELSE '99' 
+                      END
+                     ELSE CASE WHEN TRIM(G.CPRTY_TRSNS_FOGN_NM) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NO) IS NOT NULL AND TRIM(G.CPRTY_TRSNS_AC_NM) IS NOT NULL THEN
+                               G.CPRTY_TRSNS_AC_RNM_CNFR_CCD 
+                               ELSE ' ' END END AS CPRTY_TRSNS_AC_RNM_CNFR_CCD,   --상대계좌주실명구분코드
+                               
+                              
+                
+                
+                
+                'A' AS GBN_CD, --정정구분코드
+                A.GNL_AC_NO,
+                H.ACNT_NO AS ACNT_NO_DEC,
+                A.DTLS_TRDG_NAME AS A1,  --적요(거래코드명)
+                J.RPRS_ISCD AS A2,
+                J.PRDT_NAME AS A3,
+                A.DL_UPRC AS A4,
+                TRUNC(A.DL_Q) AS A5,
+                A.DL_AMT AS A6,
+                CASE WHEN A.CHCK_AMT &gt; 0 THEN A.CHCK_AMT END AS CHCK_AMT,   --수표금액
+                A.ADJST_AMT,  --정산금액
+                A.SECBAL_EVAL_AMT,  --유가잔고
+                A.DPS_AMT,  --예수금잔고
+                A.RCVBL_BAL_AMT,  --미수금잔고
+                A.MLOAN_SLOAN_AMT,  --융자금/대주금
+                F.TRNS_OGN_CD_NEW,  --취급금융기관코드
+                CASE WHEN EXISTS (SELECT 1
+                                                FROM NIC75B AA, NIC66B BB
+                                              WHERE AA.SSPS_DL_CRT_DT = BB.SSPS_DL_CRT_DT
+                                                  AND AA.SSPS_DL_ID = BB.SSPS_DL_ID 
+                                                  AND AA.GNL_AC_NO = A.GNL_AC_NO
+                                                  AND AA.DL_DT = A.DL_DT
+                                                  AND AA.DL_SQ = A.DL_SQ
+                                                  AND BB.SSPS_DL_ID LIKE 'STR%'
+                                                  AND BB.RPR_PRGRS_CCD = '99') THEN 'Y' ELSE 'N' END AS DOBT_DL_RPR_YN,    --의심거래보고여부
+                (SELECT DECODE(TRIM(T.CMN_CDVL_NAME), '거래소', '코스피', TRIM(T.CMN_CDVL_NAME)) FROM SID.IDO_A_UWB_COM_CD_DTL T 
+                  WHERE T.CMN_CODE_ID = '00828' AND T.CMN_CDVL = L.BYMK_SECT_CODE AND T.DEL_YN &lt;&gt; 'Y') AS BYMK_SECT_NM  --거래소명
+           FROM SSQ.NIC61B A,
+                SSQ.NIC99B B,
+                SSQ.NIC63B C,
+                SSQ.NIC01B D,
+                SSQ.NIC04B E,
+                SSQ.NIC86B F,
+                SSQ.NIC62B G,
+                SSQ.NIC17B H,
+                SID.IDO_A_UUP_PRODUCT J,
+                SID.IDO_A_TLP_STCK_ISUS_BSC L,
+                
+                SID.IDO_A_MBA_TRDG T,
+                SSQ.NIC17B U,
+                SSQ.NIC01B S
+                
+          WHERE A.GNL_AC_NO = B.GNL_AC_NO(+)                                                                                        	                                                          
+            AND A.DL_DT = B.DL_DT(+)                                                                                                	                                                          
+            AND A.DL_SQ = B.DL_SQ(+)                                                                                                	                                                          
+            AND A.GNL_AC_NO = C.GNL_AC_NO(+)                                                                                        	                                                          
+            AND A.DL_DT = C.DL_DT(+)                                                                                                	                                                          
+            AND A.DL_SQ = C.DL_SQ(+)                                                                                                	                                                          
+            AND A.RNMCNO = D.RNMCNO                                                                                                                                                            
+            AND D.RNMCNO = E.RNMCNO(+)                                                                                                                                                         
+            AND E.CNTC_TYP_CD(+) = '1' 
+            AND A.GNL_AC_NO = G.GNL_AC_NO(+)
+            AND A.DL_DT = G.DL_DT(+)                                                                                                	                                                          
+            AND A.DL_SQ = G.DL_SQ(+) 
+            AND A.GNL_AC_NO = H.GNL_AC_NO(+)
+            AND A.ISUS_PRDT_ID = J.PRDT_ID(+)
+            AND J.PRDT_ID = L.PRDT_ID(+)
+            
+            AND A.DL_DT = T.TRDG_DATE(+)                                                                                                	                                                          
+            AND A.DL_SQ = T.TRDG_NO(+) 
+            AND A.GNL_AC_NO = T.ACNT_ID(+)                                                  
+            
+            AND T.RLTV_ACNT_ID = U.GNL_AC_NO(+)
+            AND U.RNMCNO       = S.RNMCNO(+)
+            
+            AND A.GNL_AC_NO = #{GNL_AC_NO}                                                                                                     	                                                         
+            AND A.DL_DT BETWEEN #{FROMDATE} AND #{TODATE}                                                                                                                                                       
+          ORDER BY A.DL_DT DESC, LPAD(TRIM(A.DL_TM),6,'0') DESC                                                                                                                                         
+        ) A        
+WHERE ROWNUM &lt;= 500
+</select>
+
+<select id="AML_20_07_01_01_getSearch_StrMain_2020" parameterType="hashMap" resultType="DataObj">
+SELECT  B.*,
+        ( SELECT CS_NM FROM NIC01B WHERE RNMCNO = B.RNMCNO )AS CS_NM,  
+        DECODE(NVL(TRIM(B.CLSD_DT),''),'','N','Y') AS CLSD_YN	  
+   FROM NIC17B B                                                      
+  WHERE 1 = 1
+  <if test="CS_NO != null and CS_NO != ''" >
+    AND B.RNMCNO = (SELECT RNMCNO FROM NIC01B WHERE CS_NO= #{CS_NO})
+  </if>
+  <if test="ACNT_NO != null and ACNT_NO != ''" >
+	AND B.RNMCNO = (SELECT RNMCNO FROM NIC17B WHERE TRIM(ACNT_NO) = #{ACNT_NO} AND ROWNUM = 1)
+  </if>
+  ORDER BY B.ACNT_NO
+</select>
+
+<select id="AML_20_01_10_06_getSearch_2020" parameterType="hashMap" resultType="DataObj">
+SELECT DISTINCT
+		'0' AS SELECTED
+	  ,	T1.SSPS_DL_ID	AS SSPS_DL_ID_F
+	  , CASE WHEN T1.SSPS_TYP_CD = 'KYC0' THEN '수기 등록'
+             ELSE GET_SYNARIO_NAME(T1.SSPS_TYP_CD) END AS SSPS_TYP_NM
+    , CASE WHEN T1.RPR_PRGRS_CCD = '2'
+           THEN D.ACT_NAME
+           ELSE GET_CODE_NAME('A029',T1.RPR_PRGRS_CCD)
+      END AS ACT_NAME
+    , T1.SSPS_DL_CRT_DT
+    , T1.SSPS_DL_ID
+    , CASE WHEN T1.M_SSPS_DL_CRT_DT IS NULL OR T1.M_SSPS_DL_CRT_DT='' THEN 'N' ELSE 'Y' END AS M_SSPS_DL_CRT_DT
+ FROM NIC66B T1
+    ,  (SELECT A.INST_ID, C.ACT_NAME
+          FROM WF_PROC_INSTANCE A
+             , WF_WORKLIST B
+             , WF_ACT C
+         WHERE A.WORK_ID = B.WORK_ID
+           AND B.ACT_ID = C.ACT_ID) D
+ WHERE T1.SSPS_DL_CRT_CCD  IN ('STR', 'KYC')
+   AND T1.INST_ID = D.INST_ID
+   AND T1.OK_CCD = '0'
+   AND T1.SSPS_TYP_CD NOT IN (SELECT C.MA01_6
+                               FROM C_BIZ A LEFT OUTER JOIN MMA010TB C ON ( A.BIZ_ID=C.RT30_1)
+                                  , C_PKG_BIZ_MAP  B
+                              WHERE B.PKG_ID     = '6'
+                                AND A.BIZ_ID=B.BIZ_ID
+                                AND B.PAR_BIZ_ID='6318'
+                                AND A.EDIT_YN = 'Y')
+   AND T1.DL_P_RNMCNO = #{DL_P_RNMCNO}
+   AND T1.SSPS_DL_CRT_DT BETWEEN TO_CHAR(ADD_MONTHS(TO_DATE(#{SSPS_DL_CRT_DT},'YYYYMMDD'),-1),'YYYYMMDD')
+                                              AND TO_CHAR(ADD_MONTHS(TO_DATE(#{SSPS_DL_CRT_DT},'YYYYMMDD'), 1),'YYYYMMDD')
+   AND (T1.SSPS_DL_CRT_DT != #{SSPS_DL_CRT_DT} OR T1.SSPS_DL_ID != #{SSPS_DL_ID})
+UNION
+SELECT DISTINCT
+		'0' AS SELECTED
+	  ,	T1.SSPS_DL_ID	AS SSPS_DL_ID_F
+	  , CASE WHEN T1.SSPS_TYP_CD = 'KYC0' THEN '수기 등록'
+             ELSE GET_SYNARIO_NAME(T1.SSPS_TYP_CD) END AS SSPS_TYP_NM
+      , V1.ACT_NAME
+      , T1.SSPS_DL_CRT_DT
+      , T1.SSPS_DL_ID
+      , CASE WHEN T1.M_SSPS_DL_CRT_DT IS NULL OR T1.M_SSPS_DL_CRT_DT='' THEN 'N' ELSE 'Y' END AS M_SSPS_DL_CRT_DT
+ FROM NIC66B T1
+    ,  (
+	  SELECT  A.ACT_NAME
+              , D.SSPS_DL_CRT_DT
+	          , D.SSPS_DL_ID
+	    FROM   V_WF_STANDBY A , NIC66B D
+	   WHERE
+	     ((A.PERSON_YN='Y' AND A.PARTICIPANT_ID =  #{USER_ID})
+	     OR
+	     (A.PERSON_YN='N' AND A.PARTICIPANT_ID
+	     IN (SELECT BB.DEP_ID || '.' || ROLE_ID FROM C_USER_GROUP_ROLE AA, C_USER BB
+	     WHERE AA.USER_ID=  #{USER_ID}  AND AA.USER_ID = BB.USER_ID
+	        AND BB.DEP_ID || '.' || ROLE_ID  =  #{DPT_ROLE} ) )
+	     )
+	    AND D.M_INST_ID = A.PAR_INST_ID
+	    AND D.RPR_PRGRS_CCD = '9'
+        AND D.XCL_RSN_CNTNT LIKE '병합처리%'
+	  ) V1
+ WHERE T1.SSPS_DL_CRT_CCD  IN ('STR', 'KYC')
+   AND T1.SSPS_DL_CRT_DT 	= V1.SSPS_DL_CRT_DT
+   AND T1.SSPS_DL_ID 		= V1.SSPS_DL_ID
+   AND T1.OK_CCD = '2'
+   AND T1.SSPS_TYP_CD NOT IN (SELECT C.MA01_6
+                               FROM C_BIZ A LEFT OUTER JOIN MMA010TB C ON ( A.BIZ_ID=C.RT30_1)
+                                  , C_PKG_BIZ_MAP  B
+                              WHERE B.PKG_ID     = '6'
+                                AND A.BIZ_ID=B.BIZ_ID
+                                AND B.PAR_BIZ_ID='6318'
+                                AND A.EDIT_YN = 'Y')
+   AND T1.DL_P_RNMCNO 		= #{DL_P_RNMCNO}
+   AND T1.M_SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+   AND T1.M_SSPS_DL_ID 		= #{SSPS_DL_ID}
+ORDER BY SSPS_DL_ID_F
+</select>
+
+</mapper>

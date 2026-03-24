@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cust">
+
+<!-- 고객원장 -->
+<insert id="insertCustI" parameterType="schdVO">
+	INSERT INTO SRBA_CUST_I (  
+			BAS_YYMM    
+	      , CS_NO                   
+	      , CS_NM                   
+	      , BTYMD                   
+	      , UNAGE_YN                
+	      , NTN_CD                  
+	      , INDV_CORP_CCD           
+	      , INDST_RSK_DVD_CD        
+	      , JOB_C                   
+	      , PEP_YN                  
+	      , LG_AMT_ASTS_YN          
+	      , NPRFT_GROUP_YN          
+	      , LSTNG_YN                
+	      , NFR_DIT_YN              
+	      , RSDNC_YN                
+	      , NEW_CUST_YN             
+	      , UN_TRN_YN               
+	      , STR_YN                  
+	      , DR_DT                   
+	      , DR_TIME
+	      , RA_CLNT_CLSS_CODE 	--RA고객분류코드
+	      , RSDN_CNTRY_CODE 	--거주국가코드  
+	      , CS_RGST_DT
+	      , ENCRP_RNMCNO
+		)
+	    SELECT /*+ ORDERED FULL(M) PARALLEL(M 16) */
+	       #{basYymm} AS BAS_YYMM                                             
+		  ,A.CS_NO                                                          
+		  ,A.CS_NM                                                          
+		  ,(SELECT BRTDY FROM NIC02B WHERE RNMCNO = A.RNMCNO) AS BTYMD			--생년월일
+		  ,(SELECT MIN_AGE_F FROM NIC02B WHERE RNMCNO = A.RNMCNO) AS UNAGE_YN	--미성연자여부 
+		  ,A.NTN_CD                                                         	--국가코드
+		  ,A.INDV_CORP_CCD                                                  	--개인법인구분코드 
+		  ,A.INDST_RSK_DVD_CD                                            		--업종코드 
+		  ,A.AML_JOB_GUBN                                                   	--직업코드_M009
+		  ,(SELECT DECODE(COUNT(A.CS_NO),0,'0','1')
+ 			  FROM IC_TBL_DGRS_SRCH_CNF B     
+ 			 WHERE B.ENCRP_RMNNO = A.RNMCNO
+   			   AND B.KYC_DGRS_PTN_CODE = '04'
+               AND B.DGRS_YN    = '1'
+               AND B.AGRM_YN    = '1'      
+          ) AS PEP_YN                                							--PEP 여부
+		  ,A.LG_AMT_ASTS_F AS LG_AMT_ASTS_YN                                   	--고액자산여부 
+		  --,A.NPRFT_GROUP_F AS NPRFT_GROUP_YN                                  --비영리단체여부 
+		  ,C.N_PRF_COPT_REG_YN AS NPRFT_GROUP_YN                                --비영리단체여부 ..비영리법인등록여부 
+		  ,A.LSTNG_F AS LSTNG_YN                                                --실소유자여부 
+		  ,A.NTV_FGNR_CCD                                                   	--내외국인구분코드_A008 
+		  ,A.RSDNC_F                                                        	--거주여부_M005 
+		  ,A.NEW_CLNT_YN AS NEW_CUST_YN                                         --신규고객여부
+		 ,(SELECT DECODE(COUNT(A.CS_NO),0,'0','1')   
+             FROM NIC66B B   
+            WHERE A.RNMCNO = B.DL_P_RNMCNO
+              AND SSPS_DL_CRT_DT BETWEEN #{tgtTrnSdt} AND #{tgtTrnEdt}
+              AND SSPS_TYP_CD = 'R030'  										--혐의유형코드 
+           ) AS UN_TRN_YN		                                               	--불공정거래적발여부 
+         ,(SELECT  DECODE(COUNT(A.CS_NO),0,'0','1')   
+             FROM NIC66B B   
+            WHERE A.RNMCNO = B.DL_P_RNMCNO
+              AND SSPS_DL_CRT_DT BETWEEN #{tgtTrnSdt} AND #{tgtTrnEdt}
+              AND SSPS_TYP_CD IN  ('R004', 'R005')  
+           ) AS STR_YN                                                  		--의심거래보고이력여부 
+		 ,TO_CHAR(SYSDATE, 'YYYYMMDD')                                   
+		 ,TO_CHAR(SYSDATE, 'HH24MISS')
+		 ,nvl(C.RA_CLNT_CLSS_CODE ,' ') AS RA_CLNT_CLSS_CODE 
+		 ,nvl(C.RSDN_CNTRY_CODE,' ') AS RSDN_CNTRY_CODE
+		 , A.CS_RGST_DT
+		 , A.RNMCNO
+		 
+        FROM (SELECT DISTINCT CS_NO				--CS_NO	--ENCRP_RNMCNO AS RNMCNO 로바꾸기
+	            FROM (SELECT DISTINCT M.CS_NO 	--CS_NO	--ENCRP_RNMCNO AS RNMCNO 로바꾸기
+	                    FROM SRBA_TRN_I M
+	                   WHERE 1=1
+	                     AND DL_DT BETWEEN #{tgtTrnSdt} AND #{tgtTrnEdt}
+	                 UNION ALL
+	                  SELECT DISTINCT M.CS_NO	--CS_NO	--RNMCNO 로바꾸기
+	                    FROM NIC17B M 
+	                   WHERE 1=1
+	                     AND M.AC_OPN_DT BETWEEN #{tgtTrnSdt} AND #{tgtTrnEdt}	--계좌개설일자 
+	                 ) 
+			  ) M, NIC01B A LEFT OUTER JOIN IC_TBM_CDD_CLNT C ON C.ENCRP_RMNNO = A.RNMCNO 
+	   WHERE 1=1
+	     AND M.CS_NO = A.CS_NO					----CS_NO	--RNMCNO 로바꾸기
+</insert>
+	
+<!-- 해당월 고객원장 삭제 -->
+<delete id="deleteCustI" parameterType="schdVO">
+	DELETE FROM SRBA_CUST_I
+	 WHERE BAS_YYMM = #{basYymm}  
+</delete>
+
+</mapper>

@@ -1,0 +1,918 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--  삼성증권 KRBA_BATCH > dashboard.xml   -->
+<mapper namespace="dashboard">
+
+<insert id="mergeInsertKYC" parameterType="dashboardVO">
+	MERGE INTO NIC65B NIC65
+	      USING (/* 영업일을 체크하여 월별 누적으로 매일 머지인투한다. */
+	             SELECT CASE WHEN DATA_CCD = '11'
+	                              THEN (SELECT MAX(SUBSTR(X.TAGT_DATE,1,6)) AS TAGT_YYYYMM
+	                                      FROM SID.IDO_A_UUE_INSN_CALENDAR X
+	                                     WHERE X.ENTY_ID = 1  /* 삼성증권 */
+	                                       AND X.NEXT_BSNS_DATE <![CDATA[<=]]> TO_CHAR(SYSDATE,'YYYYMMDD')
+	                                       AND X.HDAY_YN = 'N')
+	                              ELSE '000000' /* 전일자료 */
+	                    END AS BAS_YYMM
+	                  , BIZ_RULE_CCD
+	                  , DATA_CCD
+	                  , DATA_DTIL_CCD
+	                  , DATE_TEX_CCD
+	                  , CUST_CCD
+	                  , BRN_CD
+	                  , CNT
+	                  , SYSDATE                      AS CRT_DT
+	                  , '000000'                     AS CRT_ENP
+	                  , SYSDATE                      AS UDT_DT
+	                  , '000000'                     AS UDT_ENO
+	               FROM (
+	                     SELECT '01'                 AS BIZ_RULE_CCD  /* KYC */
+	                          , '11'                 AS DATA_CCD      /* 고객위험등급 */
+	                          , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END                  AS DATA_DTIL_CCD /* 위험등급 */
+	                          , '99'                 AS DATE_TEX_CCD  /* 전체 */
+	                          , DECODE(C.NDVL_INSN_TYPE_CODE,'IN','01','02') AS CUST_CCD      /* 고객구분 */
+	                          , '99999'              AS BRN_CD
+	                          , COUNT(1)             AS CNT
+                           FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A -- CDD
+                              , SID.IDO_A_MAC_CLNT_ADDN_IFMN B -- 고객
+                              , SID.IDO_A_UUF_CLNT_BSC       C  /* NDVL_INSN_TYPE_CODE */
+                          WHERE A.CDD_TAGT_ENTY_ID = B.CLNT_ENTY_ID
+                            AND B.CLNT_ENTY_ID     = C.ENTY_ID
+                            AND A.DEL_YN           <![CDATA[<>]]> 'Y'           --20240516 SHJ 원장데이터 정합성을 위해 추가
+                            AND TRIM(A.CLNT_RISK_RTNG_CODE) IS NOT NULL -- 위험등급이 존재하는 애들만
+                            AND EXISTS (SELECT 1
+                                          FROM SID.IDO_A_UUA_ACNT           C -- 계좌
+                                         WHERE C.ACNT_OWNR_ID = A.CDD_TAGT_ENTY_ID
+                                           AND C.ACNT_TYPE_CODE IN ('GNAC', 'FPAC', 'FOAC', 'SVAC') -- RETAIL계좌를 가진
+                                           AND C.ACNT_STAS_TYPE_CODE != 'CL' -- 폐쇄계좌가 아닌(정상계좌를 가진)
+                                        )
+					        AND NOT EXISTS (SELECT 1                                  --20240516 SHJ 원장데이터 정합성을 위해 추가
+					                          FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  B
+					                         WHERE B.CDD_TAGT_ENTY_ID    = A.CDD_TAGT_ENTY_ID
+					                           AND B.RGBR_CODE           = '21220'               /* 연금전략팀 */
+					                           AND B.CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')    /* 요주의필터링결과코드 */
+					                        )                      
+                       GROUP BY CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END
+	                          , DECODE(C.NDVL_INSN_TYPE_CODE,'IN','01','02')
+	
+	                     UNION ALL
+	
+	                     SELECT '01'                 AS BIZ_RULE_CCD  /* KYC */
+	                          , '11'                 AS DATA_CCD      /* 고객위험등급 */
+	                          , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END                  AS DATA_DTIL_CCD /* 위험등급 */
+	                          , '99'                 AS DATE_TEX_CCD  /* 전체 */
+	                          , DECODE(C.NDVL_INSN_TYPE_CODE,'IN','01','02') AS CUST_CCD      /* 고객구분 */
+	                          , Y.DTBR_CODE          AS BRN_CD
+	                          , COUNT(1)             AS CNT
+                           FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A -- CDD
+                              , SID.IDO_A_MAC_CLNT_ADDN_IFMN B -- 고객
+                              , SID.IDO_A_UUF_CLNT_BSC       C  /* NDVL_INSN_TYPE_CODE */
+                              , SID.IDO_A_IRA_CUST_MGR       X
+                              , SID.IDO_A_UUE_SAMSUNG_DPRT   Y
+                          WHERE A.CDD_TAGT_ENTY_ID = B.CLNT_ENTY_ID
+                            AND B.CLNT_ENTY_ID     = C.ENTY_ID
+                            AND TRIM(A.CLNT_RISK_RTNG_CODE) IS NOT NULL -- 위험등급이 존재하는 애들만
+                            AND EXISTS (SELECT 1
+                                          FROM SID.IDO_A_UUA_ACNT           C -- 계좌
+                                         WHERE C.ACNT_OWNR_ID = A.CDD_TAGT_ENTY_ID
+                                           AND C.ACNT_TYPE_CODE IN ('GNAC', 'FPAC', 'FOAC', 'SVAC') -- RETAIL계좌를 가진
+                                           AND C.ACNT_STAS_TYPE_CODE != 'CL' -- 폐쇄계좌가 아닌(정상계좌를 가진)
+                                        )
+                            AND X.DTLS_MNBR_ENTY_ID = Y.ENTY_ID
+                            AND X.CLNT_ENTY_ID      = B.CLNT_ENTY_ID
+                       GROUP BY CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END
+	                          , DECODE(C.NDVL_INSN_TYPE_CODE,'IN','01','02')
+                              , Y.DTBR_CODE 
+                              
+                         UNION ALL
+                         
+	                     SELECT '01'                 AS BIZ_RULE_CCD  /* KYC */
+	                          , '10'                 AS DATA_CCD      /* 전일기준 고객위험등급 */
+	                          , A.DATA_DTIL_CCD      AS DATA_DTIL_CCD /* 위험등급 */
+	                          , A.DATE_TEX_CCD       AS DATE_TEX_CCD  /* 전체 */
+	                          , A.CUST_CCD           AS CUST_CCD      /* 고객구분 */
+	                          , A.BRN_CD             AS BRN_CD
+	                          , A.CNT                AS CNT
+                         FROM NIC65B  A -- CDD
+                        WHERE A.BAS_YYMM = (SELECT MAX(Z.BAS_YYMM)
+                                              FROM NIC65B  Z
+                                             WHERE Z.BIZ_RULE_CCD = '01'
+                                               AND Z.DATA_CCD     = '11')
+                          AND A.BIZ_RULE_CCD = '01'
+                          AND A.DATA_CCD     = '11'
+	                   )) NIC65_V
+	         ON (
+	                 NIC65.BAS_YYMM = NIC65_V.BAS_YYMM
+	             AND NIC65.BIZ_RULE_CCD = NIC65_V.BIZ_RULE_CCD
+	             AND NIC65.DATA_CCD = NIC65_V.DATA_CCD
+	             AND NIC65.DATA_DTIL_CCD = NIC65_V.DATA_DTIL_CCD
+	             AND NIC65.DATE_TEX_CCD = NIC65_V.DATE_TEX_CCD
+	             AND NIC65.CUST_CCD = NIC65_V.CUST_CCD
+	             AND NIC65.BRN_CD = NIC65_V.BRN_CD)
+	      WHEN MATCHED THEN
+	           UPDATE  SET
+	                   CNT     = NIC65_V.CNT
+	                ,  UDT_DT  = NIC65_V.UDT_DT
+	                ,  UDT_ENO = NIC65_V.UDT_ENO
+	      WHEN NOT MATCHED THEN
+	           INSERT
+	           (  BAS_YYMM, BIZ_RULE_CCD, DATA_CCD, DATA_DTIL_CCD, DATE_TEX_CCD, CUST_CCD, BRN_CD
+	            , CNT, CRT_DT, CRT_ENP, UDT_DT, UDT_ENO)
+	           VALUES
+	           (  NIC65_V.BAS_YYMM, NIC65_V.BIZ_RULE_CCD, NIC65_V.DATA_CCD, NIC65_V.DATA_DTIL_CCD, NIC65_V.DATE_TEX_CCD, NIC65_V.CUST_CCD, NIC65_V.BRN_CD
+	            , NIC65_V.CNT, NIC65_V.CRT_DT, NIC65_V.CRT_ENP, NIC65_V.UDT_DT, NIC65_V.UDT_ENO)
+</insert>
+
+<insert id="mergeInsertCDD" parameterType="dashboardVO">
+	MERGE INTO NIC65B NIC65
+	      USING (/* 영업일을 체크하여 월별 누적으로 매일 머지인투한다. */
+	             SELECT BAS_YYMM
+	                  , BIZ_RULE_CCD
+	                  , DATA_CCD
+	                  , DATA_DTIL_CCD
+	                  , DATE_TEX_CCD
+	                  , CUST_CCD
+	                  , BRN_CD
+	                  , CNT
+	                  , SYSDATE                             AS CRT_DT
+	                  , '000000'                            AS CRT_ENP
+	                  , SYSDATE                             AS UDT_DT
+	                  , '000000'                            AS UDT_ENO
+	               FROM (
+	                     SELECT SUBSTR(C.CDD_FLFL_DATE, 1, 6) AS BAS_YYMM
+	                          , '03'                        AS BIZ_RULE_CCD  /* CDD */
+	                          , '99'                        AS DATA_CCD      /* 자료구분 */
+	                          , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END                  AS DATA_DTIL_CCD /* 위험등급 */
+	                          , '01'                 AS DATE_TEX_CCD  /* 01:신규 CDD 수행 */
+	                          , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02') AS CUST_CCD      /* 고객구분 */
+	                          , '99999'              AS BRN_CD
+	                          , COUNT(1)             AS CNT
+                           FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A -- CDD
+                              , SID.IDO_A_MAC_CLNT_ADDN_IFMN B -- 고객
+                              , SID.IDO_A_UUF_CLNT_BSC       B1  /* NDVL_INSN_TYPE_CODE */
+                              , SID.IDO_A_MAH_CDD_FLFL_CHAN  C --CDD수행
+                              
+                              
+                          WHERE A.CDD_TAGT_ENTY_ID = B.CLNT_ENTY_ID(+)
+                            AND A.CDD_TAGT_ENTY_ID = B1.ENTY_ID(+)
+                            AND TRIM(A.CLNT_RISK_RTNG_CODE) IS NOT NULL -- 위험등급이 존재하는 애들만
+							AND NOT EXISTS ( SELECT 1
+							                   FROM SID.IDO_A_MAH_CDD_FLFL_DTLD
+								              WHERE CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+								                AND CDD_FLFL_DATE LIKE TO_CHAR(SYSDATE,'YYYYMM')||'%'
+								                AND RGBR_CODE = '21220'  /* 연금전략팀 */
+								                AND CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')  /* 요주의필터링결과코드 */
+								           )                                        
+                            AND A.CDD_TAGT_ENTY_ID  = C.CDD_TAGT_ENTY_ID            
+                            AND C.CDD_FLFL_DATE LIKE TO_CHAR(SYSDATE,'YYYYMM')||'%' 	--CDD수행일자 
+                            AND C.CDD_FLFL_SQNO = '1'
+                       GROUP BY SUBSTR(C.CDD_FLFL_DATE, 1, 6)
+                            , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END
+	                          , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02')
+	                     UNION
+	                     SELECT /*+ parallel(4) */SUBSTR(C.CDD_FLFL_DATE, 1, 6) AS BAS_YYMM
+	                          , '03'                        AS BIZ_RULE_CCD  /* CDD */
+	                          , '99'                        AS DATA_CCD      /* 자료구분 */
+	                          , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END                  AS DATA_DTIL_CCD /* 위험등급 */
+	                          , CASE WHEN SUBSTR(C.CDD_FLFL_DATE,1,6) = SUBSTR(D.CDD_RE_FLFL_XPCN_DATE,1,6) THEN '02' /* 02:도래자 CDD수행 */ 
+                                   WHEN D.CDD_RE_FLFL_XPCN_DATE IS NULL                                   THEN '03' /* 03:미수행 CDD수행 */
+                                   WHEN SUBSTR(C.CDD_FLFL_DATE,1,6) > SUBSTR(D.CDD_RE_FLFL_XPCN_DATE,1,6) THEN '03' /* 03:미수행 CDD수행 */
+                                   ELSE  '04' END                                                  AS DATE_TEX_CCD  /* 04:미래건 CDD 수행 */
+	                          , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02') AS CUST_CCD      /* 고객구분 */
+	                          , '99999'              AS BRN_CD
+	                          , COUNT(1)             AS CNT
+                           FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A -- CDD
+                              , SID.IDO_A_MAC_CLNT_ADDN_IFMN B -- 고객
+                              , SID.IDO_A_UUF_CLNT_BSC       B1  /* NDVL_INSN_TYPE_CODE */
+                              , SID.IDO_A_MAH_CDD_FLFL_CHAN  C --CDD수행
+                              , SID.IDO_A_MAH_CDD_FLFL_CHAN D --이전 CDD재수행예정일자를 찾기위해
+                              ,(SELECT CDD_TAGT_ENTY_ID
+                                     , MIN(CDD_FLFL_SQNO) CDD_FLFL_SQNO
+                                  FROM SID.IDO_A_MAH_CDD_FLFL_CHAN
+                                 WHERE CDD_FLFL_DATE LIKE TO_CHAR(SYSDATE,'YYYYMM')||'%' 	--CDD수행일자 
+                              GROUP BY CDD_TAGT_ENTY_ID) E --당월 가장빠른 CDD수행
+                          WHERE A.CDD_TAGT_ENTY_ID = B.CLNT_ENTY_ID(+)
+                            AND A.CDD_TAGT_ENTY_ID = B1.ENTY_ID(+)
+                            AND TRIM(A.CLNT_RISK_RTNG_CODE) IS NOT NULL -- 위험등급이 존재하는 애들만
+							AND NOT EXISTS ( SELECT 1
+							                   FROM SID.IDO_A_MAH_CDD_FLFL_DTLD
+								              WHERE CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+								                AND CDD_FLFL_DATE LIKE TO_CHAR(SYSDATE,'YYYYMM')||'%'
+								                AND RGBR_CODE = '21220'  /* 연금전략팀 */
+								                AND CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')  /* 요주의필터링결과코드 */
+								           )    
+                            AND A.CDD_TAGT_ENTY_ID  = C.CDD_TAGT_ENTY_ID            
+                            AND C.CDD_TAGT_ENTY_ID = D.CDD_TAGT_ENTY_ID
+                            AND D.CDD_FLFL_SQNO = (SELECT MAX(X.CDD_FLFL_SQNO)
+                                                     FROM SID.IDO_A_MAH_CDD_FLFL_CHAN X
+                                                    WHERE X.CDD_TAGT_ENTY_ID = C.CDD_TAGT_ENTY_ID
+                                                      AND X.CDD_FLFL_SQNO    <![CDATA[<]]> C.CDD_FLFL_SQNO)
+                            AND C.CDD_TAGT_ENTY_ID = E.CDD_TAGT_ENTY_ID
+                            AND C.CDD_FLFL_SQNO    = E.CDD_FLFL_SQNO
+                       GROUP BY SUBSTR(C.CDD_FLFL_DATE, 1, 6)
+                            , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END
+	                          , CASE WHEN SUBSTR(C.CDD_FLFL_DATE,1,6) = SUBSTR(D.CDD_RE_FLFL_XPCN_DATE,1,6) THEN '02' /* 02:도래자 CDD수행 */ 
+                                   WHEN D.CDD_RE_FLFL_XPCN_DATE IS NULL                                   THEN '03' /* 03:미수행 CDD수행 */
+                                   WHEN SUBSTR(C.CDD_FLFL_DATE,1,6) > SUBSTR(D.CDD_RE_FLFL_XPCN_DATE,1,6) THEN '03' /* 03:미수행 CDD수행 */
+                                   ELSE  '04' END                                                                   /* 04:미래건 CDD 수행 */
+	                          , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02')
+	
+	                     UNION ALL /* 지점별 */
+	
+	                     SELECT SUBSTR(C.CDD_FLFL_DATE, 1, 6) AS BAS_YYMM
+	                          , '03'                        AS BIZ_RULE_CCD  /* CDD */
+	                          , '99'                        AS DATA_CCD      /* 자료구분 */
+	                          , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END                  AS DATA_DTIL_CCD /* 위험등급 */
+	                          , '01'                 AS DATE_TEX_CCD  /* 01:신규 CDD 수행 */
+	                          , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02') AS CUST_CCD      /* 고객구분 */
+	                          , Y.DTBR_CODE          AS BRN_CD
+	                          , COUNT(1)             AS CNT
+                           FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A -- CDD
+                              , SID.IDO_A_MAC_CLNT_ADDN_IFMN B -- 고객
+                              , SID.IDO_A_UUF_CLNT_BSC       B1  /* NDVL_INSN_TYPE_CODE */
+                              , SID.IDO_A_MAH_CDD_FLFL_CHAN  C --CDD수행
+                              , SID.IDO_A_IRA_CUST_MGR       X
+                              , SID.IDO_A_UUE_SAMSUNG_DPRT   Y
+                          WHERE A.CDD_TAGT_ENTY_ID = B.CLNT_ENTY_ID(+)
+                            AND A.CDD_TAGT_ENTY_ID = B1.ENTY_ID(+)
+                            AND TRIM(A.CLNT_RISK_RTNG_CODE) IS NOT NULL -- 위험등급이 존재하는 애들만
+							AND NOT EXISTS ( SELECT 1
+							                   FROM SID.IDO_A_MAH_CDD_FLFL_DTLD
+								              WHERE CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+								                AND CDD_FLFL_DATE LIKE TO_CHAR(SYSDATE,'YYYYMM')||'%'
+								                AND RGBR_CODE = '21220'  /* 연금전략팀 */
+								                AND CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')  /* 요주의필터링결과코드 */
+								           )    
+                            AND A.CDD_TAGT_ENTY_ID  = C.CDD_TAGT_ENTY_ID            
+                            AND C.CDD_FLFL_DATE LIKE TO_CHAR(SYSDATE,'YYYYMM')||'%' 	--CDD수행일자 
+                            AND C.CDD_FLFL_SQNO = '1'
+                            AND X.DTLS_MNBR_ENTY_ID = Y.ENTY_ID
+                            AND X.CLNT_ENTY_ID      = B.CLNT_ENTY_ID   
+                       GROUP BY SUBSTR(C.CDD_FLFL_DATE, 1, 6)
+                            , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END
+	                          , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02')
+                            , Y.DTBR_CODE 
+	                     UNION
+	                     SELECT  /*+ parallel(4) */ SUBSTR(C.CDD_FLFL_DATE, 1, 6) AS BAS_YYMM
+	                          , '03'                        AS BIZ_RULE_CCD  /* CDD */
+	                          , '99'                        AS DATA_CCD      /* 자료구분 */
+	                          , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END                  AS DATA_DTIL_CCD /* 위험등급 */
+	                          , CASE WHEN SUBSTR(C.CDD_FLFL_DATE,1,6) = SUBSTR(D.CDD_RE_FLFL_XPCN_DATE,1,6) THEN '02' /* 02:도래자 CDD수행 */ 
+                                   WHEN D.CDD_RE_FLFL_XPCN_DATE IS NULL                                   THEN '03' /* 03:미수행 CDD수행 */
+                                   WHEN SUBSTR(C.CDD_FLFL_DATE,1,6) > SUBSTR(D.CDD_RE_FLFL_XPCN_DATE,1,6) THEN '03' /* 03:미수행 CDD수행 */
+                                   ELSE  '04' END                                                  AS DATE_TEX_CCD  /* 04:미래건 CDD 수행 */
+	                          , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02') AS CUST_CCD      /* 고객구분 */
+	                          , Y.DTBR_CODE          AS BRN_CD
+	                          , COUNT(1)             AS CNT
+                           FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A -- CDD
+                              , SID.IDO_A_MAC_CLNT_ADDN_IFMN B -- 고객
+                              , SID.IDO_A_UUF_CLNT_BSC       B1  /* NDVL_INSN_TYPE_CODE */
+                              , SID.IDO_A_MAH_CDD_FLFL_CHAN  C --CDD수행
+                              , SID.IDO_A_MAH_CDD_FLFL_CHAN D --이전 CDD재수행예정일자를 찾기위해
+                              ,(SELECT CDD_TAGT_ENTY_ID
+                                     , MIN(CDD_FLFL_SQNO) CDD_FLFL_SQNO
+                                  FROM SID.IDO_A_MAH_CDD_FLFL_CHAN
+                                 WHERE CDD_FLFL_DATE LIKE TO_CHAR(SYSDATE,'YYYYMM')||'%' 	--CDD수행일자 
+                              GROUP BY CDD_TAGT_ENTY_ID) E --당월 가장빠른 CDD수행
+                              , SID.IDO_A_IRA_CUST_MGR       X
+                              , SID.IDO_A_UUE_SAMSUNG_DPRT   Y
+                          WHERE A.CDD_TAGT_ENTY_ID = B.CLNT_ENTY_ID(+)
+                            AND A.CDD_TAGT_ENTY_ID = B1.ENTY_ID(+)
+                            AND TRIM(A.CLNT_RISK_RTNG_CODE) IS NOT NULL -- 위험등급이 존재하는 애들만
+							AND NOT EXISTS ( SELECT 1
+							                   FROM SID.IDO_A_MAH_CDD_FLFL_DTLD
+								              WHERE CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+								                AND CDD_FLFL_DATE LIKE TO_CHAR(SYSDATE,'YYYYMM')||'%'
+								                AND RGBR_CODE = '21220'  /* 연금전략팀 */
+								                AND CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')  /* 요주의필터링결과코드 */
+								           )    
+                            AND A.CDD_TAGT_ENTY_ID  = C.CDD_TAGT_ENTY_ID            
+                            AND C.CDD_TAGT_ENTY_ID = D.CDD_TAGT_ENTY_ID
+                            AND D.CDD_FLFL_SQNO = (SELECT MAX(X.CDD_FLFL_SQNO)
+                                                     FROM SID.IDO_A_MAH_CDD_FLFL_CHAN X
+                                                    WHERE X.CDD_TAGT_ENTY_ID = C.CDD_TAGT_ENTY_ID
+                                                      AND X.CDD_FLFL_SQNO    <![CDATA[<]]> C.CDD_FLFL_SQNO)
+                            AND C.CDD_TAGT_ENTY_ID = E.CDD_TAGT_ENTY_ID
+                            AND C.CDD_FLFL_SQNO    = E.CDD_FLFL_SQNO
+                            AND X.DTLS_MNBR_ENTY_ID = Y.ENTY_ID
+                            AND X.CLNT_ENTY_ID      = B.CLNT_ENTY_ID   
+                       GROUP BY SUBSTR(C.CDD_FLFL_DATE, 1, 6)
+                            , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END
+	                          , CASE WHEN SUBSTR(C.CDD_FLFL_DATE,1,6) = SUBSTR(D.CDD_RE_FLFL_XPCN_DATE,1,6) THEN '02' /* 02:도래자 CDD수행 */ 
+                                   WHEN D.CDD_RE_FLFL_XPCN_DATE IS NULL                                   THEN '03' /* 03:미수행 CDD수행 */
+                                   WHEN SUBSTR(C.CDD_FLFL_DATE,1,6) > SUBSTR(D.CDD_RE_FLFL_XPCN_DATE,1,6) THEN '03' /* 03:미수행 CDD수행 */
+                                   ELSE  '04' END                                                                   /* 04:미래건 CDD 수행 */
+	                          , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02')
+                            , Y.DTBR_CODE 
+	                   )) NIC65_V
+	         ON (
+	                 NIC65.BAS_YYMM = NIC65_V.BAS_YYMM
+	             AND NIC65.BIZ_RULE_CCD = NIC65_V.BIZ_RULE_CCD
+	             AND NIC65.DATA_CCD = NIC65_V.DATA_CCD
+	             AND NIC65.DATA_DTIL_CCD = NIC65_V.DATA_DTIL_CCD
+	             AND NIC65.DATE_TEX_CCD = NIC65_V.DATE_TEX_CCD
+	             AND NIC65.CUST_CCD = NIC65_V.CUST_CCD
+	             AND NIC65.BRN_CD = NIC65_V.BRN_CD)
+	      WHEN MATCHED THEN
+	           UPDATE  SET
+	                   CNT     = NIC65_V.CNT
+	                ,  UDT_DT  = NIC65_V.UDT_DT
+	                ,  UDT_ENO = NIC65_V.UDT_ENO
+	      WHEN NOT MATCHED THEN
+	           INSERT
+	           (  BAS_YYMM, BIZ_RULE_CCD, DATA_CCD, DATA_DTIL_CCD, DATE_TEX_CCD, CUST_CCD, BRN_CD
+	            , CNT, CRT_DT, CRT_ENP, UDT_DT, UDT_ENO)
+	           VALUES
+	           (  NIC65_V.BAS_YYMM, NIC65_V.BIZ_RULE_CCD, NIC65_V.DATA_CCD, NIC65_V.DATA_DTIL_CCD, NIC65_V.DATE_TEX_CCD, NIC65_V.CUST_CCD, NIC65_V.BRN_CD
+	            , NIC65_V.CNT, NIC65_V.CRT_DT, NIC65_V.CRT_ENP, NIC65_V.UDT_DT, NIC65_V.UDT_ENO)
+</insert>
+
+<insert id="mergeInsertCDD_R" parameterType="dashboardVO">
+	MERGE INTO NIC65B NIC65
+	      USING (/* 월초 1회만 집계 구축한다. */
+	             SELECT BAS_YYMM
+	                  , BIZ_RULE_CCD
+	                  , DATA_CCD
+	                  , DATA_DTIL_CCD
+	                  , DATE_TEX_CCD
+	                  , CUST_CCD
+	                  , BRN_CD
+	                  , CNT
+	                  , SYSDATE                             AS CRT_DT
+	                  , '000000'                            AS CRT_ENP
+	                  , SYSDATE                             AS UDT_DT
+	                  , '000000'                            AS UDT_ENO
+	               FROM (
+	                     SELECT TO_CHAR(SYSDATE,'YYYYMM')   AS BAS_YYMM
+	                          , '01'                        AS BIZ_RULE_CCD  /* KYC */
+	                          , '12'                        AS DATA_CCD      /* KYC 재이행 (당월) 도래 대상 건 */
+	                          , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END                  AS DATA_DTIL_CCD /* 위험등급 */
+	                          , '99'                 AS DATE_TEX_CCD  /* 전체 */
+	                          , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02') AS CUST_CCD      /* 고객구분 */
+	                          , '99999'              AS BRN_CD
+	                          , COUNT(1)             AS CNT
+                          FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A -- CDD
+                             , SID.IDO_A_MAC_CLNT_ADDN_IFMN B -- 고객
+                             , SID.IDO_A_UUF_CLNT_BSC       B1  /* NDVL_INSN_TYPE_CODE */
+                         WHERE A.CDD_TAGT_ENTY_ID = B.CLNT_ENTY_ID(+)
+                           AND A.CDD_TAGT_ENTY_ID = B1.ENTY_ID(+)
+                           AND TRIM(A.CLNT_RISK_RTNG_CODE) IS NOT NULL -- 위험등급이 존재하는 애들만
+						   AND NOT EXISTS ( SELECT 1
+							                   FROM SID.IDO_A_MAH_CDD_FLFL_DTLD
+								              WHERE CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+								                AND CDD_FLFL_DATE LIKE TO_CHAR(SYSDATE,'YYYYMM')||'%'
+								                AND RGBR_CODE = '21220'  /* 연금전략팀 */
+								                AND CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')  /* 요주의필터링결과코드 */
+								           )    
+                           AND SUBSTR(A.CDD_RE_FLFL_XPCN_DATE,1,6) = TO_CHAR(SYSDATE,'YYYYMM')
+                      GROUP BY CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                 ELSE '03'
+	                           END
+	                         , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02')
+	
+	                     UNION ALL /* 지점별 */
+	
+	                     SELECT TO_CHAR(SYSDATE,'YYYYMM')   AS BAS_YYMM
+	                          , '01'                        AS BIZ_RULE_CCD  /* KYC */
+	                          , '12'                        AS DATA_CCD      /* KYC 재이행 (당월) 도래 대상 건 */
+	                          , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END                  AS DATA_DTIL_CCD /* 위험등급 */
+	                          , '99'                 AS DATE_TEX_CCD  /* 전체 */
+	                          , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02') AS CUST_CCD      /* 고객구분 */
+	                          , Y.DTBR_CODE          AS BRN_CD
+	                          , COUNT(1)             AS CNT
+                          FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A -- CDD
+                             , SID.IDO_A_MAC_CLNT_ADDN_IFMN B -- 고객
+                             , SID.IDO_A_UUF_CLNT_BSC       B1  /* NDVL_INSN_TYPE_CODE */
+                             , SID.IDO_A_IRA_CUST_MGR       X
+                             , SID.IDO_A_UUE_SAMSUNG_DPRT   Y
+                         WHERE A.CDD_TAGT_ENTY_ID = B.CLNT_ENTY_ID(+)
+                           AND A.CDD_TAGT_ENTY_ID = B1.ENTY_ID(+)
+                           AND TRIM(A.CLNT_RISK_RTNG_CODE) IS NOT NULL -- 위험등급이 존재하는 애들만
+							AND NOT EXISTS ( SELECT 1
+							                   FROM SID.IDO_A_MAH_CDD_FLFL_DTLD
+								              WHERE CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+								                AND CDD_FLFL_DATE LIKE TO_CHAR(SYSDATE,'YYYYMM')||'%'
+								                AND RGBR_CODE = '21220'  /* 연금전략팀 */
+								                AND CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')  /* 요주의필터링결과코드 */
+								           )    
+                           AND SUBSTR(A.CDD_RE_FLFL_XPCN_DATE,1,6) = TO_CHAR(SYSDATE,'YYYYMM')
+                           AND X.DTLS_MNBR_ENTY_ID = Y.ENTY_ID
+                           AND X.CLNT_ENTY_ID      = B.CLNT_ENTY_ID   
+                      GROUP BY CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                 ELSE '03'
+	                           END
+	                         , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02')
+                             , Y.DTBR_CODE
+							 
+	                     UNION ALL /* 당월 전 미처리 */
+							 
+	                     SELECT TO_CHAR(SYSDATE,'YYYYMM')   AS BAS_YYMM
+	                          , '01'                        AS BIZ_RULE_CCD  /* KYC */
+	                          , '13'                        AS DATA_CCD      /* KYC 재이행 (당월 전 미처리) 도래 대상 건 */
+	                          , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END                  AS DATA_DTIL_CCD /* 위험등급 */
+	                          , '99'                 AS DATE_TEX_CCD  /* 전체 */
+	                          , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02') AS CUST_CCD      /* 고객구분 */
+	                          , '99999'              AS BRN_CD
+	                          , COUNT(1)             AS CNT
+                          FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A -- CDD
+                             , SID.IDO_A_MAC_CLNT_ADDN_IFMN B -- 고객
+                             , SID.IDO_A_UUF_CLNT_BSC       B1  /* NDVL_INSN_TYPE_CODE */
+                         WHERE A.CDD_TAGT_ENTY_ID = B.CLNT_ENTY_ID(+)
+                           AND A.CDD_TAGT_ENTY_ID = B1.ENTY_ID(+)
+                           AND TRIM(A.CLNT_RISK_RTNG_CODE) IS NOT NULL -- 위험등급이 존재하는 애들만
+							AND NOT EXISTS ( SELECT 1
+							                   FROM SID.IDO_A_MAH_CDD_FLFL_DTLD
+								              WHERE CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+								                AND CDD_FLFL_DATE LIKE TO_CHAR(SYSDATE,'YYYYMM')||'%'
+								                AND RGBR_CODE = '21220'  /* 연금전략팀 */
+								                AND CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')  /* 요주의필터링결과코드 */
+								           )    
+                           AND (SUBSTR(A.CDD_RE_FLFL_XPCN_DATE,1,6) <![CDATA[<]]> TO_CHAR(SYSDATE,'YYYYMM') OR A.CDD_RE_FLFL_XPCN_DATE IS NULL)
+                      GROUP BY CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                 ELSE '03'
+	                           END
+	                         , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02')
+							 
+	                     UNION ALL /* 당월 전 미처리 지점별 */
+						 
+	                     SELECT TO_CHAR(SYSDATE,'YYYYMM')   AS BAS_YYMM
+	                          , '01'                        AS BIZ_RULE_CCD  /* KYC */
+	                          , '13'                        AS DATA_CCD      /* KYC 재이행 (당월 전 미처리) 도래 대상 건 */
+	                          , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                 WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                  ELSE '03'
+	                            END                  AS DATA_DTIL_CCD /* 위험등급 */
+	                          , '99'                 AS DATE_TEX_CCD  /* 전체 */
+	                          , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02') AS CUST_CCD      /* 고객구분 */
+	                          , Y.DTBR_CODE          AS BRN_CD
+	                          , COUNT(1)             AS CNT
+                          FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A -- CDD
+                             , SID.IDO_A_MAC_CLNT_ADDN_IFMN B -- 고객
+                             , SID.IDO_A_UUF_CLNT_BSC       B1  /* NDVL_INSN_TYPE_CODE */
+                             , SID.IDO_A_IRA_CUST_MGR       X
+                             , SID.IDO_A_UUE_SAMSUNG_DPRT   Y
+                         WHERE A.CDD_TAGT_ENTY_ID = B.CLNT_ENTY_ID(+)
+                           AND A.CDD_TAGT_ENTY_ID = B1.ENTY_ID(+)
+                           AND TRIM(A.CLNT_RISK_RTNG_CODE) IS NOT NULL -- 위험등급이 존재하는 애들만
+							AND NOT EXISTS ( SELECT 1
+							                   FROM SID.IDO_A_MAH_CDD_FLFL_DTLD
+								              WHERE CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+								                AND CDD_FLFL_DATE LIKE TO_CHAR(SYSDATE,'YYYYMM')||'%'
+								                AND RGBR_CODE = '21220'  /* 연금전략팀 */
+								                AND CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')  /* 요주의필터링결과코드 */
+								           )    
+                           AND (SUBSTR(A.CDD_RE_FLFL_XPCN_DATE,1,6) <![CDATA[<]]> TO_CHAR(SYSDATE,'YYYYMM') OR A.CDD_RE_FLFL_XPCN_DATE IS NULL)
+                           AND X.DTLS_MNBR_ENTY_ID = Y.ENTY_ID
+                           AND X.CLNT_ENTY_ID      = B.CLNT_ENTY_ID  
+                      GROUP BY CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '01'
+	                                WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '02'
+	                                                                 ELSE '03'
+	                           END
+	                         , DECODE(B1.NDVL_INSN_TYPE_CODE,'IN','01',NULL,'01','02')
+						     , Y.DTBR_CODE
+							 
+	                   )) NIC65_V
+	         ON (
+	                 NIC65.BAS_YYMM = NIC65_V.BAS_YYMM
+	             AND NIC65.BIZ_RULE_CCD = NIC65_V.BIZ_RULE_CCD
+	             AND NIC65.DATA_CCD = NIC65_V.DATA_CCD
+	             AND NIC65.DATA_DTIL_CCD = NIC65_V.DATA_DTIL_CCD
+	             AND NIC65.DATE_TEX_CCD = NIC65_V.DATE_TEX_CCD
+	             AND NIC65.CUST_CCD = NIC65_V.CUST_CCD
+	             AND NIC65.BRN_CD = NIC65_V.BRN_CD)
+	      WHEN MATCHED THEN
+	           UPDATE  SET
+	                   CNT     = NIC65_V.CNT
+	                ,  UDT_DT  = NIC65_V.UDT_DT
+	                ,  UDT_ENO = NIC65_V.UDT_ENO
+	      WHEN NOT MATCHED THEN
+	           INSERT
+	           (  BAS_YYMM, BIZ_RULE_CCD, DATA_CCD, DATA_DTIL_CCD, DATE_TEX_CCD, CUST_CCD, BRN_CD
+	            , CNT, CRT_DT, CRT_ENP, UDT_DT, UDT_ENO)
+	           VALUES
+	           (  NIC65_V.BAS_YYMM, NIC65_V.BIZ_RULE_CCD, NIC65_V.DATA_CCD, NIC65_V.DATA_DTIL_CCD, NIC65_V.DATE_TEX_CCD, NIC65_V.CUST_CCD, NIC65_V.BRN_CD
+	            , NIC65_V.CNT, NIC65_V.CRT_DT, NIC65_V.CRT_ENP, NIC65_V.UDT_DT, NIC65_V.UDT_ENO)
+</insert>
+
+<delete id="deleteCTR" parameterType="dashboardVO">
+	DELETE FROM SSQ.NIC65B 
+	 WHERE BAS_YYMM = #{yyyymm}
+	   AND BIZ_RULE_CCD = '04'  --업무구분(04:TMS)
+	   AND DATA_CCD = '41'  --자료구분(41:CTR)
+</delete> 
+<insert id="insertCTR" parameterType="dashboardVO">
+     INSERT INTO SSQ.NIC65B (
+	        BAS_YYMM
+	      , BIZ_RULE_CCD
+	      , DATA_CCD
+	      , DATA_DTIL_CCD
+	      , DATE_TEX_CCD
+	      , CUST_CCD
+	      , BRN_CD
+	      , CNT
+	      , CRT_DT
+	      , CRT_ENP
+	      , UDT_DT
+	      , UDT_ENO     
+     )
+	 SELECT BAS_YYMM
+	      , BIZ_RULE_CCD
+	      , DATA_CCD
+	      , DATA_DTIL_CCD
+	      , DATE_TEX_CCD
+	      , CUST_CCD
+	      , BRN_CD
+	      , CNT
+	      , SYSDATE CRT_DT
+	      , 'Batch' CRT_ENP
+	      , SYSDATE UDT_DT
+	      , 'Batch' UDT_ENO
+	  FROM ( 
+	        SELECT SUBSTR(B.DL_DT,1,6) AS BAS_YYMM
+	             , '04' /* TMS */             AS BIZ_RULE_CCD
+	             , '41' /* CTR */             AS DATA_CCD
+	             , '41' /* 적출건 */             AS DATA_DTIL_CCD
+	             , '9999'  /* CTR:전체 */       AS DATE_TEX_CCD
+	             , '99'    /* 고객구분:전체 */     AS CUST_CCD
+	             , '99999'                    AS BRN_CD
+	             , COUNT(*)                   AS CNT
+	          FROM SSQ.NIC66B A, NIC75B B
+	         WHERE 1 = 1
+	           AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+	           AND A.SSPS_DL_ID = B.SSPS_DL_ID	         
+	           AND B.DL_DT LIKE #{yyyymm} || '%'
+	           AND A.SSPS_DL_CRT_CCD = 'CTR'
+	           AND A.INST_ID IS NOT NULL
+	         GROUP BY SUBSTR(B.DL_DT,1,6)
+	         UNION ALL
+	        SELECT SUBSTR(B.DL_DT,1,6) AS BAS_YYMM
+	             , '04' /* TMS */             AS BIZ_RULE_CCD
+	             , '41' /* CTR */             AS DATA_CCD
+	             , '42' /* 보고건 */             AS DATA_DTIL_CCD
+	             , '9999'  /* CTR:전체 */       AS DATE_TEX_CCD
+	             , '99'    /* 고객구분:전체 */     AS CUST_CCD
+	             , '99999'                    AS BRN_CD
+	             , COUNT(*)                   AS CNT
+	          FROM SSQ.NIC66B A, NIC75B B
+	         WHERE 1 = 1
+	           AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+	           AND A.SSPS_DL_ID = B.SSPS_DL_ID	         
+	           AND B.DL_DT LIKE #{yyyymm} || '%'
+	           AND A.SSPS_DL_CRT_CCD = 'CTR'
+	           AND A.INST_ID IS NOT NULL
+	        /* AND A.CTR_FWRD_TP_CODE = '1' */
+	           AND A.RPR_PRGRS_CCD = '99'
+	         GROUP BY SUBSTR(B.DL_DT,1,6)
+	         UNION ALL
+	        SELECT SUBSTR(B.DL_DT,1,6) AS BAS_YYMM
+	             , '04' /* TMS */               AS BIZ_RULE_CCD
+	             , '41' /* CTR */               AS DATA_CCD
+	             , '41' /* 적출건 */               AS DATA_DTIL_CCD
+	             , '9999'  /* CTR:전체 */         AS DATE_TEX_CCD
+	             , '99'    /* 고객구분:전체 */       AS CUST_CCD
+	             , B.HANDLNG_BRN_CD             AS BRN_CD
+	             , COUNT(*)                     AS CNT
+	          FROM SSQ.NIC66B A, SSQ.NIC75B B
+	         WHERE 1 = 1
+	           AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+	           AND A.SSPS_DL_ID = B.SSPS_DL_ID
+	           AND B.DL_DT LIKE #{yyyymm} || '%'
+	           AND A.SSPS_DL_CRT_CCD = 'CTR'
+	           AND A.INST_ID IS NOT NULL
+	           AND B.HANDLNG_BRN_CD IS NOT NULL
+	         GROUP BY SUBSTR(B.DL_DT,1,6), B.HANDLNG_BRN_CD
+	         UNION ALL
+	        SELECT SUBSTR(B.DL_DT,1,6) AS BAS_YYMM
+	             , '04' /* TMS */               AS BIZ_RULE_CCD
+	             , '41' /* CTR */               AS DATA_CCD
+	             , '42' /* 보고건 */               AS DATA_DTIL_CCD
+	             , '9999'  /* CTR:전체 */         AS DATE_TEX_CCD
+	             , '99'    /* 고객구분:전체 */       AS CUST_CCD
+	             , B.HANDLNG_BRN_CD             AS BRN_CD
+	             , COUNT(*)                     AS CNT
+	          FROM SSQ.NIC66B A, SSQ.NIC75B B
+	         WHERE 1 = 1
+	           AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+	           AND A.SSPS_DL_ID = B.SSPS_DL_ID
+               AND B.DL_DT LIKE #{yyyymm} || '%'
+	           AND A.SSPS_DL_CRT_CCD = 'CTR'
+	           AND A.INST_ID IS NOT NULL
+	           AND B.HANDLNG_BRN_CD IS NOT NULL
+	        /* AND A.CTR_FWRD_TP_CODE = '1' */
+	           AND A.RPR_PRGRS_CCD = '99'
+	         GROUP BY SUBSTR(B.DL_DT,1,6), B.HANDLNG_BRN_CD
+	      )
+</insert>
+
+<delete id="deleteSTR" parameterType="dashboardVO">
+	DELETE FROM SSQ.NIC65B 
+	 WHERE BAS_YYMM = #{yyyymm}
+	   AND BIZ_RULE_CCD = '04'  --업무구분(04:TMS)
+	   AND DATA_CCD = '42'  --자료구분(42:STR)
+</delete>
+
+<insert id="insertSTR" parameterType="dashboardVO"> 
+	MERGE INTO SSQ.NIC65B X
+	USING (
+	          SELECT BAS_YYMM
+	              , BIZ_RULE_CCD
+	              , DATA_CCD
+	              , DATA_DTIL_CCD
+	              , DATE_TEX_CCD
+	              , CUST_CCD
+	              , BRN_CD
+	              , CNT
+	              , SYSDATE CRT_DT
+	              , 'Batch' CRT_ENP
+	              , SYSDATE UDT_DT
+	              , 'Batch' UDT_ENO
+	          FROM ( 
+	                SELECT SUBSTR(SSPS_DL_CRT_DT,1,6) AS BAS_YYMM
+	                     , '04' /* TMS */             AS BIZ_RULE_CCD
+	                     , '42' /* STR */             AS DATA_CCD
+	                     , '41' /* 적출건 */             AS DATA_DTIL_CCD
+	                     , SSPS_TYP_CD  /* 룰번호 */     AS DATE_TEX_CCD
+	                     , '99'    /* 고객구분:전체 */     AS CUST_CCD
+	                     , '99999'                    AS BRN_CD
+	                     , COUNT(*)                   AS CNT
+	                  FROM SSQ.NIC66B
+	                 WHERE 1 = 1
+	                   AND SSPS_DL_CRT_DT LIKE #{yyyy} || '%'
+	                   AND SSPS_DL_CRT_CCD IN ('STR','KYC')
+	                   AND INST_ID IS NOT NULL
+	                 GROUP BY SUBSTR(SSPS_DL_CRT_DT,1,6), SSPS_TYP_CD
+	                 UNION ALL
+	                SELECT SUBSTR(SSPS_DL_CRT_DT,1,6) AS BAS_YYMM
+	                     , '04' /* TMS */             AS BIZ_RULE_CCD
+	                     , '42' /* STR */             AS DATA_CCD
+	                     , '42' /* 보고건 */             AS DATA_DTIL_CCD
+	                     , SSPS_TYP_CD  /* 룰번호 */     AS DATE_TEX_CCD
+	                     , '99'    /* 고객구분:전체 */     AS CUST_CCD
+	                     , '99999'                    AS BRN_CD
+	                     , COUNT(*)                   AS CNT
+	                  FROM SSQ.NIC66B
+	                 WHERE 1 = 1
+	                   AND SSPS_DL_CRT_DT LIKE #{yyyy} || '%'
+	                   AND SSPS_DL_CRT_CCD IN ('STR','KYC')
+	                   AND INST_ID IS NOT NULL
+	                   AND RPR_PRGRS_CCD = '99'
+	                 GROUP BY SUBSTR(SSPS_DL_CRT_DT,1,6), SSPS_TYP_CD
+	                 UNION ALL
+	                SELECT SUBSTR(A.SSPS_DL_CRT_DT,1,6) AS BAS_YYMM
+	                     , '04' /* TMS */               AS BIZ_RULE_CCD
+	                     , '42' /* STR */               AS DATA_CCD
+	                     , '41' /* 적출건 */               AS DATA_DTIL_CCD
+	                     , A.SSPS_TYP_CD /* 룰번호 */      AS DATE_TEX_CCD
+	                     , '99'    /* 고객구분:전체 */       AS CUST_CCD
+	                     , B.MAX_BRN_CD                 AS BRN_CD
+	                     , COUNT(*)                     AS CNT
+	                  FROM SSQ.NIC66B A
+	                     , (SELECT SSPS_DL_CRT_DT
+	                             , SSPS_DL_ID
+	                             , MAX(HANDLNG_BRN_CD) KEEP (DENSE_RANK FIRST ORDER BY DL_DT DESC, DL_SQ DESC) MAX_BRN_CD
+	                          FROM SSQ.NIC75B
+	                         WHERE 1 = 1
+	                           AND SSPS_DL_CRT_DT LIKE #{yyyy} || '%'
+	                           AND (SSPS_DL_ID LIKE 'STR%' OR SSPS_DL_ID LIKE 'KYC%')
+	                         GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+	                       ) B
+	                 WHERE 1 = 1
+	                   AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+	                   AND A.SSPS_DL_ID = B.SSPS_DL_ID
+	                   AND A.SSPS_DL_CRT_DT LIKE #{yyyy} || '%'
+	                   AND A.SSPS_DL_CRT_CCD IN ('STR','KYC')
+	                   AND A.INST_ID IS NOT NULL
+	                   AND B.MAX_BRN_CD IS NOT NULL
+	                 GROUP BY SUBSTR(A.SSPS_DL_CRT_DT,1,6), A.SSPS_TYP_CD, B.MAX_BRN_CD
+	                 UNION ALL
+	                SELECT SUBSTR(A.SSPS_DL_CRT_DT,1,6) AS BAS_YYMM
+	                     , '04' /* TMS */               AS BIZ_RULE_CCD
+	                     , '42' /* STR */               AS DATA_CCD
+	                     , '42' /* 보고건 */               AS DATA_DTIL_CCD
+	                     , A.SSPS_TYP_CD /* 룰번호 */      AS DATE_TEX_CCD
+	                     , '99'    /* 고객구분:전체 */       AS CUST_CCD
+	                     , B.MAX_BRN_CD                 AS BRN_CD
+	                     , COUNT(*)                     AS CNT
+	                  FROM SSQ.NIC66B A
+	                     , (SELECT SSPS_DL_CRT_DT
+	                             , SSPS_DL_ID
+	                             , MAX(HANDLNG_BRN_CD) KEEP (DENSE_RANK FIRST ORDER BY DL_DT DESC, DL_SQ DESC) MAX_BRN_CD
+	                          FROM SSQ.NIC75B
+	                         WHERE 1 = 1
+	                           AND SSPS_DL_CRT_DT LIKE #{yyyy} || '%'
+	                           AND (SSPS_DL_ID LIKE 'STR%' OR SSPS_DL_ID LIKE 'KYC%')
+	                         GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+	                       ) B
+	                 WHERE 1 = 1
+	                   AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+	                   AND A.SSPS_DL_ID = B.SSPS_DL_ID
+	                   AND A.SSPS_DL_CRT_DT LIKE #{yyyy} || '%'
+	                   AND A.SSPS_DL_CRT_CCD IN ('STR','KYC')
+	                   AND A.INST_ID IS NOT NULL
+	                   AND B.MAX_BRN_CD IS NOT NULL
+	                   AND A.RPR_PRGRS_CCD = '99'
+	                 GROUP BY SUBSTR(A.SSPS_DL_CRT_DT,1,6), A.SSPS_TYP_CD, B.MAX_BRN_CD
+	              )	
+	        ) Y
+	 ON (     X.BAS_YYMM = Y.BAS_YYMM AND X.BIZ_RULE_CCD = Y.BIZ_RULE_CCD 
+	      AND X.DATA_CCD = Y.DATA_CCD AND X.DATA_DTIL_CCD = Y.DATA_DTIL_CCD 
+	      AND X.DATE_TEX_CCD = Y.DATE_TEX_CCD AND X.CUST_CCD = Y.CUST_CCD AND X.BRN_CD = Y.BRN_CD )
+	WHEN NOT MATCHED THEN 
+	 INSERT (
+		        X.BAS_YYMM
+		      , X.BIZ_RULE_CCD
+		      , X.DATA_CCD
+		      , X.DATA_DTIL_CCD
+		      , X.DATE_TEX_CCD
+		      , X.CUST_CCD
+		      , X.BRN_CD
+		      , X.CNT
+		      , X.CRT_DT
+		      , X.CRT_ENP
+		      , X.UDT_DT
+		      , X.UDT_ENO     
+	     )
+	 VALUES (   Y.BAS_YYMM
+		      , Y.BIZ_RULE_CCD
+		      , Y.DATA_CCD
+		      , Y.DATA_DTIL_CCD
+		      , Y.DATE_TEX_CCD
+		      , Y.CUST_CCD
+		      , Y.BRN_CD
+		      , Y.CNT
+		      , SYSDATE
+		      , 'Batch'
+		      , SYSDATE
+		      , 'Batch'     
+	        )
+	 WHEN  MATCHED THEN     
+	 UPDATE SET X.CNT = Y.CNT 
+	           ,X.UDT_DT = SYSDATE 
+	           ,X.UDT_ENO = 'Batch'
+</insert>
+
+<insert id="insertSTR_OLD" parameterType="dashboardVO">
+     INSERT INTO SSQ.NIC65B (
+	        BAS_YYMM
+	      , BIZ_RULE_CCD
+	      , DATA_CCD
+	      , DATA_DTIL_CCD
+	      , DATE_TEX_CCD
+	      , CUST_CCD
+	      , BRN_CD
+	      , CNT
+	      , CRT_DT
+	      , CRT_ENP
+	      , UDT_DT
+	      , UDT_ENO     
+     )
+	 SELECT BAS_YYMM
+	      , BIZ_RULE_CCD
+	      , DATA_CCD
+	      , DATA_DTIL_CCD
+	      , DATE_TEX_CCD
+	      , CUST_CCD
+	      , BRN_CD
+	      , CNT
+	      , SYSDATE CRT_DT
+	      , 'Batch' CRT_ENP
+	      , SYSDATE UDT_DT
+	      , 'Batch' UDT_ENO
+	  FROM ( 
+	        SELECT SUBSTR(SSPS_DL_CRT_DT,1,6) AS BAS_YYMM
+	             , '04' /* TMS */             AS BIZ_RULE_CCD
+	             , '42' /* STR */             AS DATA_CCD
+	             , '41' /* 적출건 */             AS DATA_DTIL_CCD
+	             , SSPS_TYP_CD  /* 룰번호 */     AS DATE_TEX_CCD
+	             , '99'    /* 고객구분:전체 */     AS CUST_CCD
+	             , '99999'                    AS BRN_CD
+	             , COUNT(*)                   AS CNT
+	          FROM SSQ.NIC66B
+	         WHERE 1 = 1
+	           AND SSPS_DL_CRT_DT LIKE #{yyyymm} || '%'
+	           AND SSPS_DL_CRT_CCD IN ('STR')
+	           AND INST_ID IS NOT NULL
+	         GROUP BY SUBSTR(SSPS_DL_CRT_DT,1,6), SSPS_TYP_CD
+	         UNION ALL
+	        SELECT SUBSTR(SSPS_DL_CRT_DT,1,6) AS BAS_YYMM
+	             , '04' /* TMS */             AS BIZ_RULE_CCD
+	             , '42' /* STR */             AS DATA_CCD
+	             , '42' /* 보고건 */             AS DATA_DTIL_CCD
+	             , SSPS_TYP_CD  /* 룰번호 */     AS DATE_TEX_CCD
+	             , '99'    /* 고객구분:전체 */     AS CUST_CCD
+	             , '99999'                    AS BRN_CD
+	             , COUNT(*)                   AS CNT
+	          FROM SSQ.NIC66B
+	         WHERE 1 = 1
+	           AND SSPS_DL_CRT_DT LIKE #{yyyymm} || '%'
+	           AND SSPS_DL_CRT_CCD IN ('STR')
+	           AND INST_ID IS NOT NULL
+	           AND RPR_PRGRS_CCD = '99'
+	         GROUP BY SUBSTR(SSPS_DL_CRT_DT,1,6), SSPS_TYP_CD
+	         UNION ALL
+	        SELECT SUBSTR(A.SSPS_DL_CRT_DT,1,6) AS BAS_YYMM
+	             , '04' /* TMS */               AS BIZ_RULE_CCD
+	             , '42' /* STR */               AS DATA_CCD
+	             , '41' /* 적출건 */               AS DATA_DTIL_CCD
+	             , A.SSPS_TYP_CD /* 룰번호 */      AS DATE_TEX_CCD
+	             , '99'    /* 고객구분:전체 */       AS CUST_CCD
+	             , B.MAX_BRN_CD                 AS BRN_CD
+	             , COUNT(*)                     AS CNT
+	          FROM SSQ.NIC66B A
+	             , (SELECT SSPS_DL_CRT_DT
+	                     , SSPS_DL_ID
+	                     , MAX(HANDLNG_BRN_CD) KEEP (DENSE_RANK FIRST ORDER BY DL_DT DESC, DL_SQ DESC) MAX_BRN_CD
+	                  FROM SSQ.NIC75B
+	                 WHERE 1 = 1
+	                   AND SSPS_DL_CRT_DT LIKE #{yyyymm} || '%'
+	                   AND (SSPS_DL_ID LIKE 'STR%' OR SSPS_DL_ID LIKE 'KYC%')
+	                 GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+	               ) B
+	         WHERE 1 = 1
+	           AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+	           AND A.SSPS_DL_ID = B.SSPS_DL_ID
+	           AND A.SSPS_DL_CRT_DT LIKE #{yyyymm} || '%'
+	           AND A.SSPS_DL_CRT_CCD IN ('STR')
+	           AND A.INST_ID IS NOT NULL
+	           AND B.MAX_BRN_CD IS NOT NULL
+	         GROUP BY SUBSTR(A.SSPS_DL_CRT_DT,1,6), A.SSPS_TYP_CD, B.MAX_BRN_CD
+	         UNION ALL
+	        SELECT SUBSTR(A.SSPS_DL_CRT_DT,1,6) AS BAS_YYMM
+	             , '04' /* TMS */               AS BIZ_RULE_CCD
+	             , '42' /* STR */               AS DATA_CCD
+	             , '42' /* 보고건 */               AS DATA_DTIL_CCD
+	             , A.SSPS_TYP_CD /* 룰번호 */      AS DATE_TEX_CCD
+	             , '99'    /* 고객구분:전체 */       AS CUST_CCD
+	             , B.MAX_BRN_CD                 AS BRN_CD
+	             , COUNT(*)                     AS CNT
+	          FROM SSQ.NIC66B A
+	             , (SELECT SSPS_DL_CRT_DT
+	                     , SSPS_DL_ID
+	                     , MAX(HANDLNG_BRN_CD) KEEP (DENSE_RANK FIRST ORDER BY DL_DT DESC, DL_SQ DESC) MAX_BRN_CD
+	                  FROM SSQ.NIC75B
+	                 WHERE 1 = 1
+	                   AND SSPS_DL_CRT_DT LIKE #{yyyymm} || '%'
+	                   AND (SSPS_DL_ID LIKE 'STR%' OR SSPS_DL_ID LIKE 'KYC%')
+	                 GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+	               ) B
+	         WHERE 1 = 1
+	           AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+	           AND A.SSPS_DL_ID = B.SSPS_DL_ID
+	           AND A.SSPS_DL_CRT_DT LIKE #{yyyymm} || '%'
+	           AND A.SSPS_DL_CRT_CCD IN ('STR')
+	           AND A.INST_ID IS NOT NULL
+	           AND B.MAX_BRN_CD IS NOT NULL
+	           AND A.RPR_PRGRS_CCD = '99'
+	         GROUP BY SUBSTR(A.SSPS_DL_CRT_DT,1,6), A.SSPS_TYP_CD, B.MAX_BRN_CD
+	      )	
+</insert>
+
+</mapper>

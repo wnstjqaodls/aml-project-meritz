@@ -1,0 +1,7 @@
+ACCOUNT=ACCOUNT,계정구분정보,UNIX/ DB등의 계정 구분 정보,jspeed,20040823104112,jspeed,20040823104140,N
+AREA=AREA,서버영역,서버 적용 영역(Test;Pilot;Real),jspeed,20031013151152,jspeed,20040205164017,N
+DOMAIN_ENV=DOMAIN_ENV,도메인 환경 변수,도메인의 환경 변수 관리를 위한 코드,giinie,20040730141531,jspeed,20041014073901,N
+OS_TYPE=OS_TYPE,OS_TYPE, 머신정보 등록시 OS 등록,jspeed,20040730205243,jspeed,20040810140311,N
+PROG_TYPE=PROG_TYPE,프로그램 유형 ,프로그램 유형(java; html; js 등)에 대한 그룹 코드,jspeed,20040503125500,jspeed,20041009173322,N
+SR_STATUS=SR_STATUS,SR 상태 코드,SR의 각 상태를 나타내는 코드,jspeed,20040817133020,jspeed,20041104162537,N
+TIER_TYPE=TIER_TYPE,티어 구분,PT;IT;BT,jspeed,20031028150000,jspeed,20040205165912,N

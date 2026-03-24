@@ -1,0 +1,29 @@
+<!ELEMENT jndi-service (jndi-service-config*, available-environment-param*, relation-service*)>
+<!ELEMENT jndi-service-config (log-type, log-level, log-location, env-param+, description?)>
+<!ELEMENT env-param (param-name, param-value)>
+<!ELEMENT available-environment-param (param-name, default-value, instance-map-name, help-page)>
+<!ELEMENT default-value (#PCDATA)>
+<!ELEMENT instance-map-name (#PCDATA)>
+<!ELEMENT relation-service (service-name,relation-service-name)>
+<!ELEMENT service-name (#PCDATA)>
+<!ELEMENT relation-service-name (#PCDATA)>
+
+<!ELEMENT log-type (#PCDATA)>
+<!ELEMENT log-level (#PCDATA)>
+<!ELEMENT log-location (#PCDATA)>
+<!ELEMENT param-name (#PCDATA)>
+<!ELEMENT param-value (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+<!ELEMENT help-page (#PCDATA)>
+
+<!ATTLIST jndi-service
+	defaultElement CDATA #IMPLIED
+	verbose (true | false) 'false'>
+	
+<!ATTLIST jndi-service-config
+	name CDATA #REQUIRED
+	deploy (true | false) 'false'
+	loadOnStartup CDATA #IMPLIED
+	verbose (true | false) 'false'
+	lastModified CDATA #IMPLIED
+	target CDATA #IMPLIED>	

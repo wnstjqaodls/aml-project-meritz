@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<!-- UTF-8 처리 -->
+
+<!DOCTYPE message-service SYSTEM "message-service.dtd">
+
+	<message-service verbose="true" defaultElement="jspeed.err.msg.mng.file.meta">
+
+		<message-service-config name="jspeed.err.msg.mng" deploy="true" loadOnStartup="100" verbose="true" lastModified="1076130996118" target="all.all">
+			<config-alias>MESSAGE Management</config-alias>
+			<repository-class>jspeed.base.BaseRepository</repository-class>
+			<pre-load>true</pre-load>
+			<message-param>
+				<param-name>list-page</param-name>
+				<param-value>/base/message/messageItemList.jsp</param-value>
+			</message-param>
+			<message-param>
+				<param-name>create-statement</param-name>
+				<param-value>insert into JF_ERR_MSG_MNG (MSG_CODE, MSG_TYPE, TARGET_DOMAIN, MANAGER_ID, MSG_CUSTOMER, MSG_MANAGER, MSG_DESC, CREATOR, CREATE_DATE, MODIFIER, MODIFIED_DATE, MSG_SEND, TEMPLATE_NAME, TEMPLATE_URL, MANAGER_EMAIL) values (?, ?, ?, ?, ?, ?, ?, ?, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), ?, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), ?, ?, ?, ?)</param-value>
+			</message-param>
+			<message-param>
+				<param-name>remove-statement</param-name>
+				<param-value>delete from JF_ERR_MSG_MNG where MSG_CODE = ?</param-value>
+			</message-param>
+			<message-param>
+				<param-name>repository-type</param-name>
+				<param-value>DB</param-value>
+			</message-param>
+			<message-param>
+				<param-name>site-load-statement</param-name>
+				<param-value>select MSG_CODE key, MSG_CODE, MSG_TYPE, TARGET_DOMAIN, MANAGER_ID, MSG_CUSTOMER, MSG_MANAGER, MSG_DESC, CREATOR, CREATE_DATE, MODIFIER, MODIFIED_DATE, MSG_SEND, TEMPLATE_NAME, TEMPLATE_URL, MANAGER_EMAIL from JF_ERR_MSG_MNG where TARGET_DOMAIN = ?</param-value>
+			</message-param>
+			<message-param>
+				<param-name>modify-statement</param-name>
+				<param-value>update JF_ERR_MSG_MNG set MSG_TYPE = ?, TARGET_DOMAIN = ?, MANAGER_ID = ?, MSG_CUSTOMER = ?, MSG_MANAGER = ?, MSG_DESC = ?, MODIFIER = ?, MODIFIED_DATE = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), MSG_SEND = ?, TEMPLATE_NAME = ?, TEMPLATE_URL = ?, MANAGER_EMAIL = ? where MSG_CODE = ?</param-value>
+			</message-param>
+			<message-param>
+				<param-name>load-statement</param-name>
+				<param-value>select MSG_CODE key, MSG_CODE, MSG_TYPE, TARGET_DOMAIN, MANAGER_ID, MSG_CUSTOMER, MSG_MANAGER, MSG_DESC, CREATOR, CREATE_DATE, MODIFIER, MODIFIED_DATE, MSG_SEND, TEMPLATE_NAME, TEMPLATE_URL, MANAGER_EMAIL from JF_ERR_MSG_MNG</param-value>
+			</message-param>
+			<message-param>
+				<param-name>page-load-statement</param-name>
+				<param-value>select MSG_CODE key, MSG_CODE, MSG_TYPE, TARGET_DOMAIN, MANAGER_ID, MSG_CUSTOMER, MSG_MANAGER, MSG_DESC, CREATOR, CREATE_DATE, MODIFIER, MODIFIED_DATE, MSG_SEND, TEMPLATE_NAME, TEMPLATE_URL, MANAGER_EMAIL from (select MSG_CODE key, MSG_CODE, MSG_TYPE, TARGET_DOMAIN, MANAGER_ID, MSG_CUSTOMER, MSG_MANAGER, MSG_DESC, CREATOR, CREATE_DATE, MODIFIER, MODIFIED_DATE, MSG_SEND, TEMPLATE_NAME, TEMPLATE_URL, MANAGER_EMAIL, CEIL(rownum/?) page from (select MSG_CODE key, MSG_CODE, MSG_TYPE, TARGET_DOMAIN, MANAGER_ID, MSG_CUSTOMER, MSG_MANAGER, MSG_DESC, CREATOR, CREATE_DATE, MODIFIER, MODIFIED_DATE, MSG_SEND, TEMPLATE_NAME, TEMPLATE_URL, MANAGER_EMAIL from JF_ERR_MSG_MNG where MSG_CODE like '%'||?||'%' and MSG_CONTENT and sDomainIDs order by CREATE_DATE desc )) where page=?</param-value>
+			</message-param>
+			<message-param>
+				<param-name>jndi-name</param-name>
+				<param-value>jSpeedDataSource</param-value>
+			</message-param>
+			<message-param>
+				<param-name>total-count-statement</param-name>
+				<param-value>select count(*) from JF_ERR_MSG_MNG where MSG_CODE like '%'||?||'%' and MSG_CONTENT and sDomainIDs</param-value>
+			</message-param>
+			<message-param>
+				<param-name>single-load-statement</param-name>
+				<param-value>select MSG_CODE key, MSG_CODE, MSG_TYPE, TARGET_DOMAIN, MANAGER_ID, MSG_CUSTOMER, MSG_MANAGER, MSG_DESC, CREATOR, CREATE_DATE, MODIFIER, MODIFIED_DATE, MSG_SEND, TEMPLATE_NAME, TEMPLATE_URL, MANAGER_EMAIL from JF_ERR_MSG_MNG where MSG_CODE = ?</param-value>
+			</message-param>
+			<description>JSPEED ERR MSG MNG properties</description>
+		</message-service-config>
+
+		<message-service-config name="jspeed.err.msg.tplt.mng" deploy="true" loadOnStartup="100" verbose="true" lastModified="1070888858041" target="all.all">
+			<config-alias>MESSAGE TEMPLATE Management</config-alias>
+			<repository-class>jspeed.base.BaseRepository</repository-class>
+			<pre-load>true</pre-load>
+			<message-param>
+				<param-name>load-statement</param-name>
+				<param-value>select TEMPLATE_NAME||'.'||TARGET_DOMAIN, TEMPLATE_NAME, TARGET_DOMAIN, TEMPLATE_TYPE, TEMPLATE_URL, CREATOR, CREATE_DATE, MODIFIER, MODIFIED_DATE, TEMPLATE_DESC from JF_ERR_MSG_TPLT_MNG</param-value>
+			</message-param>
+			<message-param>
+				<param-name>repository-type</param-name>
+				<param-value>DB</param-value>
+			</message-param>
+			<message-param>
+				<param-name>list-page</param-name>
+				<param-value>/base/message/messageTemplateList.jsp</param-value>
+			</message-param>
+			<message-param>
+				<param-name>create-statement</param-name>
+				<param-value>insert into JF_ERR_MSG_TPLT_MNG (TEMPLATE_NAME, TARGET_DOMAIN, TEMPLATE_TYPE, TEMPLATE_URL, CREATOR, CREATE_DATE, MODIFIER, MODIFIED_DATE, TEMPLATE_DESC) values (?, ?, ?, ?, ?, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), ?, TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), ?)</param-value>
+			</message-param>
+			<message-param>
+				<param-name>modify-statement</param-name>
+				<param-value>update JF_ERR_MSG_TPLT_MNG set TEMPLATE_URL = ?, MODIFIER = ?, MODIFIED_DATE= TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), TEMPLATE_DESC = ? where TEMPLATE_NAME = ? and TARGET_DOMAIN = ?</param-value>
+			</message-param>
+			<message-param>
+				<param-name>single-load-statement</param-name>
+				<param-value>select TEMPLATE_NAME||'.'||TARGET_DOMAIN, TEMPLATE_NAME, TARGET_DOMAIN, TEMPLATE_TYPE, TEMPLATE_URL, CREATOR, CREATE_DATE, MODIFIER, MODIFIED_DATE, TEMPLATE_DESC from JF_ERR_MSG_TPLT_MNG where TEMPLATE_NAME=? and  TARGET_DOMAIN = ?</param-value>
+			</message-param>
+			<message-param>
+				<param-name>jndi-name</param-name>
+				<param-value>jSpeedDataSource</param-value>
+			</message-param>
+			<message-param>
+				<param-name>remove-statement</param-name>
+				<param-value>delete from JF_ERR_MSG_TPLT_MNG where TEMPLATE_NAME = ? and TARGET_DOMAIN = ?</param-value>
+			</message-param>
+			<message-param>
+				<param-name>site-load-statement</param-name>
+				<param-value>select TEMPLATE_NAME||'.'||TARGET_DOMAIN, TEMPLATE_NAME, TARGET_DOMAIN, TEMPLATE_TYPE, TEMPLATE_URL, CREATOR, CREATE_DATE, MODIFIER, MODIFIED_DATE, TEMPLATE_DESC from JF_ERR_MSG_TPLT_MNG where TARGET_DOMAIN = ?</param-value>
+			</message-param>
+			<message-param>
+				<param-name>page-load-statement</param-name>
+				<param-value>select TEMPLATE_NAME||'.'||TARGET_DOMAIN, TEMPLATE_NAME, TARGET_DOMAIN, TEMPLATE_TYPE, TEMPLATE_URL, CREATOR, CREATE_DATE, MODIFIER, MODIFIED_DATE, TEMPLATE_DESC from JF_ERR_MSG_TPLT_MNG</param-value>
+			</message-param>
+			<description>JSPEED ERR MSG TPLT MNG properties</description>
+		</message-service-config>
+
+	</message-service>

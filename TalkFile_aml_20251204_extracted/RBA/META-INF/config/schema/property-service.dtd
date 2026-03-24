@@ -1,0 +1,33 @@
+<!ELEMENT property-service (property-service-config*)>
+
+<!ELEMENT property-service-config (log-type, log-level, log-location,repository-class, backup-filename?, pre-load?, listener-class?, memory-auto-commit?, property-param*, description?)>
+<!ELEMENT log-type (#PCDATA)>
+<!ELEMENT log-level (#PCDATA)>
+<!ELEMENT log-location (#PCDATA)>
+<!ELEMENT repository-class (#PCDATA)> <!-- jspeed.base.repository.Repository interface -->
+<!ELEMENT backup-filename (#PCDATA)>
+<!ELEMENT pre-load (#PCDATA)> <!-- true | false, default=false -->
+<!ELEMENT listener-class (#PCDATA)> <!-- jspeed.base.repository.RepositoryListener interface -->
+<!ELEMENT memory-auto-commit (#PCDATA)> <!-- true | false, default=true -->
+<!ELEMENT property-param (param-name, param-value)>
+
+<!ELEMENT param-name (#PCDATA)>
+<!ELEMENT param-value (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+
+<!ATTLIST property-service
+	defaultElement CDATA #IMPLIED
+	verbose (true | false) 'false'>
+	
+<!ATTLIST property-service-config
+	name CDATA #REQUIRED
+	deploy (true | false) 'false'
+	loadOnStartup CDATA #IMPLIED
+	verbose (true | false) 'false'
+	lastModified CDATA #IMPLIED
+	target CDATA #IMPLIED>
+	
+<!ATTLIST backup-filename
+	isBackup (true | false) 'false'>	
+	
+		

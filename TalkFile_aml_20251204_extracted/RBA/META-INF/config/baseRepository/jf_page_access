@@ -1,0 +1,26 @@
+# jf_page_access
+
+/jsp/login.jsp=\
+	/jsp/login.jsp,\
+	examdomain.all,\
+	on,\
+	jspeed,\
+	,\
+	20050316125352
+
+/jsp/ejbTest.jsp=\
+	/jsp/ejbTest.jsp,\
+	examdomain.all,\
+	on,\
+	jspeed,\
+	,\
+	20050316125421
+
+/jsp/ejbTestError.jsp=\
+	/jsp/ejbTestError.jsp,\
+	examdomain.all,\
+	on,\
+	jspeed,\
+	,\
+	20050316131654
+

@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<!-- UTF-8 처리 -->
+
+<mapper namespace="amng">
+
+	 <select id="admin.dao.ScenarioDAO.getTree"  parameterType="hashMap" resultType="DataObj">
+	    select  a.biz_id AS ID
+	          , biz_nm  AS NAME
+	          , b.par_biz_id AS PAR_ID
+	          , A.EDIT_YN
+	          , MA01_6 AS CODE
+	          , BIZ_DESC AS DESCRIPTION  
+	          , C.*
+		 from c_biz a  
+		  left outer join MMA010TB c on ( a.biz_id=c.RT30_1)  
+		 ,  C_PKG_BIZ_MAP b     
+		 where a.biz_id=b.biz_id and b.pkg_id=6  
+		 and (b.par_biz_id=#{PAR_ID} or b.par_biz_id in ( select biz_id 
+		                                                    from C_PKG_BIZ_MAP  
+		                                                   where par_biz_id=#{PAR_ID})
+		     )
+		 ORDER BY NVL(MA01_6,0), b.par_biz_id asc ,a.biz_id ASC
+	</select>
+	
+	<select id="aml.amlmanager.getCatgInfo"  parameterType="hashMap" resultType="DataObj">
+	    select  a.biz_id AS ID
+	          , biz_nm  AS NAME
+	          , BIZ_DESC AS DESCRIPTION  
+		 from c_biz a  
+         WHERE BIZ_ID = #{BIZ_ID}		 
+	</select>
+	
+    <select id="aml.amlmanager.getOneCategoryTemplateByParBizId"  parameterType="hashMap" resultType="DataObj">
+	    SELECT * 
+	      FROM (SELECT 'B' || B.BIZ_ID as CODE, B.BIZ_ID AS ID, BIZ_NM AS NAME, -1 AS TYPE, #{PAR_ID} AS PAR_ID, BIZ_DESC AS DESCRIPTION, A.DISPLAY_ORDER 
+                  FROM C_PKG_BIZ_MAP A, C_BIZ B
+			     WHERE A.PAR_BIZ_ID = #{PAR_ID} 
+			       AND A.BIZ_ID = B.BIZ_ID 
+			       AND A.PKG_ID = 6
+			    UNION ALL
+			    SELECT 'T' || A.RT31_1 as CODE, A.RT31_1 as id, RT32_4 as NAME, RT32_3 AS TYPE, 'B' || RS20_1 AS PAR_ID, RT32_C AS DESCRIPTION, M1.DISPLAY_ORDER  
+			      FROM C_PKG_BIZ_MAP M1, BRT310TB A, BRT320TB B
+			     WHERE A.RT31_1=B.RT31_1 AND A.RT31_3=B.RT32_1
+			       AND M1.PAR_BIZ_ID = #{PAR_ID} 
+			       AND M1.BIZ_ID = A.RS20_1
+			       AND M1.PKG_ID = 6
+			   ) A ORDER BY PAR_ID, DISPLAY_ORDER
+	</select>
+	
+	<select id="aml.amlmanager.getBrmCdList" parameterType="HashMap" resultType="DataObj">
+	   SELECT A.RS18_1  , A.RS19_1 AS CODE  , RS1A_2 AS NAME ,RS19_3
+	     FROM BRS190TB A, BRS1A0TB B
+	    WHERE A.RS18_1 = B.RS18_1 
+	      AND A.RS19_1 = B.RS19_1 
+	      AND A.RS19_5 = 0
+	      AND B.RS1A_1 = #{param0}
+	      AND A.RS18_1 = #{param1}
+	</select>
+    <select id="aml.amlmanager.getBrmCdList2" parameterType="HashMap" resultType="DataObj">
+	   SELECT A.RS18_1  , A.RS19_1 AS CODE  , RS1A_2 AS NAME ,RS19_3
+	     FROM BRS190TB A, BRS1A0TB B
+	    WHERE A.RS18_1 = B.RS18_1 
+	      AND A.RS19_1 = B.RS19_1 
+	      AND A.RS19_5 = 0
+	      AND B.RS1A_1 = 'ko-KR'
+	      AND A.RS18_1 = #{CD}
+	</select>
+	 <select id="aml.amlmanager.getInnerVarInfo" parameterType="HashMap" resultType="DataObj">
+	  SELECT RT3L_3 AS RS11_2 , RT3L_2 AS RS11_3
+	  FROM BRT3L0TB  
+	  WHERE RT31_1 = #{RT31_1} 
+	  AND RT32_1 = #{RT32_1}
+	</select>
+    <select id="aml.amlmanager.getDeployTime" parameterType="HashMap" resultType="DataObj">
+	   SELECT NVL(MAX(RS5B_V),'0') AS DEPLOY_TM
+	     FROM BRS5B0TB 
+	    WHERE RS31_1 = #{RS31_1}
+	</select>
+	<select id="aml.amlmanager.getScenarioList" parameterType="HashMap" resultType="DataObj">
+	 SELECT 
+	        '' AS TOBE_CD,
+	        B.MA01_6 AS CUR_CODE,
+	        (SELECT BIZ_NM FROM C_BIZ WHERE biz_id = D.PAR_BIZ_ID) AS CATG_NM, 
+	        BIZ_NM AS NAME, 
+	        BIZ_DESC AS REMARK,  
+			CASE WHEN B.MA01_A = '1' THEN '개인' 
+	             WHEN B.MA01_A = '2' THEN '법인'
+	        ELSE '개인,법인' END AS INDV_CORP,
+			CASE WHEN B.MA01_7 = '1' THEN '계좌' ELSE '거래' END AS RULE_TYP,
+			'Y' AS EDIT_YN,
+			NVL(C.SCHE,'일간') AS BAT_SCH,
+			(select LISTAGG(RT33_3,',') WITHIN GROUP(ORDER BY RT33_2) AS RETU FROM BRT330TB  WHERE RT31_1=B.RT31_1 AND RT32_1=1) AS STD_ITM,
+			B.MA01_2 AS RS31_1_1,
+			(SELECT MAX(RS3E_2) KEEP(DENSE_RANK FIRST ORDER BY RS32_1 DESC ,RS34_1 DESC) FROM BRS3E0TB WHERE RS31_1=B.MA01_2) AS QUERY1,
+			B.MA01_3 AS RS31_1_2,
+			(SELECT MAX(RS3E_2) KEEP(DENSE_RANK FIRST ORDER BY RS32_1 DESC ,RS34_1 DESC) FROM BRS3E0TB WHERE RS31_1=B.MA01_3) AS QUERY2
+	   FROM C_BIZ A, 
+	        MMA010TB B, 
+	        (SELECT MA07_1, LISTAGG((SELECT RS15_2 FROM BRS150TB WHERE RS11_1=9 AND RS15_1 = MA06_1), ',') WITHIN GROUP(ORDER BY MA07_1) AS SCHE  
+	           FROM MMA070TB 
+	        GROUP BY MA07_1) C,
+	        C_PKG_BIZ_MAP D
+	  WHERE A.BIZ_ID=B.RT30_1 
+	    AND B.MA01_6 = C.MA07_1(+)
+	    AND A.biz_id=D.biz_id
+	     and (D.par_biz_id=#{BIZ_ID} or D.par_biz_id in ( select biz_id 
+			                                                    from C_PKG_BIZ_MAP  
+			                                                   where par_biz_id=#{BIZ_ID})
+			     )
+	  ORDER BY D.PAR_BIZ_ID, B.MA01_6
+	</select>
+</mapper>	

@@ -1,0 +1,27 @@
+<!ELEMENT message-service (message-service-config*,available-environment-param*)>
+
+<!ELEMENT message-service-config (config-alias, repository-class, pre-load?, message-param*, description?)>
+<!ELEMENT config-alias (#PCDATA)>
+<!ELEMENT repository-class (#PCDATA)> <!-- jspeed.base.repository.Repository interface -->
+<!ELEMENT backup-filename (#PCDATA)>
+<!ELEMENT pre-load (#PCDATA)> <!-- true | false, default=false -->
+<!ELEMENT listener-class (#PCDATA)> <!-- jspeed.base.repository.RepositoryListener interface -->
+<!ELEMENT memory-auto-commit (#PCDATA)> <!-- true | false, default=true -->
+<!ELEMENT available-environment-param (param-name, param-value)>
+<!ELEMENT message-param (param-name, param-value)>
+
+<!ELEMENT param-name (#PCDATA)>
+<!ELEMENT param-value (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+
+<!ATTLIST message-service
+	defaultElement CDATA #IMPLIED
+	verbose (true | false) 'false'>
+	
+<!ATTLIST message-service-config
+	name CDATA #REQUIRED
+	deploy (true | false) 'false'
+	loadOnStartup CDATA #IMPLIED
+	verbose (true | false) 'false'
+	lastModified CDATA #IMPLIED
+	target CDATA #IMPLIED>	

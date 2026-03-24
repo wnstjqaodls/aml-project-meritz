@@ -1,0 +1,545 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="kri">
+
+	
+	
+	<!-- KRI RSK_INDCT List 조회 -->
+<!-- 	<select id="selectKriIndctList" parameterType="kriVO" resultType="kriVO">
+		SELECT 
+		  #{basYyyy} basYyyy
+		  ,#{basYymm} basYymm
+		  ,#{valtTrn} valtTrn
+		  ,#{tgtTrnSdt} tgtTrnSdt
+		  ,#{tgtTrnEdt} tgtTrnEdt
+		  ,#{pgtTrnSdt} pgtTrnSdt
+		  ,#{pgtTrnEdt} pgtTrnEdt
+		  ,RSK_INDCT 
+		  ,RSK_CATG
+		  ,RSK_FAC
+		  ,RSK_EVT  
+		  ,EXTR_BAS_AMT
+		FROM KRBA_KRI_M
+		WHERE 1=1
+		ORDER BY RSK_INDCT
+	</select> -->
+	
+	
+	<delete id="deleteKriD" parameterType="kriVO">
+		DELETE FROM SRBA_KRI_D
+    	WHERE BAS_YYMM = #{basYymm}
+    	AND   BAS_LONG = #{basLong}
+	</delete>
+	
+
+	<!-- 국가 카테고리 kri 추출등록 -->
+	<insert id="insertNatKri" parameterType="kriVO" >
+		INSERT INTO SRBA_KRI_D 
+		(
+			  BAS_YYMM
+			, BAS_LONG
+			, RSK_CATG1_C
+			, RSK_CATG2_C
+			, RSK_ELMT_C
+			, BRNO
+			, BF_QT_CUST_CNT
+            , BF_QT_TRN_AMT
+			, PRS_QT_CUST_CNT
+            , PRS_QT_TRN_AMT
+			, INDE_CUST_RT
+            , INDE_AMT_RT
+			, DR_DT
+			, DR_TIME
+			, DR_OP_JKW_NO
+		)
+		SELECT
+		      #{basYymm} AS BAS_YYMM
+		    , '00' AS BAS_LONG  --기준반기(00:월집계 , 01: 상반기 , 02: 하반기)
+		    , SUBSTR(M.RSK_ELMT_C,1,2) AS RSK_CATG1_C
+		    , SUBSTR(M.RSK_ELMT_C,1,4) AS RSK_CATG2_C
+		    , M.RSK_ELMT_C
+		    , M.VALT_BRNO AS BRNO
+		    , NVL(BF_QT_CUST_CNT,0)
+            , NVL(BF_QT_TRN_AMT,0)
+		    , PRS_QT_CUST_CNT
+            , PRS_QT_TRN_AMT
+            , CASE WHEN A.VALT_BRNO IS NULL THEN 0
+			       ELSE ROUND((PRS_QT_CUST_CNT - NVL(BF_QT_CUST_CNT,0)) / DECODE(NVL(BF_QT_CUST_CNT,0),0,1,BF_QT_CUST_CNT),2) END AS INDE_CUST_RT
+			, CASE WHEN A.VALT_BRNO IS NULL THEN 0
+			       ELSE ROUND((PRS_QT_TRN_AMT - BF_QT_TRN_AMT) / DECODE(BF_QT_TRN_AMT,0,1,BF_QT_TRN_AMT),2) END AS INDE_RT
+			, TO_CHAR(SYSDATE,'YYYYMMDD') AS DR_DT
+			, TO_CHAR(SYSDATE,'HH24MISS') AS DR_TIME
+			, 'SYSTEM' AS DR_OP_JKW_NO
+		FROM
+			(  	
+				  SELECT /*+ FULL(TRN) PARALLEL(TRN 8) */
+				    --당월
+				      RC.RSK_ELMT_C
+				    , TRN.VALT_BRNO
+				    , COUNT(DISTINCT TRN.RNMCNO ) AS PRS_QT_CUST_CNT
+				    , TRUNC(SUM(DL_AMT)/ 1000000) PRS_QT_TRN_AMT       
+				  FROM KRBA_TRN_I TRN 
+				  ,    SRBA_NAT_T RC
+				  WHERE 1=1
+				  AND TRN.DL_DT >= #{tgtTrnSdt}
+				  AND TRN.DL_DT &lt; #{tgtTrnEdt}
+				  AND TRN.DL_AMT > #{extrBasAmt}
+				  AND TRN.RNMCNO = RC.RNMCNO
+				  AND RC.BAS_YYMM = #{basYymm}
+				  GROUP BY RC.RSK_ELMT_C, TRN.VALT_BRNO 
+			) M
+			,(  	
+				  SELECT /*+ FULL(TRN) PARALLEL(TRN 8) */
+				    --전월
+				      RC.RSK_ELMT_C
+				    , TRN.VALT_BRNO
+				    , COUNT(DISTINCT TRN.RNMCNO ) AS BF_QT_CUST_CNT
+				    , TRUNC(SUM(DL_AMT)/ 1000000) BF_QT_TRN_AMT       
+				  FROM KRBA_TRN_I TRN 
+				  ,    SRBA_NAT_T RC
+				  WHERE 1=1
+				  AND TRN.DL_DT >= #{pgtTrnSdt}
+				  AND TRN.DL_DT &lt; #{pgtTrnEdt}
+				  AND TRN.DL_AMT > #{extrBasAmt}
+				  AND TRN.RNMCNO = RC.RNMCNO
+				  AND RC.BAS_YYMM = #{basYymm}
+				  GROUP BY RC.RSK_ELMT_C, TRN.VALT_BRNO 
+			) A
+			WHERE 1=1
+			AND M.RSK_ELMT_C = A.RSK_ELMT_C(+) 
+            AND M.VALT_BRNO = A.VALT_BRNO(+)  
+	
+	</insert>
+	
+	
+	<insert id="insertNatKri_6M" parameterType="kriVO" >
+		INSERT INTO SRBA_KRI_D 
+		(
+			  BAS_YYMM
+			, BAS_LONG
+			, RSK_CATG1_C
+			, RSK_CATG2_C
+			, RSK_ELMT_C
+			, BRNO
+			, BF_QT_CUST_CNT
+            , BF_QT_TRN_AMT
+			, PRS_QT_CUST_CNT
+            , PRS_QT_TRN_AMT
+			, INDE_CUST_RT
+            , INDE_AMT_RT
+			, DR_DT
+			, DR_TIME
+			, DR_OP_JKW_NO
+		)
+		SELECT
+		      #{basYymm} AS BAS_YYMM
+		    , #{basLong} AS BAS_LONG  --기준반기(00:월집계 , 01: 상반기 , 02: 하반기)
+		    , SUBSTR(M.RSK_ELMT_C,1,2) AS RSK_CATG1_C
+		    , SUBSTR(M.RSK_ELMT_C,1,4) AS RSK_CATG2_C
+		    , M.RSK_ELMT_C
+		    , M.BRNO AS BRNO
+		    , NVL(BF_QT_CUST_CNT,0)
+            , NVL(BF_QT_TRN_AMT,0)
+		    , PRS_QT_CUST_CNT
+            , PRS_QT_TRN_AMT
+            , CASE WHEN A.BRNO IS NULL THEN 0
+			       ELSE ROUND((PRS_QT_CUST_CNT - NVL(BF_QT_CUST_CNT,0)) / DECODE(NVL(BF_QT_CUST_CNT,0),0,1,BF_QT_CUST_CNT),2) END AS INDE_CUST_RT
+			, CASE WHEN A.BRNO IS NULL THEN 0
+			       ELSE ROUND((PRS_QT_TRN_AMT - BF_QT_TRN_AMT) / DECODE(BF_QT_TRN_AMT,0,1,BF_QT_TRN_AMT),2) END AS INDE_RT
+			, TO_CHAR(SYSDATE,'YYYYMMDD') AS DR_DT
+			, TO_CHAR(SYSDATE,'HH24MISS') AS DR_TIME
+			, 'SYSTEM' AS DR_OP_JKW_NO
+		FROM
+			(  	
+				  SELECT 
+				    --당기
+				      RSK_ELMT_C
+				    , BRNO
+                    , SUM( PRS_QT_CUST_CNT ) AS PRS_QT_CUST_CNT
+				    , SUM( PRS_QT_TRN_AMT ) AS PRS_QT_TRN_AMT       
+				  FROM SRBA_KRI_D
+				  WHERE 1=1
+				  AND BAS_LONG = '00'
+				  AND BAS_YYMM >= #{tgtTrnSdt}
+				  AND BAS_YYMM &lt; #{tgtTrnEdt}
+				  GROUP BY RSK_ELMT_C, BRNO 
+			) M
+			,(  	
+			      SELECT 
+				    --전기
+				      RSK_ELMT_C
+				    , BRNO
+                    , SUM( PRS_QT_CUST_CNT ) AS BF_QT_CUST_CNT
+				    , SUM( PRS_QT_TRN_AMT ) AS BF_QT_TRN_AMT       
+				  FROM SRBA_KRI_D
+				  WHERE 1=1
+				  AND BAS_LONG = '00'
+				  AND BAS_YYMM >= #{pgtTrnSdt}
+				  AND BAS_YYMM &lt; #{pgtTrnEdt}
+				  GROUP BY RSK_ELMT_C, BRNO 
+			) A
+			WHERE 1=1
+			AND M.RSK_ELMT_C = A.RSK_ELMT_C(+) 
+            AND M.BRNO = A.BRNO(+)  
+	
+	</insert>
+	
+	
+	<insert id="insertNatKri_6M_99999" parameterType="kriVO" >
+		INSERT INTO SRBA_KRI_D 
+		(
+			  BAS_YYMM
+			, BAS_LONG
+			, RSK_CATG1_C
+			, RSK_CATG2_C
+			, RSK_ELMT_C
+			, BRNO
+			, BF_QT_CUST_CNT
+            , BF_QT_TRN_AMT
+			, PRS_QT_CUST_CNT
+            , PRS_QT_TRN_AMT
+			, INDE_CUST_RT
+            , INDE_AMT_RT
+			, DR_DT
+			, DR_TIME
+			, DR_OP_JKW_NO
+		)
+		SELECT
+		      #{basYymm} AS BAS_YYMM
+		    , #{basLong} AS BAS_LONG  --기준반기(00:월집계 , 01: 상반기 , 02: 하반기)
+		    , SUBSTR(M.RSK_ELMT_C,1,2) AS RSK_CATG1_C
+		    , SUBSTR(M.RSK_ELMT_C,1,4) AS RSK_CATG2_C
+		    , M.RSK_ELMT_C
+		    , '99999' AS BRNO
+		    , NVL(BF_QT_CUST_CNT,0)
+            , NVL(BF_QT_TRN_AMT,0)
+		    , PRS_QT_CUST_CNT
+            , PRS_QT_TRN_AMT
+            , CASE WHEN A.RSK_ELMT_C IS NULL THEN 0
+			       ELSE ROUND((PRS_QT_CUST_CNT - NVL(BF_QT_CUST_CNT,0)) / DECODE(NVL(BF_QT_CUST_CNT,0),0,1,BF_QT_CUST_CNT),2) END AS INDE_CUST_RT
+			, CASE WHEN A.RSK_ELMT_C IS NULL THEN 0
+			       ELSE ROUND((PRS_QT_TRN_AMT - BF_QT_TRN_AMT) / DECODE(BF_QT_TRN_AMT,0,1,BF_QT_TRN_AMT),2) END AS INDE_RT
+			, TO_CHAR(SYSDATE,'YYYYMMDD') AS DR_DT
+			, TO_CHAR(SYSDATE,'HH24MISS') AS DR_TIME
+			, 'SYSTEM' AS DR_OP_JKW_NO
+		FROM
+			(  	
+				  SELECT 
+				    --당기
+				      RSK_ELMT_C
+                    , SUM( PRS_QT_CUST_CNT ) AS PRS_QT_CUST_CNT
+				    , SUM( PRS_QT_TRN_AMT ) AS PRS_QT_TRN_AMT       
+				  FROM SRBA_KRI_D
+				  WHERE 1=1
+				  AND BAS_LONG = '00'
+				  AND BAS_YYMM >= #{tgtTrnSdt}
+				  AND BAS_YYMM &lt; #{tgtTrnEdt}
+				  GROUP BY RSK_ELMT_C 
+			) M
+			,(  	
+			      SELECT 
+				    --전기
+				      RSK_ELMT_C
+                    , SUM( PRS_QT_CUST_CNT ) AS BF_QT_CUST_CNT
+				    , SUM( PRS_QT_TRN_AMT ) AS BF_QT_TRN_AMT       
+				  FROM SRBA_KRI_D
+				  WHERE 1=1
+				  AND BAS_LONG = '00'
+				  AND BAS_YYMM >= #{pgtTrnSdt}
+				  AND BAS_YYMM &lt; #{pgtTrnEdt}
+				  GROUP BY RSK_ELMT_C 
+			) A
+			WHERE 1=1
+			AND M.RSK_ELMT_C = A.RSK_ELMT_C(+)
+	
+	</insert>
+	
+	
+	
+	<!-- 거래 카테고리 kri 추출등록 -->
+	<insert id="insertTriKri" parameterType="kriVO" >
+		INSERT INTO SRBA_KRI_D 
+		(
+			  BAS_YYMM
+			, BAS_LONG
+			, RSK_CATG1_C
+			, RSK_CATG2_C
+			, RSK_ELMT_C
+			, BRNO
+			, BF_QT_CUST_CNT
+            , BF_QT_TRN_AMT
+			, PRS_QT_CUST_CNT
+            , PRS_QT_TRN_AMT
+			, INDE_CUST_RT
+            , INDE_AMT_RT
+			, DR_DT
+			, DR_TIME
+			, DR_OP_JKW_NO
+		)
+		SELECT
+		      #{basYymm} AS BAS_YYMM
+		    , '00' AS BAS_LONG  --기준반기(00:월집계 , 01: 상반기 , 02: 하반기)
+		    , SUBSTR(M.RSK_ELMT_C,1,2) AS RSK_CATG1_C
+		    , SUBSTR(M.RSK_ELMT_C,1,4) AS RSK_CATG2_C
+		    , M.RSK_ELMT_C
+		    , M.VALT_BRNO AS BRNO
+		    , NVL(BF_QT_CUST_CNT,0)
+            , NVL(BF_QT_TRN_AMT,0)
+		    , PRS_QT_CUST_CNT
+            , PRS_QT_TRN_AMT
+            , CASE WHEN A.VALT_BRNO IS NULL THEN 0
+			       ELSE ROUND((PRS_QT_CUST_CNT - NVL(BF_QT_CUST_CNT,0)) / DECODE(NVL(BF_QT_CUST_CNT,0),0,1,BF_QT_CUST_CNT),2) END AS INDE_CUST_RT
+			, CASE WHEN A.VALT_BRNO IS NULL THEN 0
+			       ELSE ROUND((PRS_QT_TRN_AMT - BF_QT_TRN_AMT) / DECODE(BF_QT_TRN_AMT,0,1,BF_QT_TRN_AMT),2) END AS INDE_RT
+			, TO_CHAR(SYSDATE,'YYYYMMDD') AS DR_DT
+			, TO_CHAR(SYSDATE,'HH24MISS') AS DR_TIME
+			, 'SYSTEM' AS DR_OP_JKW_NO
+		FROM
+			(  	
+				  SELECT 
+					      'K50301' AS RSK_ELMT_C
+					    , A.BRN_CD AS VALT_BRNO
+					    , ' ' AS SRVC_G_C
+					    , A.PRS_QT_CUST_CNT AS PRS_QT_CUST_CNT
+					    , A.PRS_QT_TRN_AMT AS PRS_QT_TRN_AMT
+					FROM 
+					   ( --K50301	현금거래 규모
+						SELECT 
+						       NVL(NIC01.CS_MANAG_BRN_CD,'00000') AS BRN_CD
+						     , NVL(SUM(NIC32.MM_CASH_ITRN_CNT + NIC32.MM_CASH_OTRN_CNT),0) AS PRS_QT_CUST_CNT
+						     , NVL(SUM(NIC32.MM_CASH_ITRN_AMT + NIC32.MM_CASH_OTRN_AMT),0) AS PRS_QT_TRN_AMT --현금거래 규모
+						FROM NIC32B NIC32
+                        ,    NIC01B NIC01
+						WHERE NIC32.BAS_YYMM    >= SUBSTR(#{tgtTrnSdt},1,6)                                                                                                                                                                           
+                          AND NIC32.BAS_YYMM &lt;= SUBSTR(#{tgtTrnEdt},1,6)    
+                          AND NIC32.RNMCNO = NIC01.RNMCNO(+)
+                        GROUP BY NIC01.CS_MANAG_BRN_CD
+                       ) A 
+			) M
+			,( 
+			      SELECT   'K50301' AS RSK_ELMT_C
+					    , A.BRN_CD AS VALT_BRNO
+					    , ' ' AS SRVC_G_C
+					    , A.BF_QT_CUST_CNT AS BF_QT_CUST_CNT
+					    , A.BF_QT_TRN_AMT AS BF_QT_TRN_AMT
+					FROM 
+					   ( --K50301	현금거래 규모
+						SELECT 
+						       NVL(NIC01.CS_MANAG_BRN_CD,'00000') AS BRN_CD
+						     , NVL(SUM(NIC32.MM_CASH_ITRN_CNT + NIC32.MM_CASH_OTRN_CNT),0) AS BF_QT_CUST_CNT
+						     , NVL(SUM(NIC32.MM_CASH_ITRN_AMT + NIC32.MM_CASH_OTRN_AMT),0) AS BF_QT_TRN_AMT  --현금거래 규모
+						FROM NIC32B NIC32
+                        ,    NIC01B NIC01
+						WHERE NIC32.BAS_YYMM    >= SUBSTR(#{pgtTrnSdt},1,6)                                                                                                                                                                           
+                          AND NIC32.BAS_YYMM &lt;= SUBSTR(#{pgtTrnEdt},1,6)    
+                          AND NIC32.RNMCNO = NIC01.RNMCNO(+)
+                        GROUP BY NIC01.CS_MANAG_BRN_CD
+                       ) A
+			) A
+			WHERE 1=1
+			AND M.RSK_ELMT_C = A.RSK_ELMT_C(+) 
+            AND M.VALT_BRNO = A.VALT_BRNO(+)  
+	
+	</insert>
+	
+	
+	<!-- 고객 카테고리 kri 추출등록 -->
+	<insert id="insertCustomKri" parameterType="kriVO" >
+		INSERT INTO SRBA_KRI_D 
+		(
+			  BAS_YYMM
+			, BAS_LONG
+			, RSK_CATG1_C
+			, RSK_CATG2_C
+			, RSK_ELMT_C
+			, BRNO
+			, BF_QT_CUST_CNT
+            , BF_QT_TRN_AMT
+			, PRS_QT_CUST_CNT
+            , PRS_QT_TRN_AMT
+			, INDE_CUST_RT
+            , INDE_AMT_RT
+			, DR_DT
+			, DR_TIME
+			, DR_OP_JKW_NO
+		)
+		SELECT
+		      #{basYymm} AS BAS_YYMM
+		    , '00' AS BAS_LONG  --기준반기(00:월집계 , 01: 상반기 , 02: 하반기)
+		    , SUBSTR(M.RSK_ELMT_C,1,2) AS RSK_CATG1_C
+		    , SUBSTR(M.RSK_ELMT_C,1,4) AS RSK_CATG2_C
+		    , M.RSK_ELMT_C
+		    , M.VALT_BRNO AS BRNO
+		    , NVL(BF_QT_CUST_CNT,0)
+            , NVL(BF_QT_TRN_AMT,0)
+		    , PRS_QT_CUST_CNT
+            , PRS_QT_TRN_AMT
+            , CASE WHEN A.VALT_BRNO IS NULL THEN 0
+			       ELSE ROUND((PRS_QT_CUST_CNT - NVL(BF_QT_CUST_CNT,0)) / DECODE(NVL(BF_QT_CUST_CNT,0),0,1,BF_QT_CUST_CNT),2) END AS INDE_CUST_RT
+			, CASE WHEN A.VALT_BRNO IS NULL THEN 0
+			       ELSE ROUND((PRS_QT_TRN_AMT - BF_QT_TRN_AMT) / DECODE(BF_QT_TRN_AMT,0,1,BF_QT_TRN_AMT),2) END AS INDE_RT
+			, TO_CHAR(SYSDATE,'YYYYMMDD') AS DR_DT
+			, TO_CHAR(SYSDATE,'HH24MISS') AS DR_TIME
+			, 'SYSTEM' AS DR_OP_JKW_NO
+		FROM
+			(  	
+				  SELECT /*+ FULL(TRN) PARALLEL(TRN 8) */
+				    --당월
+				      RC.RSK_ELMT_C
+				    , TRN.VALT_BRNO
+				    , COUNT(DISTINCT TRN.RNMCNO ) AS PRS_QT_CUST_CNT
+				    , TRUNC(SUM(DL_AMT)/ 1000000) PRS_QT_TRN_AMT       
+				  FROM KRBA_TRN_I TRN 
+				  ,    SRBA_CUST_T RC
+				  WHERE 1=1
+				  AND TRN.DL_DT >= #{tgtTrnSdt}
+				  AND TRN.DL_DT &lt; #{tgtTrnEdt}
+				  AND TRN.DL_AMT > #{extrBasAmt}
+				  AND TRN.RNMCNO = RC.RNMCNO
+				  AND RC.BAS_YYMM = #{basYymm}
+				  AND RC.RSK_ELMT_C NOT LIKE 'R3%'
+				  GROUP BY RC.RSK_ELMT_C, TRN.VALT_BRNO 
+			) M
+			,(  	
+				  SELECT /*+ FULL(TRN) PARALLEL(TRN 8) */
+				    --전월
+				      RC.RSK_ELMT_C
+				    , TRN.VALT_BRNO
+				    , COUNT(DISTINCT TRN.RNMCNO ) AS BF_QT_CUST_CNT
+				    , TRUNC(SUM(DL_AMT)/ 1000000) BF_QT_TRN_AMT       
+				  FROM KRBA_TRN_I TRN 
+				  ,    SRBA_CUST_T RC
+				  WHERE 1=1
+				  AND TRN.DL_DT >= #{pgtTrnSdt}
+				  AND TRN.DL_DT &lt; #{pgtTrnEdt}
+				  AND TRN.DL_AMT > #{extrBasAmt}
+				  AND TRN.RNMCNO = RC.RNMCNO
+				  AND RC.BAS_YYMM = #{basYymm}
+				  AND RC.RSK_ELMT_C NOT LIKE 'R3%'
+				  GROUP BY RC.RSK_ELMT_C, TRN.VALT_BRNO 
+			) A
+			WHERE 1=1
+			AND M.RSK_ELMT_C = A.RSK_ELMT_C(+) 
+            AND M.VALT_BRNO = A.VALT_BRNO(+)  
+	
+	</insert>
+	
+	<!-- 상품 카테고리 kri 추출등록 -->
+	<insert id="insertGoodKri" parameterType="kriVO" >
+		INSERT INTO SRBA_KRI_D 
+		(
+			  BAS_YYMM
+			, BAS_LONG
+			, RSK_CATG1_C
+			, RSK_CATG2_C
+			, RSK_ELMT_C
+			, BRNO
+			, BF_QT_CUST_CNT
+            , BF_QT_TRN_AMT
+			, PRS_QT_CUST_CNT
+            , PRS_QT_TRN_AMT
+			, INDE_CUST_RT
+            , INDE_AMT_RT
+			, DR_DT
+			, DR_TIME
+			, DR_OP_JKW_NO
+		)
+		SELECT
+		      #{basYymm} AS BAS_YYMM
+		    , '00' AS BAS_LONG  --기준반기(00:월집계 , 01: 상반기 , 02: 하반기)
+		    , SUBSTR(M.RSK_ELMT_C,1,2) AS RSK_CATG1_C
+		    , SUBSTR(M.RSK_ELMT_C,1,4) AS RSK_CATG2_C
+		    , M.RSK_ELMT_C
+		    , M.VALT_BRNO AS BRNO
+		    , NVL(BF_QT_CUST_CNT,0)
+            , NVL(BF_QT_TRN_AMT,0)
+		    , PRS_QT_CUST_CNT
+            , PRS_QT_TRN_AMT
+            , CASE WHEN A.VALT_BRNO IS NULL THEN 0
+			       ELSE ROUND((PRS_QT_CUST_CNT - NVL(BF_QT_CUST_CNT,0)) / DECODE(NVL(BF_QT_CUST_CNT,0),0,1,BF_QT_CUST_CNT),2) END AS INDE_CUST_RT
+			, CASE WHEN A.VALT_BRNO IS NULL THEN 0
+			       ELSE ROUND((PRS_QT_TRN_AMT - BF_QT_TRN_AMT) / DECODE(BF_QT_TRN_AMT,0,1,BF_QT_TRN_AMT),2) END AS INDE_RT
+			, TO_CHAR(SYSDATE,'YYYYMMDD') AS DR_DT
+			, TO_CHAR(SYSDATE,'HH24MISS') AS DR_TIME
+			, 'SYSTEM' AS DR_OP_JKW_NO
+		FROM
+			(  	
+				  SELECT /*+ FULL(TRN) PARALLEL(TRN 8) */
+				    --당월
+				      R.RSK_ELMT_C
+				    , TRN.VALT_BRNO
+				    , COUNT(DISTINCT TRN.RNMCNO ) AS PRS_QT_CUST_CNT
+				    , TRUNC(SUM(DL_AMT)/ 1000000) AS PRS_QT_TRN_AMT       
+				  FROM KRBA_TRN_I TRN 
+				  ,  ( SELECT RC.RNMCNO, E.RA_ITEM_CODE , E.RSK_ELMT_C
+						FROM  SRBA_CUST_T RC , SRBA_ETC_I  E
+						WHERE E.BAS_YYMM =  #{basYymm}
+						AND  E.BAS_YYMM =  RC.BAS_YYMM
+						AND  E.RSK_ELMT_C = RC.RSK_ELMT_C
+						AND  RC.RSK_ELMT_C = 'R30111'
+						GROUP BY RC.RNMCNO, E.RA_ITEM_CODE, E.RSK_ELMT_C
+						
+						UNION ALL
+						
+						SELECT RC.RNMCNO, E.RA_ITEM_CODE , E.RSK_ELMT_C
+						FROM  SRBA_CUST_T RC , SRBA_ETC_I  E
+						WHERE E.BAS_YYMM =  #{basYymm}
+						AND  E.BAS_YYMM =  RC.BAS_YYMM
+						AND  E.RSK_ELMT_C = RC.RSK_ELMT_C
+						AND  RC.RSK_ELMT_C = 'R30113'
+						GROUP BY RC.RNMCNO, E.RA_ITEM_CODE, E.RSK_ELMT_C
+				     ) R 
+				  WHERE 1=1
+				  AND TRN.DL_DT >= #{tgtTrnSdt}
+				  AND TRN.DL_DT &lt; #{tgtTrnEdt}
+				  AND TRN.DL_AMT > #{extrBasAmt}
+				  AND TRN.RNMCNO = R.RNMCNO
+				  AND R.RA_ITEM_CODE = SUBSTR(TRN.GDS_NO, 1, 3)
+				  GROUP BY R.RSK_ELMT_C, TRN.VALT_BRNO 
+			) M
+			,(  	
+				  SELECT /*+ FULL(TRN) PARALLEL(TRN 8) */
+				    --전월
+				      R.RSK_ELMT_C
+				    , TRN.VALT_BRNO
+				    , COUNT(DISTINCT TRN.RNMCNO ) AS BF_QT_CUST_CNT
+				    , TRUNC(SUM(DL_AMT)/ 1000000) AS BF_QT_TRN_AMT       
+				  FROM KRBA_TRN_I TRN 
+				  ,    ( SELECT RC.RNMCNO, E.RA_ITEM_CODE , E.RSK_ELMT_C
+						FROM  SRBA_CUST_T RC , SRBA_ETC_I  E
+						WHERE E.BAS_YYMM =  #{basYymm}
+						AND  E.BAS_YYMM =  RC.BAS_YYMM
+						AND  E.RSK_ELMT_C = RC.RSK_ELMT_C
+						AND  RC.RSK_ELMT_C = 'R30111'
+						GROUP BY RC.RNMCNO, E.RA_ITEM_CODE, E.RSK_ELMT_C
+						
+						UNION ALL
+						
+						SELECT RC.RNMCNO, E.RA_ITEM_CODE , E.RSK_ELMT_C
+						FROM  SRBA_CUST_T RC , SRBA_ETC_I  E
+						WHERE E.BAS_YYMM =  #{basYymm}
+						AND  E.BAS_YYMM =  RC.BAS_YYMM
+						AND  E.RSK_ELMT_C = RC.RSK_ELMT_C
+						AND  RC.RSK_ELMT_C = 'R30113'
+						GROUP BY RC.RNMCNO, E.RA_ITEM_CODE, E.RSK_ELMT_C
+				     ) R 
+				  WHERE 1=1
+				  AND TRN.DL_DT >= #{pgtTrnSdt}
+				  AND TRN.DL_DT &lt; #{pgtTrnEdt}
+				  AND TRN.DL_AMT > #{extrBasAmt}
+				  AND TRN.RNMCNO = R.RNMCNO
+				  AND R.RA_ITEM_CODE = SUBSTR(TRN.GDS_NO, 1, 3)
+				  GROUP BY R.RSK_ELMT_C, TRN.VALT_BRNO 
+			) A
+			WHERE 1=1
+			AND M.RSK_ELMT_C = A.RSK_ELMT_C(+) 
+            AND M.VALT_BRNO = A.VALT_BRNO(+)  
+	
+	</insert>
+	
+	
+	
+	
+			    
+</mapper>

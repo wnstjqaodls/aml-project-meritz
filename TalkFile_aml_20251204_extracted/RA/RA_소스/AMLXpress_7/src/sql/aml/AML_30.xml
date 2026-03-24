@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="AML_30" >
+
+<select id="AML_30_01_01_01_getSearch_byP" parameterType="hashMap" resultType="DataObj">
+<!-- aml.actions.link.RelationDAO.getExpendRS.byP -->
+    SELECT TRG_KUBUN
+          ,TRG_ID
+          ,TRG_NM
+          ,SRC_KUBUN
+          ,SRC_ID
+          ,SRC_NM
+          ,REL_NM
+          ,SP_YN
+      FROM V_LNK_ACT_INFO
+     WHERE SRC_ID = #{AML_CUST_ID}
+     UNION ALL
+    SELECT TRG_KUBUN
+          ,TRG_ID
+          ,TRG_NM
+          ,SRC_KUBUN
+          ,SRC_ID
+          ,SRC_NM
+          ,REL_NM
+          ,SP_YN
+      FROM V_LNK_TRN_INFO
+     WHERE SRC_KUBUN='P'
+       AND SRC_ID = #{AML_CUST_ID}
+       AND DL_DT BETWEEN #{startDate} AND #{endDate}
+       AND (#{allOpen} != 'Y' OR SP_YN='Y')
+</select>
+<select id="AML_30_01_01_01_getSearch_byA" parameterType="hashMap" resultType="DataObj">
+<!-- aml.actions.link.RelationDAO.getExpendRS.byA -->
+    SELECT SRC_KUBUN AS TRG_KUBUN
+          ,SRC_ID AS TRG_ID
+          ,SRC_NM AS TRG_NM
+          ,TRG_KUBUN AS SRC_KUBUN
+          ,TRG_ID AS SRC_ID
+          ,TRG_NM AS SRC_NM
+          ,REL_NM
+          ,SP_YN
+      FROM V_LNK_ACT_INFO
+     WHERE TRG_ID = #{TRG_ID}
+       AND GNL_AC_NO = #{TRG_ID}
+     UNION ALL
+    SELECT TRG_KUBUN
+          ,TRG_ID
+          ,TRG_NM
+          ,SRC_KUBUN
+          ,SRC_ID
+          ,SRC_NM
+          ,REL_NM
+          ,SP_YN
+      FROM V_LNK_TRN_INFO
+     WHERE SRC_ID=#{TRG_ID}
+       AND DL_DT BETWEEN #{startDate} AND #{endDate}
+       AND (#{allOpen}='N' OR SP_YN='Y')
+       AND GNL_AC_NO=#{TRG_ID}
+       <if test="MIN_AMT != '' and MIN_AMT != null ">
+       AND REPLACE(SUBSTR(TRG_NM, INSTR(TRG_NM,CHR(10))+1 ), ',', '') <![CDATA[>]]> #{MIN_AMT}        <!-- 화면에서 받은 '최소금액'값보다 큰 데이터만 조회 -->
+       </if>
+</select>
+<select id="AML_30_01_01_01_getSearch_byT" parameterType="hashMap" resultType="DataObj">
+<!-- aml.actions.link.RelationDAO.getExpendRS.byT -->
+    SELECT TRG_KUBUN AS SRC_KUBUN
+          ,TRG_ID AS SRC_ID
+          ,TRG_NM AS SRC_NM
+          ,SRC_KUBUN AS TRG_KUBUN
+          ,SRC_ID TRG_ID
+          ,SRC_NM TRG_NM
+          ,REL_NM
+          ,'N' AS SP_YN
+      FROM V_LNK_TRN_INFO
+     WHERE TRG_ID= #{TRG_ID}
+       AND DL_DT BETWEEN #{startDate} AND #{endDate}
+       AND GNL_AC_NO =#{SRC_ID}
+       <if test="MIN_AMT != '' and MIN_AMT != null ">
+       AND REPLACE(SUBSTR(TRG_NM, INSTR(TRG_NM,CHR(10))+1 ), ',', '') <![CDATA[>]]> #{MIN_AMT}        <!-- 화면에서 받은 '최소금액'값보다 큰 데이터만 조회 -->
+       </if>
+</select>
+<select id="AML_30_01_01_01_getAML_CUST_ID" parameterType="hashMap" resultType="DataObj">
+    SELECT NVL(MAX(AML_CUST_ID), COUNT(*)) AS AML_CUST_ID
+      FROM NIC17B
+     WHERE GNL_AC_NO = #{GNL_AC_NO}
+</select>
+<select id="AML_30_01_01_01_getINDV_CORP_CCD" parameterType="hashMap" resultType="DataObj">
+    SELECT NVL(MAX(INDV_CORP_CCD), COUNT(*)) AS INDV_CORP_CCD
+      FROM NIC01B
+     WHERE AML_CUST_ID = #{AML_CUST_ID}
+</select>
+<select id="AML_30_01_01_01_getINDV_CORP_CCD_byT" parameterType="hashMap" resultType="DataObj">
+    SELECT NVL(MAX(INDV_CORP_CCD), COUNT(*)) AS INDV_CORP_CCD
+      FROM NIC01B
+     WHERE AML_CUST_ID = (SELECT NVL(MAX(AML_CUST_ID), COUNT(*))
+                            FROM NIC17B
+                           WHERE GNL_AC_NO = #{TRG_ID} )
+</select>
+
+<select id="AML_30_01_01_07_getAcntInfo" parameterType="hashMap" resultType="DataObj">
+    SELECT GNL_AC_NO AS GNL_AC_NO
+          ,GET_CODE_NAME('M035',AC_ST_CCD) AS AC_ST_CCD
+          ,AC_OPN_DT AS AC_OPN_DT
+          ,GDS_NO AS GDS_NO
+          ,FNL_DL_DT AS FNL_DL_DT
+          ,ACDT_F AS ACDT_F
+          ,FN_CDINFO_VAR('DPT',CLSD_BRN_CD,'') AS CLSD_BRN_CD
+          ,CLSD_DT AS CLSD_DT
+      FROM  NIC17B
+      WHERE GNL_AC_NO  = #{param0}
+</select>
+<select id="AML_30_01_01_07_getCustInfo" parameterType="hashMap" resultType="DataObj">
+    SELECT A.AML_CUST_ID AS AML_CUST_ID
+          ,A.RNMCNO AS RNMCNO
+          ,A.CS_NM AS CS_NM
+          ,A.ENG_CS_NM AS ENG_CS_NM
+          ,GET_CODE_NAME('M002',A.RNM_CNFR_CCD) AS RNM_CNFR_CCD
+          ,GET_CODE_NAME('M001',A.CS_ST_CD) AS CS_ST_CD
+          ,GET_CODE_NAME('M004',A.NTN_CD) AS NTN_CD
+          ,A.RSDNC_F AS RSDNC_F
+          ,B.RSK_GRD_CD AS RSK_GRD_CD
+          ,B.CS_EDD_MNG_F AS CS_EDD_MNG_F
+          ,B.CTR_RPR_TNO AS CTR_RPR_TNO
+          ,B.STR_RPR_TNO AS STR_RPR_TNO
+          ,NVL((
+                 SELECT TRIM(TO_CHAR( SUM(REPLACE(SUBSTR(TRG_NM, INSTR(TRG_NM,CHR(10))+1 ), ',', '')) , '999,999,999,999,999'))
+                   FROM V_LNK_TRN_INFO
+                  WHERE SRC_ID IN (SELECT GNL_AC_NO 
+                                     FROM NIC17B
+                                    WHERE AML_CUST_ID=#{AML_CUST_ID, jdbcType=VARCHAR})
+                    AND DL_DT BETWEEN #{startDate, jdbcType=VARCHAR} AND #{endDate, jdbcType=VARCHAR}
+                    <if test="suspicionOnly == 1 ">
+                    AND SP_YN='Y'
+                    </if>
+                    AND GNL_AC_NO IN (SELECT GNL_AC_NO 
+                                        FROM NIC17B
+                                       WHERE AML_CUST_ID=#{AML_CUST_ID, jdbcType=VARCHAR})
+                    AND (TRG_NM LIKE '%입금%' OR TRG_NM LIKE '%영수%')
+               ), 0) AS INC_AMT
+          ,NVL((
+                 SELECT TRIM(TO_CHAR( SUM(REPLACE(SUBSTR(TRG_NM, INSTR(TRG_NM,CHR(10))+1 ), ',', '')) , '999,999,999,999,999'))
+                   FROM V_LNK_TRN_INFO
+                  WHERE SRC_ID IN (SELECT GNL_AC_NO 
+                                     FROM NIC17B
+                                    WHERE AML_CUST_ID=#{AML_CUST_ID, jdbcType=VARCHAR})
+                                      AND DL_DT BETWEEN #{startDate, jdbcType=VARCHAR} AND #{endDate, jdbcType=VARCHAR}
+                                      <if test="suspicionOnly == 1 ">
+                                      AND SP_YN='Y'
+                                      </if>
+                                      AND GNL_AC_NO IN (SELECT GNL_AC_NO 
+                                                          FROM NIC17B
+                                                           WHERE AML_CUST_ID=#{AML_CUST_ID, jdbcType=VARCHAR})
+                                      AND (    TRG_NM LIKE '%출금%' 
+                                            OR TRG_NM LIKE '%송금%' 
+                                            OR TRG_NM LIKE '%상환%' 
+                                            OR TRG_NM LIKE '%수표지급%' 
+                                            OR TRG_NM LIKE '%수표발행%'
+                                          )
+               ), 0) AS DEC_AMT
+      FROM NIC01B A , NIC35B B
+     WHERE A.AML_CUST_ID = B.AML_CUST_ID
+       AND A.AML_CUST_ID = #{AML_CUST_ID, jdbcType=VARCHAR}
+</select>
+<select id="AML_30_01_01_07_getTradeInfo" parameterType="hashMap" resultType="DataObj">
+    SELECT A.GNL_AC_NO AS GNL_AC_NO
+          ,'[' || A.GDS_NO || ']' || GET_CODE_NAME('M034',A.GDS_NO) AS GDS_NO
+          ,A.DL_DT AS DL_DT
+          ,A.DL_SQ AS DL_SQ
+          ,GET_CODE_NAME('M046',A.DL_WY_CD) AS DL_WY_CD
+          ,GET_CODE_NAME('M044',A.DL_CHNNL_CD) AS DL_CHNNL_CD
+          ,A.SMRY_TYP_CD AS SMRY_TYP_CD
+          ,A.DL_TM AS DL_TM
+          ,A.DL_AMT AS DL_AMT
+          ,A.CHCK_AMT AS CHCK_AMT
+          ,A.CSH AS CSH
+          ,A.TFND_RA AS TFND_RA
+          ,A.CRNCY_CD AS CRNCY_CD
+          ,A.I_AMT_P_NM AS I_AMT_P_NM
+          ,A.I_AMT_P_RNM_NO AS I_AMT_P_RNM_NO
+          ,GET_CODE_NAME('M002',TRIM(A.I_AMT_P_RNM_NO_CCD) ) AS I_AMT_P_RNM_NO_CCD
+          ,GET_CODE_NAME('M045',A.DL_TYP_CD) AS DL_TYP_CD
+          ,B.CPRTY_TRSNS_OGN_CD AS CPRTY_TRSNS_OGN_CD
+          ,B.CPRTY_TRSNS_AC_NO AS CPRTY_TRSNS_AC_NO
+          ,B.CPRTY_TRSNS_AC_NM AS CPRTY_TRSNS_AC_NM
+          ,GET_CODE_NAME('M004',TRIM(B.CPRTY_TRSNS_AC_OWN_NTN_CD) ) AS CPRTY_TRSNS_AC_OWN_NTN_CD
+          ,GET_CODE_NAME('M002',TRIM(B.CPRTY_TRSNS_AC_RNM_CNFR_CCD) ) AS CPRTY_TRSNS_AC_RNM_CNFR_CCD
+          ,B.CPRTY_TRSNS_AC_RNM_NO AS CPRTY_TRSNS_AC_RNM_NO
+      FROM NIC61B A 
+      LEFT OUTER JOIN NIC62B B
+        ON A.GNL_AC_NO = B.GNL_AC_NO
+       AND A.GDS_NO = B.GDS_NO
+       AND A.DL_DT = B.DL_DT
+       AND A.DL_SQ = B.DL_SQ
+     WHERE A.GNL_AC_NO = #{param0}
+       AND A.GDS_NO = #{param1}
+       AND A.DL_DT = #{param2}
+       AND A.DL_SQ = #{param3}
+</select>
+
+<select id="AML_30_01_01_08_getSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT                                                                                                      
+           GET_CODE_NAME('M002',A.RNM_CNFR_CCD)                          AS RNM_CNFR_NM      -- 실명구분         
+          ,GET_CODE_NAME('M034',B.GDS_NO)                                AS GDS_NM           -- 상품종류         
+          ,FN_CDINFO_VAR('AC',B.GNL_AC_NO,'') AS GNL_AC_NO                                   -- 계좌번호         
+          ,(SELECT DPRT_NM FROM NIC41B WHERE DPRT_CD = B.OPN_BRN_CD)     AS GDS_OPN_BRN_NM   -- 계좌개설지점       
+          ,(SELECT DPRT_NM FROM NIC41B WHERE DPRT_CD = B.MN_DL_DPRT_CD)  AS MN_DL_DPRT_NM    -- 주거래지점        
+          ,FN_CDINFO_VAR('DT',B.DCH_GDS_DT,'') AS DCH_GDS_DT                                 -- 계좌개설일자        
+          ,FN_CDINFO_VAR('DT',C.DL_DT,'') AS DL_DT                                           -- 거래일자         
+          ,FN_CDINFO_VAR('DT',C.DL_TM,'') AS DL_TM                                           -- 거래시간         
+          ,GET_CODE_NAME('M044',C.DL_CHNNL_CD)                           AS DL_CHNNL_NM      -- 거래채널  
+          ,GET_CODE_NAME('M046',DL_WY_CD)                                AS DL_WY_NM         -- 거래수단  
+          ,C.DL_AMT                                                                          -- 거래금액   
+          ,C.CSH                                                                             -- 현금     
+          ,C.CHCK_AMT                                                                        -- 수표   
+      FROM NIC01B A                                                                                             
+          ,NIC17B B                                                                                             
+          ,NIC61B C                                                                                             
+     WHERE A.AML_CUST_ID     = B.AML_CUST_ID                                                                    
+       AND B.GNL_AC_NO  = C.GNL_AC_NO                                                                           
+       AND B.GDS_NO     = C.GDS_NO                                                                              
+       AND A.AML_CUST_ID     = #{param0}  -- 파라미터 : 실명확인번호                                                      
+       AND C.DL_DT   BETWEEN  #{param1} AND #{param2}                                                           
+     ORDER BY B.GDS_TYP_CD
+             ,B.GNL_AC_NO
+             ,B.GDS_NO
+             ,C.DL_DT
+             ,C.DL_TM
+</select>
+
+</mapper>

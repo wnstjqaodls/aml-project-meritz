@@ -1,0 +1,67 @@
+2=\
+	2,\
+	,\
+	/jspeed/*,\
+	1
+
+3=\
+	3,\
+	,\
+	/jspeed/admin/*,\
+	2
+
+4=\
+	4,\
+	,\
+	/jspeed/common/*,\
+	2
+
+5=\
+	5,\
+	,\
+	/jspeed/admin/notice/*,\
+	3
+
+6=\
+	6,\
+	,\
+	/jspeed/common/*,\
+	3
+
+7=\
+	7,\
+	,\
+	/jspeed/base/*,\
+	4
+
+8=\
+	8,\
+	,\
+	/jspeed/common/*,\
+	4
+
+9=\
+	9,\
+	,\
+	/jspeed/common/*,\
+	5
+
+10=\
+	10,\
+	,\
+	/jspeed/monitor/*,\
+	5
+	
+11=\
+	11,\
+	,\
+	/jspeed/index.jsp,\
+	6
+
+12=\
+	12,\
+	,\
+	/jspeed/common/*,\
+	6
+
+

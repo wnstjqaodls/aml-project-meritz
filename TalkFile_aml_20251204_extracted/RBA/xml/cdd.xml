@@ -1,0 +1,3879 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="cdd">
+
+
+
+
+
+<delete id="delete_CDD_101" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_101'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_101" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_101' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN TRIM(A.TAGT_CLNT_NAME) IS NULL THEN '고객명 공란'  || CASE WHEN TRIM(A.CDD_TAGT_CLNT_NO_CRYP) IS NULL THEN ', 실명번호 공란' ELSE '' END
+            ELSE CASE WHEN TRIM(A.CDD_TAGT_CLNT_NO_CRYP) IS NULL THEN '실명번호 공란' ELSE '' END 
+        END
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND (TRIM(A.TAGT_CLNT_NAME)        IS NULL
+    OR  TRIM(A.CDD_TAGT_CLNT_NO_CRYP) IS NULL)
+    
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_102" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_102'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_102" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_102' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '고객구분 공란'
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND TRIM(A.CDD_CLNT_SECT_CODE)        IS NULL
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_103" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_103'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_103" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_103' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '영문명 : ' || TRIM(A.TAGT_ENNM)
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.NTNY_ID  <> 1000000001 -- 소속국가ID
+   AND (TRIM(A.TAGT_ENNM) IS NULL
+    OR  REGEXP_LIKE(TRIM(A.TAGT_ENNM), '[ㄱ-ㅎ]')
+    OR  REGEXP_LIKE(TRIM(A.TAGT_ENNM), '[가-힝]')) -- 한글 포함
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_104" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_104'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_104" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_104' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '고객정보제공여부 : N'
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CLNT_IFMN_OFRN_YN = 'N'
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_105" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_105'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_105" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_105' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '재수행예정일자 공란'
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND TRIM(A.CDD_RE_FLFL_XPCN_DATE) IS NULL
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_106" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_106'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_106" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_106' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '위험등급 공란'
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND CDD_CMPL_YN = 'Y'
+   AND TRIM(A.CLNT_RISK_RTNG_CODE) IS NULL
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_107" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_107'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_107" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_107' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN A.CLNT_RISK_RTNG_CODE = 'H' THEN '위험등급 : H, 재수행예정일자(계산) : ' || TO_CHAR(ADD_MONTHS(TO_DATE(A.CDD_FLFL_DATE, 'YYYYMMDD'), 12), 'YYYYMMDD') || ', (DB) : ' || A.CDD_RE_FLFL_XPCN_DATE
+            WHEN A.CLNT_RISK_RTNG_CODE = 'M' THEN '위험등급 : M, 재수행예정일자(계산) : ' || TO_CHAR(ADD_MONTHS(TO_DATE(A.CDD_FLFL_DATE, 'YYYYMMDD'), 24), 'YYYYMMDD') || ', (DB) : ' || A.CDD_RE_FLFL_XPCN_DATE
+            WHEN A.CLNT_RISK_RTNG_CODE = 'L' THEN '위험등급 : L, 재수행예정일자(계산) : ' || TO_CHAR(ADD_MONTHS(TO_DATE(A.CDD_FLFL_DATE, 'YYYYMMDD'), 36), 'YYYYMMDD') || ', (DB) : ' || A.CDD_RE_FLFL_XPCN_DATE
+            ELSE ' '
+        END
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'
+   AND ((A.CLNT_RISK_RTNG_CODE = 'H' AND (TO_CHAR(ADD_MONTHS(TO_DATE(A.CDD_FLFL_DATE, 'YYYYMMDD'), 12), 'YYYYMMDD') <> A.CDD_RE_FLFL_XPCN_DATE))
+    OR  (A.CLNT_RISK_RTNG_CODE = 'M' AND (TO_CHAR(ADD_MONTHS(TO_DATE(A.CDD_FLFL_DATE, 'YYYYMMDD'), 24), 'YYYYMMDD') <> A.CDD_RE_FLFL_XPCN_DATE))
+    OR  (A.CLNT_RISK_RTNG_CODE = 'L' AND (TO_CHAR(ADD_MONTHS(TO_DATE(A.CDD_FLFL_DATE, 'YYYYMMDD'), 36), 'YYYYMMDD') <> A.CDD_RE_FLFL_XPCN_DATE)))
+    
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_108" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_108'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_108" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_108' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '재수행예정일자 : ' || TRIM(A.CDD_RE_FLFL_XPCN_DATE ) || ', 의무수행여부 : ' || A.CDD_DUTY_FLFL_TAGT_SECT_CODE
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'
+   AND A.CDD_RE_FLFL_XPCN_DATE <= (SELECT PREV_BSNS_DATE FROM SID.IDO_A_UUE_INSN_CALENDAR WHERE ENTY_ID = 1 AND TAGT_DATE = TO_CHAR(SYSDATE, 'YYYYMMDD'))
+   AND A.CDD_DUTY_FLFL_TAGT_SECT_CODE <> 'Y'
+   
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_109" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_109'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_109" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_109' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '당사자구분 : 대리인, 관계 : 상임대리인, 고객구분 : ' || CASE WHEN A.CDD_CLNT_SECT_CODE = '1' THEN '개인'
+                                                                     WHEN A.CDD_CLNT_SECT_CODE = '3' THEN '비영리법인'
+                                                                     ELSE ' '
+                                                                 END     
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'
+   AND A.CDD_TAGT_SECT_CODE      = '02' -- 대리인
+   AND A.CDD_AGNT_RLTP_SECT_CODE = '08' -- 상임대리인
+   AND A.CDD_CLNT_SECT_CODE      <> '2' -- 영리법인
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_110" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_110'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_110" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_110' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN TRIM(A.ORIG_CLNT_NAME) IS NULL THEN '고객명 공란'  || CASE WHEN TRIM(A.CDD_ORIG_CLNT_NO_CRYP) IS NULL THEN ', 실명번호 공란' ELSE '' END
+            ELSE CASE WHEN TRIM(A.CDD_ORIG_CLNT_NO_CRYP) IS NULL THEN '실명번호 공란' ELSE '' END 
+        END   
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_TAGT_SECT_CODE = '02' -- 대리인
+   AND (TRIM(A.ORIG_CLNT_NAME )        IS NULL
+    OR  TRIM(A.CDD_ORIG_CLNT_NO_CRYP ) IS NULL)  
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_111" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_111'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_111" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_111' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '본인과 대리인의 실명번호 동일' 
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_TAGT_SECT_CODE = '02' -- 대리인
+   AND TRIM(A.CDD_TAGT_CLNT_NO_CRYP ) = TRIM(A.CDD_ORIG_CLNT_NO_CRYP)
+   
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_112" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_112'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_112" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_112' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '공란 : ' || 
+       CASE WHEN TRIM(A.BRDT) IS NULL THEN '생년월일' || CASE WHEN TRIM(A.GNDR_SECT_CODE) IS NULL THEN ', 성별' ELSE '' END 
+            ELSE CASE WHEN TRIM(A.GNDR_SECT_CODE) IS NULL THEN '성별' ELSE '' END
+        END
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인   
+   AND (TRIM(A.BRDT)           IS NULL
+    OR  TRIM(A.GNDR_SECT_CODE) IS NULL)
+   
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_113" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_113'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_113" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_113' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN X.DATE_ANLY_SDVL IS NULL THEN '생년월일 : 미존재 날짜(' || TRIM(A.BRDT) || ')' || CASE WHEN A.BRDT >= A.CDD_FLFL_DATE THEN ', 수행일자(' || A.CDD_FLFL_DATE || ') <= 생년월일(' || TRIM(A.BRDT) || ')' ELSE '' END
+            ELSE CASE WHEN A.BRDT >= A.CDD_FLFL_DATE THEN '수행일자(' || A.CDD_FLFL_DATE || ') ≤ 생년월일(' || TRIM(A.BRDT) || ')'
+                      ELSE '' 
+                  END
+        END
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X
+    ON X.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X.DATE_ANLY_SDVL = A.BRDT
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인   
+   AND TRIM(A.BRDT) IS NOT NULL
+   AND (A.BRDT >= A.CDD_FLFL_DATE
+    OR  X.DATE_ANLY_SDVL IS NULL)
+   
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_114" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_114'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_114" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_114' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '공란 : ' || 
+       CASE WHEN A.NTNY_ID = 0 THEN '소속국가' || CASE WHEN A.RSDT_CNTY_ID = 0 THEN ', 거주국가' ELSE '' END
+            ELSE CASE WHEN A.RSDT_CNTY_ID = 0 THEN '거주국가' 
+                      ELSE '' 
+                  END
+        END
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'
+ --AND A.CDD_CLNT_SECT_CODE = '1' -- 개인   
+   AND (A.NTNY_ID           = 0
+    OR  A.RSDT_CNTY_ID      = 0)
+   
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_115" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_115'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_115" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_115' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '자택연락처 : ' || CASE WHEN NVL(TRIM(U12.CNTY_PHON_CODE_CRYP), 'X') = 'X' THEN '공란, '
+                               WHEN NVL(TRIM(U12.CNTY_PHON_CODE_CRYP), 'X') IN ('tRAMd7P/ZOo7TZTLnV8bgw==', 'ysLod0CISDzP7OZjoGN0Ig==') THEN '82/082, '
+                               ELSE '' END ||
+       '직장연락처 : ' || CASE WHEN NVL(TRIM(U13.CNTY_PHON_CODE_CRYP), 'X') = 'X' THEN '공란'
+                               WHEN NVL(TRIM(U13.CNTY_PHON_CODE_CRYP), 'X') IN ('tRAMd7P/ZOo7TZTLnV8bgw==', 'ysLod0CISDzP7OZjoGN0Ig==') THEN '82/082'
+                               ELSE '' END
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B12 -- 개인CDD-자택
+    ON B12.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B12.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B12.CDD_CNTT_ADDR_SECT_CODE  = 'TEL'
+   AND B12.CDD_CNTT_ADDR_TAGT_CODE  = '12'
+  LEFT OUTER JOIN SID.IDO_A_UUE_PHONE U12
+    ON U12.CNTT_ADDR_ID             = B12.CNTT_ADDR_ID
+    
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B13 -- 개인CDD-직장
+    ON B13.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B13.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B13.CDD_CNTT_ADDR_SECT_CODE  = 'TEL'
+   AND B13.CDD_CNTT_ADDR_TAGT_CODE  = '13'
+  LEFT OUTER JOIN SID.IDO_A_UUE_PHONE U13
+    ON U13.CNTT_ADDR_ID             = B13.CNTT_ADDR_ID  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인   
+   AND A.NTNY_ID      <> 1000000001 -- 소속국가ID
+   AND A.RSDT_CNTY_ID <> 1000000001 -- 거주국가ID
+   
+   AND NVL(TRIM(U12.CNTY_PHON_CODE_CRYP), 'X') IN ('tRAMd7P/ZOo7TZTLnV8bgw==', 'ysLod0CISDzP7OZjoGN0Ig==', 'X')
+   AND NVL(TRIM(U13.CNTY_PHON_CODE_CRYP), 'X') IN ('tRAMd7P/ZOo7TZTLnV8bgw==', 'ysLod0CISDzP7OZjoGN0Ig==', 'X')
+   
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_116" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_116'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_116" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_116' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '자택전화/직장전화/국내연락처/휴대전화/E-mail 공란'
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B12_T -- 개인CDD-자택전화
+    ON B12_T.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B12_T.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B12_T.CDD_CNTT_ADDR_SECT_CODE  = 'TEL'
+   AND B12_T.CDD_CNTT_ADDR_TAGT_CODE  = '12'
+    
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B13_T -- 개인CDD-직장전화
+    ON B13_T.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B13_T.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B13_T.CDD_CNTT_ADDR_SECT_CODE  = 'TEL'
+   AND B13_T.CDD_CNTT_ADDR_TAGT_CODE  = '13'
+   
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B12_M -- 개인CDD-자택휴대폰
+    ON B12_M.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B12_M.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B12_M.CDD_CNTT_ADDR_SECT_CODE  = 'MOB'
+   AND B12_M.CDD_CNTT_ADDR_TAGT_CODE  = '12'
+   
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B12_E -- 개인CDD-자택이메일
+    ON B12_E.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B12_E.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B12_E.CDD_CNTT_ADDR_SECT_CODE  = 'EML'
+   AND B12_E.CDD_CNTT_ADDR_TAGT_CODE  = '12'
+
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B14_T -- 개인CDD-실거소국내연락처
+    ON B14_T.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B14_T.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B14_T.CDD_CNTT_ADDR_SECT_CODE  = 'TEL'
+   AND B14_T.CDD_CNTT_ADDR_TAGT_CODE  = '14'
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인   
+   
+   AND NVL(TRIM(B12_T.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X'
+   AND NVL(TRIM(B13_T.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X'
+   AND NVL(TRIM(B12_M.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X'
+   AND NVL(TRIM(B12_E.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X'
+   AND NVL(TRIM(B14_T.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X'
+   
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_117" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_117'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_117" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_117' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN TRIM(JOB_CODE) IS NULL THEN '직업 : 공란'
+            WHEN LENGTH(TRIM(A.JOB_CODE)) <> 3 THEN '직업코드 : ' || TRIM(A.JOB_CODE)
+            ELSE ''
+        END
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인
+   
+   AND (LENGTH(TRIM(A.JOB_CODE)) <> 3
+    OR  TRIM(JOB_CODE) IS NULL)
+   
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_118" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_118'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_118" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_118' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '위험등급 : ' || A.CLNT_RISK_RTNG_CODE || ', 직업 : ' || TRIM(JOB_CODE) || '.' || NVL((SELECT CMN_CDVL_NAME FROM SID.IDO_A_UWB_COM_CD_DTL WHERE CMN_CODE_ID = '01437' AND CMN_CDVL = A.JOB_CODE), ' ')
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD         A  
+ INNER JOIN SID.IDO_A_MAH_CDD_RISK_INDR_MN B /* CDD위험지표관리 */
+    ON TRIM(B.RISK_DTLS_CODE)  = A.JOB_CODE
+   AND RISK_LARG_CLSN_CODE     = 'CLNT'
+   AND RISK_MDUM_CLSN_CODE     = 'JOB'
+   AND CDD_RGTY_RISK_SECT_CODE = 'Y'  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인   
+ 
+   AND A.CLNT_RISK_RTNG_CODE <> 'H'
+   
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_119" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_119'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_119" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_119' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '직업 : ' || TRIM(JOB_CODE) || '.' || NVL((SELECT TRIM(INI_ITEM_NAME) FROM SID.IDO_A_UWB_INI_ITM WHERE INI_GROP_CODE = '00311' AND USE_YN = 'Y' AND INI_ITEM_CODE = SUBSTR(A.JOB_CODE, 1, 1)), ' ') || '_기타'
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인   
+ 
+   AND A.JOB_CODE IN ('190', '290', '390', '490', '990')
+   AND TRIM(A.JOB_NAME) IS NULL
+   
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_120" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_120'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_120" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_120' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '법인운영자금여부 : Y'
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A  
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인   
+ 
+   AND A.INSN_OPRN_FUNS_YN  = 'Y'
+   
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_121" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_121'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_121" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_121' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '사업장/본점의 전화번호/휴대전화 공란'
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B21_T -- 법인사업장-전화
+    ON B21_T.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B21_T.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B21_T.CDD_CNTT_ADDR_SECT_CODE  = 'TEL'
+   AND B21_T.CDD_CNTT_ADDR_TAGT_CODE  = '21'
+    
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B21_M -- 법인사업장-휴대전화
+    ON B21_M.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B21_M.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B21_M.CDD_CNTT_ADDR_SECT_CODE  = 'MOB'
+   AND B21_M.CDD_CNTT_ADDR_TAGT_CODE  = '21'   
+ 
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B22_T -- 법인본점-전화
+    ON B22_T.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B22_T.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B22_T.CDD_CNTT_ADDR_SECT_CODE  = 'TEL'
+   AND B22_T.CDD_CNTT_ADDR_TAGT_CODE  = '22'
+    
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B22_M -- 법인본점-휴대전화
+    ON B22_M.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B22_M.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B22_M.CDD_CNTT_ADDR_SECT_CODE  = 'MOB'
+   AND B22_M.CDD_CNTT_ADDR_TAGT_CODE  = '22'  
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'
+   AND A.CDD_CLNT_SECT_CODE IN ('2', '3') -- 법인   
+
+   AND  NVL(TRIM(B21_T.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X'
+   AND  NVL(TRIM(B21_M.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X'
+   AND  NVL(TRIM(B22_T.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X'
+   AND  NVL(TRIM(B22_M.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X'
+   
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_122" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_122'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_122" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_122' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN NVL(TRIM(B21_A.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X' THEN '사업장주소 : 공란' || CASE WHEN NVL(TRIM(B22_A.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X' THEN ', 본점주소 : 공란' ELSE '' END
+            ELSE CASE WHEN NVL(TRIM(B22_A.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X' THEN '본점주소 : 공란'
+                      ELSE ''
+                  END
+        END
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B21_A -- 법인사업장-주소
+    ON B21_A.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B21_A.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B21_A.CDD_CNTT_ADDR_SECT_CODE  = 'ADR'
+   AND B21_A.CDD_CNTT_ADDR_TAGT_CODE  = '21'
+
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B22_A -- 법인본점-주소
+    ON B22_A.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B22_A.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B22_A.CDD_CNTT_ADDR_SECT_CODE  = 'ADR'
+   AND B22_A.CDD_CNTT_ADDR_TAGT_CODE  = '22'
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'
+   AND A.CDD_CLNT_SECT_CODE IN ('2', '3') -- 법인 
+
+   AND (NVL(TRIM(B21_A.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X'
+    OR  NVL(TRIM(B22_A.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X')
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_123" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_123'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_123" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_123' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '영문(해외)주소 미존재(소속국가 : ' || 
+       NVL(R1.CNTY_CODE, 'XX') || '.' ||
+       NVL((SELECT TRIM(T.CNTY_NAME) FROM SID.IDO_A_UUE_COUNTRY_NAME T WHERE T.LANG_CODE = 'KO' AND T.CNTY_ID = A.NTNY_ID      AND ROWNUM = 1 ), '') || ', 거주국가 : ' || 
+       NVL(R2.CNTY_CODE, 'XX') || '.' ||
+       NVL((SELECT TRIM(T.CNTY_NAME) FROM SID.IDO_A_UUE_COUNTRY_NAME T WHERE T.LANG_CODE = 'KO' AND T.CNTY_ID = A.RSDT_CNTY_ID AND ROWNUM = 1 ), '') || ')'
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B21_A -- 법인사업장-주소
+    ON B21_A.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B21_A.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B21_A.CDD_CNTT_ADDR_SECT_CODE  = 'ADR'
+   AND B21_A.CDD_CNTT_ADDR_TAGT_CODE  = '21'
+  LEFT OUTER JOIN SID.IDO_A_UUE_ADDRESS U21
+    ON U21.CNTT_ADDR_ID               = B21_A.CNTT_ADDR_ID
+    
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B22_A -- 법인본점-주소
+    ON B22_A.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B22_A.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B22_A.CDD_CNTT_ADDR_SECT_CODE  = 'ADR'
+   AND B22_A.CDD_CNTT_ADDR_TAGT_CODE  = '22'
+  LEFT OUTER JOIN SID.IDO_A_UUE_ADDRESS U22
+    ON U22.CNTT_ADDR_ID             = B22_A.CNTT_ADDR_ID
+    
+    
+  LEFT OUTER JOIN SID.IDO_A_UUE_COUNTRY R1
+    ON A.NTNY_ID        = R1.CNTY_ID      
+  LEFT OUTER JOIN SID.IDO_A_UUE_COUNTRY R2
+    ON A.RSDT_CNTY_ID   = R2.CNTY_ID  
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'
+   AND A.CDD_CLNT_SECT_CODE IN ('2', '3') -- 법인 
+
+   AND A.NTNY_ID       > 0   
+   AND A.NTNY_ID      <> 1000000001 -- 소속국가ID   
+   AND A.RSDT_CNTY_ID  > 0   
+   AND A.RSDT_CNTY_ID <> 1000000001 -- 거주국가ID
+   
+   AND ((TRIM(U21.PSTL_CODE) NOT IN ('00000', '000000') OR NVL(TRIM(U21.PSTL_CODE), 'X') = 'X')
+   AND  (TRIM(U22.PSTL_CODE) NOT IN ('00000', '000000') OR NVL(TRIM(U22.PSTL_CODE), 'X') = 'X'))
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_124" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_124'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_124" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_124' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '대표자정보오류' ||
+       CASE WHEN TRIM(A.RPST_1_NAME) IS NULL AND TRIM(A.RPST_2_NAME) IS NULL AND TRIM(A.RPST_3_NAME) IS NULL THEN ';대표자 미입력' 
+       
+            WHEN TRIM(A.RPST_1_NAME) IS NOT NULL AND A.RPST_1_NTNY_ID = 0 THEN ';대표자1 소속국적 미입력'
+            WHEN TRIM(A.RPST_1_NAME) IS NOT NULL AND TRIM(A.RPST_1_BRDT) IS NULL THEN ';대표자1 생년월일 미입력'
+            
+            WHEN TRIM(A.RPST_2_NAME) IS NOT NULL AND A.RPST_2_NTNY_ID = 0 THEN ';대표자2 소속국적 미입력'
+            WHEN TRIM(A.RPST_2_NAME) IS NOT NULL AND TRIM(A.RPST_2_BRDT) IS NULL THEN ';대표자2 생년월일 미입력'
+            
+            WHEN TRIM(A.RPST_3_NAME) IS NOT NULL AND A.RPST_3_NTNY_ID = 0 THEN ';대표자3 소속국적 미입력'            
+            WHEN TRIM(A.RPST_3_NAME) IS NOT NULL AND TRIM(A.RPST_3_BRDT) IS NULL THEN ';대표자3 생년월일 미입력'
+            
+            WHEN TRIM(A.RPST_1_BRDT) IS NOT NULL AND NVL(X1.DATE_ANLY_SDVL, 'X') = 'X' THEN ';대표자1 생년월일 미존재날짜'
+            WHEN TRIM(A.RPST_2_BRDT) IS NOT NULL AND NVL(X2.DATE_ANLY_SDVL, 'X') = 'X' THEN ';대표자2 생년월일 미존재날짜'
+            WHEN TRIM(A.RPST_3_BRDT) IS NOT NULL AND NVL(X3.DATE_ANLY_SDVL, 'X') = 'X' THEN ';대표자3 생년월일 미존재날짜'
+            
+            ELSE ''
+        END AS MNTN_DTLS_CTNT
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X1
+    ON X1.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X1.DATE_ANLY_SDVL = A.RPST_1_BRDT
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X2
+    ON X2.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X2.DATE_ANLY_SDVL = A.RPST_2_BRDT
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X3
+    ON X3.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X3.DATE_ANLY_SDVL = A.RPST_3_BRDT  
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'
+   AND A.CDD_CLNT_SECT_CODE IN ('2', '3') -- 법인 
+
+   -- 대표자명이 모두 미존재
+   AND ((TRIM(A.RPST_1_NAME) IS NULL AND TRIM(A.RPST_2_NAME) IS NULL AND TRIM(A.RPST_3_NAME) IS NULL) 
+
+   -- 대표자명1이 존재하는데 소속국가1, 생년월일1 미존재
+    OR  (TRIM(A.RPST_1_NAME) IS NOT NULL AND (A.RPST_1_NTNY_ID = 0 OR TRIM(A.RPST_1_BRDT) IS NULL OR LENGTH(TRIM(A.RPST_1_BRDT)) <> 8))
+   -- 대표자명2이 존재하는데 소속국가2, 생년월일2 미존재
+    OR  (TRIM(A.RPST_2_NAME) IS NOT NULL AND (A.RPST_2_NTNY_ID = 0 OR TRIM(A.RPST_2_BRDT) IS NULL OR LENGTH(TRIM(A.RPST_2_BRDT)) <> 8))
+   -- 대표자명3이 존재하는데 소속국가3, 생년월일3 미존재
+    OR  (TRIM(A.RPST_3_NAME) IS NOT NULL AND (A.RPST_3_NTNY_ID = 0 OR TRIM(A.RPST_3_BRDT) IS NULL OR LENGTH(TRIM(A.RPST_3_BRDT)) <> 8))
+
+   -- 대표자 생년월일 유효성 체크
+    OR  (TRIM(A.RPST_1_BRDT) IS NOT NULL AND NVL(X1.DATE_ANLY_SDVL, 'X') = 'X')
+    OR  (TRIM(A.RPST_2_BRDT) IS NOT NULL AND NVL(X2.DATE_ANLY_SDVL, 'X') = 'X')
+    OR  (TRIM(A.RPST_3_BRDT) IS NOT NULL AND NVL(X3.DATE_ANLY_SDVL, 'X') = 'X'))
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_125" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_125'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_125" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_125' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN TRIM(A.STND_INDY_CLSN_CODE) IS NULL THEN '업종 누락' 
+            WHEN TRIM(A.STND_INDY_CLSN_CODE) IS NOT NULL AND NVL(B.STND_INDY_CLSN_CODE, 'X') = 'X' THEN '미존재 업종코드 : ' || TRIM(A.STND_INDY_CLSN_CODE)
+            ELSE ' '
+        END AS MNTN_DTLS_CTNT
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD        A
+  LEFT OUTER JOIN SID.IDO_A_UUE_INDY_CLSN B
+    ON B.INDY_CLSN_TYPE_CODE = 'KS'
+   AND B.STND_INDY_CLSN_CODE = A.STND_INDY_CLSN_CODE
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'
+   AND A.CDD_CLNT_SECT_CODE = '2' -- 영리법인 
+
+   AND (TRIM(A.STND_INDY_CLSN_CODE)         IS NULL
+    OR  LENGTH(TRIM(A.STND_INDY_CLSN_CODE)) <> 5
+    OR  NVL(B.STND_INDY_CLSN_CODE, 'X')     = 'X')
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_126" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_126'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_126" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_126' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '위험등급 : ' || A.CLNT_RISK_RTNG_CODE || ', 업종 : ' || TRIM(A.STND_INDY_CLSN_CODE) || '.' || NVL(TRIM(D.DSCN_CTNT), ' ')
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD         A
+ INNER JOIN SID.IDO_A_MAH_CDD_RISK_INDR_MN B /* CDD위험지표관리 */
+    ON TRIM(B.RISK_DTLS_CODE)  = A.STND_INDY_CLSN_CODE
+   AND RISK_LARG_CLSN_CODE     = 'CLNT'
+   AND RISK_MDUM_CLSN_CODE     = 'INKN'
+   AND CDD_RGTY_RISK_SECT_CODE = 'Y'
+  LEFT OUTER JOIN SID.IDO_A_UUE_INDY_CLSN       C  
+    ON C.INDY_CLSN_TYPE_CODE   = 'KS'
+   AND C.STND_INDY_CLSN_CODE   = A.STND_INDY_CLSN_CODE
+  LEFT OUTER JOIN SID.IDO_A_UUE_INDY_CLASS_DESC D  
+    ON D.INDY_CLSN_ID          = C.INDY_CLSN_ID
+   AND D.LANG_CODE             = 'KO'
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '2' -- 영리법인
+   AND A.CLNT_RISK_RTNG_CODE <> 'H'
+
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_127" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_127'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_127" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_127' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '설립목적 : ' || CASE WHEN TRIM(A.ESTT_PRPS_CODE) IS NULL THEN '미입력'
+                             WHEN LENGTH(TRIM(A.ESTT_PRPS_CODE)) > 0 AND NVL(T.CMN_CDVL , 'X') = 'X' THEN '미존재 코드(' || TRIM(A.ESTT_PRPS_CODE) || ')'
+                             ELSE ' '
+                         END AS MNTN_DTLS_CTNT
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD         A
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL T
+    ON T.CMN_CODE_ID = '06751' 
+   AND T.CMN_CDVL = A.ESTT_PRPS_CODE
+        
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '3' -- 비영리법인
+   AND (TRIM(A.ESTT_PRPS_CODE) IS NULL
+    OR  (LENGTH(TRIM(A.ESTT_PRPS_CODE)) > 0 AND NVL(T.CMN_CDVL , 'X') = 'X'))
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_128" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_128'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_128" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_128' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '처리채널 : ' || TRIM(A.PRCE_CHNL_SECT_CODE) || '.' || NVL(TRIM(C.CHNL_SECT_NAME), '') ||
+       ', 거래목적 : ' || CASE WHEN TRIM(B.NDVL_TRDG_PRPS_CODE) IS NULL THEN 'X' ELSE 'O' END ||
+       ', 거래자금의원천및출처 : ' || CASE WHEN TRIM(B.NDVL_FUNS_ORIG_CODE) IS NULL THEN 'X' ELSE 'O' END ||
+       CASE WHEN SUBSTR(A.PRCE_CHNL_SECT_CODE, 1, 1) = 'A' THEN
+       ', 예상거래횟수 : ' || CASE WHEN TRIM(B.NDVL_FRCT_TRDG_CNT_CODE) IS NULL THEN 'X' ELSE 'O' END ||
+       ', 예상거래규모 : ' || CASE WHEN TRIM(B.NDVL_FRCT_TRDG_SCL_CODE) IS NULL THEN 'X' ELSE 'O' END 
+            ELSE ''
+        END
+       AS MNTN_DTLS_CTNT
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD            A
+  LEFT OUTER JOIN SID.IDO_A_MAH_EDD_FLFL_DTLD B
+    ON B.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+  LEFT OUTER JOIN SID.IDO_A_UWB_CHANNEL_CD    C
+    ON C.CHNL_SECT_CODE   = A.PRCE_CHNL_SECT_CODE
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+ --AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인
+   AND A.EDD_TAGT_YN  = 'Y'  
+   
+   AND (TRIM(B.NDVL_TRDG_PRPS_CODE) IS NULL
+    OR  TRIM(B.NDVL_FUNS_ORIG_CODE) IS NULL
+    OR  (SUBSTR(A.PRCE_CHNL_SECT_CODE, 1, 1) = 'A' AND (TRIM(B.NDVL_FRCT_TRDG_CNT_CODE) IS NULL OR TRIM(B.NDVL_FRCT_TRDG_SCL_CODE) IS NULL)))
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_129" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_129'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_129" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_129' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '거래목적 : ' || CASE WHEN TRIM(B.INSN_TRDG_PRPS_CODE) IS NULL THEN 'X' ELSE 'O' END ||
+       ', 거래자금의원천및출처 : ' || CASE WHEN TRIM(B.INSN_FUNS_ORIG_CODE) IS NULL THEN 'X' ELSE 'O' END ||
+       ', 예상거래횟수 : ' || CASE WHEN TRIM(B.INSN_FRCT_TRDG_CNT_CODE) IS NULL THEN 'X' ELSE 'O' END ||
+       ', 예상거래규모 : ' || CASE WHEN TRIM(B.INSN_FRCT_TRDG_SCL_CODE) IS NULL THEN 'X' ELSE 'O' END ||
+       ', 법인규모구분 : ' || CASE WHEN TRIM(B.INSN_SCL_SECT_CODE) IS NULL THEN 'X' ELSE 'O' END ||
+       ', 상장정보 : ' || CASE WHEN TRIM(B.INSN_LSTG_MRKT_CODE) IS NULL THEN 'X' ELSE 'O' END || '(' || NVL((SELECT TRIM(CMN_CDVL_NAME) FROM SID.IDO_A_UWB_COM_CD_DTL WHERE CMN_CODE_ID = '06746' AND CMN_CDVL = B.INSN_LSTG_MRKT_CODE), ' ') || ')' ||
+       ', 상장거래소명 : ' || CASE WHEN TRIM(B.INSN_LSTG_MRKT_NAME) IS NULL THEN 'X' ELSE 'O' END ||
+       ', 홈페이지(이메일) : ' || CASE WHEN NVL(TRIM(U.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X' THEN 'X' ELSE 'O' END
+       AS MNTN_DTLS_CTNT
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD               A
+  LEFT OUTER JOIN SID.IDO_A_MAH_EDD_FLFL_DTLD    B
+    ON B.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF U
+    ON U.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND U.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND U.CDD_CNTT_ADDR_TAGT_CODE = '23'
+   AND U.CDD_CNTT_ADDR_SECT_CODE = 'URL'
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE IN ('2', '3') -- 법인
+   AND A.EDD_TAGT_YN  = 'Y'  
+   
+   AND (TRIM(B.INSN_TRDG_PRPS_CODE) IS NULL
+    OR  TRIM(B.INSN_FUNS_ORIG_CODE) IS NULL
+    OR  TRIM(B.INSN_FRCT_TRDG_CNT_CODE) IS NULL 
+    OR  TRIM(B.INSN_FRCT_TRDG_SCL_CODE) IS NULL
+    OR  TRIM(B.INSN_SCL_SECT_CODE) IS NULL
+    OR  TRIM(B.INSN_LSTG_MRKT_CODE) IS NULL
+    OR  (TRIM(B.INSN_LSTG_MRKT_CODE) = '04' AND TRIM(B.INSN_LSTG_MRKT_NAME) IS NULL)
+    OR  NVL(TRIM(U.CDD_CNTT_ADDR_SECT_CODE), 'X') = 'X')
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_130" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_130'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_130" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_130' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '실제소유자여부 : ' || CASE WHEN TRIM(A.REL_OWNR_YN) IS NULL THEN '공란' ELSE TRIM(A.REL_OWNR_YN) END AS MNTN_DTLS_CTNT
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인
+   
+   AND A.REL_OWNR_YN NOT IN ('Y', 'N')
+   
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_131" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_131'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_131" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_131' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '당사자구분 : 대리인, 실제소유자여부 : 본인아님'
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+ --AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인
+      
+   AND A.CDD_TAGT_SECT_CODE = '02' -- 대리인
+   AND A.REL_OWNR_YN        = 'N'
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_132" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_132'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_132" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_132' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '성명 : '           || CASE WHEN NVL(TRIM(B.REL_OWNR_NAME)          , 'X') = 'X' THEN 'X' ELSE 'O' END ||
+       ', 소속국가 : '     || CASE WHEN NVL(B.REL_OWNR_NTNY_ID             ,  0 ) =  0  THEN 'X' ELSE 'O' END ||     
+       ', 주민등록번호 : ' || CASE WHEN NVL(TRIM(B.REL_OWNR_CLNT_NO_CRYP)  , 'X') = 'X' THEN 'X' ELSE 'O' END ||     
+       ', 관계 : '         || CASE WHEN NVL(TRIM(B.REL_OWNR_RLTP_CODE)     , 'X') = 'X' THEN 'X' ELSE 'O' END ||     
+       ', 생년월일 : '     || CASE WHEN NVL(TRIM(B.REL_OWNR_BRDT)          , 'X') = 'X' THEN 'X' ELSE 'O' END ||
+       ', 성별 : '         || CASE WHEN NVL(TRIM(B.REL_OWNR_GNDR_SECT_CODE), 'X') = 'X' THEN 'X' ELSE 'O' END     
+       AS MNTN_DTLS_CTNT
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD                A
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B
+    ON B.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B.REL_OWNR_SQNO    = 1
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인
+   
+   AND A.REL_OWNR_YN        = 'N'
+   
+   AND (NVL(TRIM(B.REL_OWNR_NAME), 'X') = 'X'
+    OR  NVL(B.REL_OWNR_NTNY_ID, 0) = 0
+    OR  (B.REL_OWNR_NTNY_ID = 1000000001 AND (NVL(TRIM(B.REL_OWNR_CLNT_NO_CRYP), 'X') = 'X' OR NVL(TRIM(B.REL_OWNR_RLTP_CODE), 'X') = 'X'))
+    OR  (B.REL_OWNR_NTNY_ID > 0 AND B.REL_OWNR_NTNY_ID <> 1000000001 AND (NVL(TRIM(B.REL_OWNR_RLTP_CODE), 'X') = 'X' OR NVL(TRIM(B.REL_OWNR_BRDT), 'X') = 'X'  OR NVL(TRIM(B.REL_OWNR_GNDR_SECT_CODE), 'X') = 'X')))
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_133" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_133'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_133" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_133' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '본인 실명번호와 별도 실제소유자 실명번호 동일'
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD                A
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B
+    ON B.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B.REL_OWNR_SQNO    = 1
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인
+   
+   AND A.REL_OWNR_YN        = 'N'
+   AND TRIM(B.REL_OWNR_CLNT_NO_CRYP) IS NOT NULL
+   AND TRIM(B.REL_OWNR_CLNT_NO_CRYP) = TRIM(A.CDD_TAGT_CLNT_NO_CRYP)
+   
+
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_134" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_134'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_134" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_134' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '실제소유자 정보누락' ||
+       CASE WHEN NVL(TRIM(B01.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+             AND NVL(TRIM(B02.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+             AND NVL(TRIM(B03.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+             AND NVL(TRIM(B04.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+             AND NVL(TRIM(B05.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+             AND NVL(TRIM(B06.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+             AND NVL(TRIM(B07.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+             AND NVL(TRIM(B08.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+             AND NVL(TRIM(B09.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+             AND NVL(TRIM(B10.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X' THEN ';확인단계 미입력' END ||
+       
+       CASE WHEN B01.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B01.REL_OWNR_NAME) IS NULL OR B01.REL_OWNR_NTNY_ID = 0 OR TRIM(B01.REL_OWNR_BRDT) IS NULL) THEN ';실제소유자01(성명/소속국적/생년월일)' END ||
+       CASE WHEN B02.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B02.REL_OWNR_NAME) IS NULL OR B02.REL_OWNR_NTNY_ID = 0 OR TRIM(B02.REL_OWNR_BRDT) IS NULL) THEN ';실제소유자02(성명/소속국적/생년월일)' END ||
+       CASE WHEN B03.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B03.REL_OWNR_NAME) IS NULL OR B03.REL_OWNR_NTNY_ID = 0 OR TRIM(B03.REL_OWNR_BRDT) IS NULL) THEN ';실제소유자03(성명/소속국적/생년월일)' END ||
+       CASE WHEN B04.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B04.REL_OWNR_NAME) IS NULL OR B04.REL_OWNR_NTNY_ID = 0 OR TRIM(B04.REL_OWNR_BRDT) IS NULL) THEN ';실제소유자04(성명/소속국적/생년월일)' END ||
+       CASE WHEN B05.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B05.REL_OWNR_NAME) IS NULL OR B05.REL_OWNR_NTNY_ID = 0 OR TRIM(B05.REL_OWNR_BRDT) IS NULL) THEN ';실제소유자05(성명/소속국적/생년월일)' END ||
+       CASE WHEN B06.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B06.REL_OWNR_NAME) IS NULL OR B06.REL_OWNR_NTNY_ID = 0 OR TRIM(B06.REL_OWNR_BRDT) IS NULL) THEN ';실제소유자06(성명/소속국적/생년월일)' END ||
+       CASE WHEN B07.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B07.REL_OWNR_NAME) IS NULL OR B07.REL_OWNR_NTNY_ID = 0 OR TRIM(B07.REL_OWNR_BRDT) IS NULL) THEN ';실제소유자07(성명/소속국적/생년월일)' END ||
+       CASE WHEN B08.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B08.REL_OWNR_NAME) IS NULL OR B08.REL_OWNR_NTNY_ID = 0 OR TRIM(B08.REL_OWNR_BRDT) IS NULL) THEN ';실제소유자08(성명/소속국적/생년월일)' END ||
+       CASE WHEN B09.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B09.REL_OWNR_NAME) IS NULL OR B09.REL_OWNR_NTNY_ID = 0 OR TRIM(B09.REL_OWNR_BRDT) IS NULL) THEN ';실제소유자09(성명/소속국적/생년월일)' END ||
+       CASE WHEN B10.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B10.REL_OWNR_NAME) IS NULL OR B10.REL_OWNR_NTNY_ID = 0 OR TRIM(B10.REL_OWNR_BRDT) IS NULL) THEN ';실제소유자10(성명/소속국적/생년월일)' END 
+     
+       AS MNTN_DTLS_CTNT
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD                A
+  
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B01
+    ON B01.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B01.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B01.REL_OWNR_SQNO    = 1
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B02
+    ON B02.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B02.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND B02.REL_OWNR_SQNO    = 2
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B03
+    ON B03.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B03.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B03.REL_OWNR_SQNO    = 3
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B04
+    ON B04.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B04.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND B04.REL_OWNR_SQNO    = 4
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B05
+    ON B05.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B05.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B05.REL_OWNR_SQNO    = 5
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B06
+    ON B06.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B06.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND B06.REL_OWNR_SQNO    = 6
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B07
+    ON B07.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B07.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B07.REL_OWNR_SQNO    = 7
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B08
+    ON B08.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B08.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND B08.REL_OWNR_SQNO    = 8
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B09
+    ON B09.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B09.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B09.REL_OWNR_SQNO    = 9
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B10
+    ON B10.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B10.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO  
+   AND B10.REL_OWNR_SQNO    = 10
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE IN ('2', '3') -- 법인
+   
+   AND A.REL_OWNR_YN        = 'N'
+   
+   AND ((NVL(TRIM(B01.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+   AND   NVL(TRIM(B02.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+   AND   NVL(TRIM(B03.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+   AND   NVL(TRIM(B04.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+   AND   NVL(TRIM(B05.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+   AND   NVL(TRIM(B06.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+   AND   NVL(TRIM(B07.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+   AND   NVL(TRIM(B08.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+   AND   NVL(TRIM(B09.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X'
+   AND   NVL(TRIM(B10.REL_OWNR_CNFM_MTHD_CODE), 'X') = 'X')
+   
+    OR  (B01.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B01.REL_OWNR_NAME) IS NULL OR B01.REL_OWNR_NTNY_ID = 0 OR TRIM(B01.REL_OWNR_BRDT) IS NULL))
+    OR  (B02.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B02.REL_OWNR_NAME) IS NULL OR B02.REL_OWNR_NTNY_ID = 0 OR TRIM(B02.REL_OWNR_BRDT) IS NULL))
+    OR  (B03.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B03.REL_OWNR_NAME) IS NULL OR B03.REL_OWNR_NTNY_ID = 0 OR TRIM(B03.REL_OWNR_BRDT) IS NULL))
+    OR  (B04.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B04.REL_OWNR_NAME) IS NULL OR B04.REL_OWNR_NTNY_ID = 0 OR TRIM(B04.REL_OWNR_BRDT) IS NULL))
+    OR  (B05.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B05.REL_OWNR_NAME) IS NULL OR B05.REL_OWNR_NTNY_ID = 0 OR TRIM(B05.REL_OWNR_BRDT) IS NULL))
+    OR  (B06.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B06.REL_OWNR_NAME) IS NULL OR B06.REL_OWNR_NTNY_ID = 0 OR TRIM(B06.REL_OWNR_BRDT) IS NULL))
+    OR  (B07.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B07.REL_OWNR_NAME) IS NULL OR B07.REL_OWNR_NTNY_ID = 0 OR TRIM(B07.REL_OWNR_BRDT) IS NULL))
+    OR  (B08.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B08.REL_OWNR_NAME) IS NULL OR B08.REL_OWNR_NTNY_ID = 0 OR TRIM(B08.REL_OWNR_BRDT) IS NULL))
+    OR  (B09.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B09.REL_OWNR_NAME) IS NULL OR B09.REL_OWNR_NTNY_ID = 0 OR TRIM(B09.REL_OWNR_BRDT) IS NULL))
+    OR  (B10.REL_OWNR_CNFM_MTHD_CODE IN ('1','2','3','4','5') AND (TRIM(B10.REL_OWNR_NAME) IS NULL OR B10.REL_OWNR_NTNY_ID = 0 OR TRIM(B10.REL_OWNR_BRDT) IS NULL)))
+   
+
+
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_135" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_135'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_135" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_135' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '실제소유자 확인 생략사유 미입력'  
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+     
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+      
+   AND A.CDD_CMPL_YN = 'Y'   
+   AND A.CDD_CLNT_SECT_CODE IN ('2', '3') -- 법인
+   
+   AND A.REL_OWNR_YN        = 'Y'
+   AND TRIM(A.REL_OWNR_CNFM_EXCP_TAGT_CODE ) IS NULL
+   
+
+		]]>
+</insert>
+
+
+
+
+<delete id="delete_CDD_136" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_136'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_136" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT CDD_FLFL_DATE
+     , 'CDD_136' 
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO    
+     , '같은 숫자로만 구성된 연락처'
+     , SYSDATE
+     , 'N'
+  FROM (SELECT a.CDD_FLFL_DATE
+             , a.CDD_TAGT_ENTY_ID
+             , a.CDD_FLFL_SQNO
+          FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+             , SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B
+             , SID.IDO_A_UUE_PHONE C
+         WHERE a.CDD_FLFL_DATE = #{yyyymmdd}
+           AND a.cdd_tagt_enty_id = b.cdd_tagt_enty_id
+           AND CDD_CNTT_ADDR_SECT_CODE = 'TEL'
+           AND b.CNTT_ADDR_ID = c.CNTT_ADDR_ID(+)
+           AND c.PHON_NO_CRYP IN ( 'Pj+nQdI2eq0j+Z+VDDvVZQ==' /* 1111 */
+                                 , 'bNS0U4fqoor5YEfmyoPlZw==' /* 2222 */
+                                 , 'R0t5ea0pkuV4QIqq2+oqDg==' /* 3333 */
+                                 , 'RdvkOOLkioP/vukn9NwBTw==' /* 4444 */
+                                 , 'LrbX7l+ivpWenBaJjIlh4g==' /* 5555 */
+                                 , 'YMYNuLjqfQi7LjQVgAV7LQ==' /* 6666 */
+                                 , 'S2fQxA2AKL9V5XR+eu4/cw==' /* 7777 */
+                                 , '7p4vJLHxJy3qseFKbKD61A==' /* 8888 */
+                                 , 'A1iqcvratOTldsxGopMamg==' /* 9999 */
+                                 , 'pbxlHfNoIqmootYVo11MYw==' /* 0000 */
+                                 , 'gHajhP2y4y5PXs1rZNijsw==' /* 1000 */
+                                 , 'UTlri7Ek29czuN0BmcwClg==' /* 0001 */
+                                 )
+        UNION ALL
+        SELECT a.CDD_FLFL_DATE
+             , a.CDD_TAGT_ENTY_ID
+             , a.CDD_FLFL_SQNO
+          FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+             , SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B
+             , SID.IDO_A_UUE_MOBILE C
+         WHERE a.CDD_FLFL_DATE = #{yyyymmdd}
+           AND a.cdd_tagt_enty_id = b.cdd_tagt_enty_id
+           AND CDD_CNTT_ADDR_SECT_CODE = 'MOB'
+           AND b.CNTT_ADDR_ID = c.CNTT_ADDR_ID(+)
+           AND (
+               (c.MOBL_PHON_ECNO_CRYP IN ('Pj+nQdI2eq0j+Z+VDDvVZQ==' /* 1111 */
+                                        , 'bNS0U4fqoor5YEfmyoPlZw==' /* 2222 */
+                                        , 'R0t5ea0pkuV4QIqq2+oqDg==' /* 3333 */
+                                        , 'RdvkOOLkioP/vukn9NwBTw==' /* 4444 */
+                                        , 'LrbX7l+ivpWenBaJjIlh4g==' /* 5555 */
+                                        , 'YMYNuLjqfQi7LjQVgAV7LQ==' /* 6666 */
+                                        , 'S2fQxA2AKL9V5XR+eu4/cw==' /* 7777 */
+                                        , '7p4vJLHxJy3qseFKbKD61A==' /* 8888 */
+                                        , 'A1iqcvratOTldsxGopMamg==' /* 9999 */
+                                        , 'pbxlHfNoIqmootYVo11MYw==' /* 0000 */
+                                        , 'gHajhP2y4y5PXs1rZNijsw==' /* 1000 */
+                                        , 'UTlri7Ek29czuN0BmcwClg==' /* 0001 */
+                                        ) )
+            OR (c.MOBL_PHON_NO_CRYP IN ('Pj+nQdI2eq0j+Z+VDDvVZQ==' /* 1111 */
+                                       , 'bNS0U4fqoor5YEfmyoPlZw==' /* 2222 */
+                                       , 'R0t5ea0pkuV4QIqq2+oqDg==' /* 3333 */
+                                       , 'RdvkOOLkioP/vukn9NwBTw==' /* 4444 */
+                                       , 'LrbX7l+ivpWenBaJjIlh4g==' /* 5555 */
+                                       , 'YMYNuLjqfQi7LjQVgAV7LQ==' /* 6666 */
+                                       , 'S2fQxA2AKL9V5XR+eu4/cw==' /* 7777 */
+                                       , '7p4vJLHxJy3qseFKbKD61A==' /* 8888 */
+                                       , 'A1iqcvratOTldsxGopMamg==' /* 9999 */
+                                       , 'pbxlHfNoIqmootYVo11MYw==' /* 0000 */
+                                       , 'gHajhP2y4y5PXs1rZNijsw==' /* 1000 */
+                                       , 'UTlri7Ek29czuN0BmcwClg==' /* 0001 */
+                                       ) )
+              )
+       ) a
+		]]>
+</insert>
+
+
+<delete id="delete_CDD_137" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_137'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+<insert id="insert_CDD_137" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT a.CDD_FLFL_DATE
+     , 'CDD_137' 
+     , a.CDD_TAGT_ENTY_ID
+     , a.CDD_FLFL_SQNO    
+     , '현재 유효하지 않은 연락처'  
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+     , SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B
+     , SID.IDO_A_UUE_MOBILE C
+ WHERE a.CDD_FLFL_DATE = #{yyyymmdd}
+   AND a.cdd_tagt_enty_id = b.cdd_tagt_enty_id
+   AND CDD_CNTT_ADDR_SECT_CODE = 'MOB'
+   AND b.CNTT_ADDR_ID = c.CNTT_ADDR_ID(+)
+   AND (c.MOBL_PHON_IDNF_NO_CRYP IN ('xraRrgGVHSDW1mpORDWEZg==' /* 011 */
+                                   , '7c2fcSpgRDUU0pBZPMtW6g==' /* 016 */
+                                   , '0mrMDKwvAkx453o8JADMRQ==' /* 017 */
+                                   , 'cs+m4Wd7QgbXTjBxarfWbw==' /* 018 */
+                                   , 'IckDg0A2ue5ExCW1PxDjMg==' /* 019 */
+                                    ) )
+		]]>
+</insert>
+
+
+
+
+
+<delete id="delete_CDD_138" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_138'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+<insert id="insert_CDD_138" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT a.CDD_FLFL_DATE
+     , 'CDD_138' 
+     , a.CDD_TAGT_ENTY_ID
+     , a.CDD_FLFL_SQNO    
+     , '실제소유자명이 4글자 이상인 경우 - 소유자명 : ' || b.REL_OWNR_NAME
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+     , SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B
+ WHERE a.CDD_FLFL_DATE = #{yyyymmdd}
+   AND A.CDD_CLNT_SECT_CODE <> '1' -- 1개인 2,3법인
+   AND A.CDD_TAGT_ENTY_ID = b.CDD_TAGT_ENTY_ID
+   AND A.CDD_FLFL_SQNO = B.CDD_FLFL_SQNO
+   AND ( 
+            ( B.REL_OWNR_NTNY_ID = '1000000001' AND LENGTHB(REGEXP_REPLACE(REL_OWNR_NAME, '[^가-힝]')) > 6 )  /* 한글이 4글자 이상 */
+         OR ( TRIM(REL_OWNR_NAME) LIKE '%(주)%' )  /* '(주)' 포함 */
+         OR ( TRIM(REL_OWNR_NAME) LIKE '%,%' )  /* , 포함 */
+         OR ( TRIM(REL_OWNR_NAME) LIKE '%.%' )  /* . 포함 */
+         OR ( TRIM(REL_OWNR_NAME) LIKE '%-%' )  /* - 포함 */
+         OR ( TRIM(REL_OWNR_NAME) LIKE '%&%' )  /* & 포함 */
+         OR ( TRIM(REL_OWNR_NAME) LIKE '%㈜%' )  /* ㈜ 포함 */
+         OR ( TRIM(REL_OWNR_NAME) LIKE '%#_%' ESCAPE '#' )  /* _ 포함 */
+       )
+		]]>
+</insert>
+
+
+<delete id="delete_CDD_140" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_140'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+<insert id="insert_CDD_140" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT a.CDD_FLFL_DATE
+     , 'CDD_140' 
+     , a.CDD_TAGT_ENTY_ID
+     , a.CDD_FLFL_SQNO    
+     , '대표자명이 4글자 이상인 경우 - 대표자명 : ' || A.RPST_1_NAME
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE A.CDD_FLFL_DATE = #{yyyymmdd}
+   AND A.CDD_CLNT_SECT_CODE <> '1' -- 1개인 2,3법인
+   AND ( 
+         ( A.RPST_1_NTNY_ID = '1000000001' AND LENGTHB(REGEXP_REPLACE(RPST_1_NAME, '[^가-힝]')) > 6 )  /* 한글이 4글자 이상 */
+         OR REGEXP_LIKE(TRIM(A.RPST_1_NAME), '[㈜,._&-]')
+         OR ( TRIM(RPST_1_NAME) LIKE '%(주)%' )  /* '(주)' 포함 */
+       )
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_190" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_190'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_190" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_190' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '코드값오류' ||
+       CASE WHEN NVL(T_01.CMN_CDVL, 'X') = 'X' THEN ';대상자구분(06755)[' || TRIM(A.CDD_TAGT_SECT_CODE) || ']' END ||
+       CASE WHEN NVL(T_02.CMN_CDVL, 'X') = 'X' THEN ';고객구분(06756)[' || TRIM(A.CDD_CLNT_SECT_CODE) || ']' END ||
+       CASE WHEN NVL(T_03.CMN_CDVL, 'X') = 'X' THEN ';(고객)실명번호구분(04232)[' || TRIM(A.TAGT_ENTY_ALIS_TYPE_CODE) || ']' END ||
+       CASE WHEN NVL(T_04.CMN_CDVL, 'X') = 'X' THEN ';(원천)실명번호구분(04232)[' || TRIM(A.ORIG_ENTY_ALIS_TYPE_CODE) || ']' END ||
+       CASE WHEN TRIM(A.CDD_TAGT_SECT_CODE) = '02' AND NVL(T_05.CMN_CDVL, 'X') = 'X' THEN ';대리인관계(06747)[' || TRIM(A.CDD_AGNT_RLTP_SECT_CODE) || ']' END ||
+       CASE WHEN TRIM(A.CDD_TAGT_SECT_CODE) = '02' AND NVL(T_06.CMN_CDVL, 'X') = 'X' THEN ';대리인위임서류(06770)[' || TRIM(A.CDD_AGNT_ENTS_DOC_CODE) || ']' END ||
+
+       CASE WHEN NVL(T_07.CMN_CDVL, 'X') = 'X'                                                                THEN ';등록사유(06757)[' || TRIM(A.CDD_RGSN_RESN_CODE) || ']' END ||
+       CASE WHEN (TRIM(A.RLNM_CNFM_TKN_CODE)        IS NOT NULL AND NVL(T_08.CMN_CDVL, 'X') = 'X')            THEN ';실명확인증표(06758)[' || TRIM(A.RLNM_CNFM_TKN_CODE) || ']' END ||
+       CASE WHEN (TRIM(A.RLNM_CNFM_VRFT_MTHD_CODE)  IS NOT NULL AND NVL(T_09.CMN_CDVL, 'X') = 'X')            THEN ';실명확인검증방법(06750)[' || TRIM(A.RLNM_CNFM_VRFT_MTHD_CODE) || ']' END ||
+       CASE WHEN (A.CDD_CLNT_SECT_CODE = '1'                    AND NVL(T_10.CMN_CDVL, 'X') = 'X')            THEN ';성별(00723)[' || TRIM(A.GNDR_SECT_CODE) || ']' END ||
+       CASE WHEN (A.CDD_CLNT_SECT_CODE = '1'                    AND NVL(T_11.CMN_CDVL, 'X') = 'X')            THEN ';직업(01437)[' || TRIM(A.JOB_CODE) || ']' END ||
+       CASE WHEN (A.CDD_CLNT_SECT_CODE = '3'                    AND NVL(T_12.CMN_CDVL, 'X') = 'X')            THEN ';설립목적(06751)[' || TRIM(A.ESTT_PRPS_CODE) || ']' END ||
+       CASE WHEN (A.CDD_CLNT_SECT_CODE = '3' AND TRIM(A.ESTT_PRPS_VRFT_MTHD_CODE) IS NOT NULL AND NVL(T_13.CMN_CDVL, 'X') = 'X')            THEN ';설립목적검증서류(06752)[' || TRIM(A.ESTT_PRPS_VRFT_MTHD_CODE) || ']' END ||
+       CASE WHEN (A.CDD_CLNT_SECT_CODE = '2'                    AND NVL(T_14.STND_INDY_CLSN_CODE, 'X') = 'X') THEN ';업종[' || TRIM(A.STND_INDY_CLSN_CODE) || ']' END ||
+       CASE WHEN (A.CDD_CLNT_SECT_CODE IN ('2', '3') AND TRIM(A.REL_OWNR_CNFM_EXCP_TAGT_CODE) IS NOT NULL AND NVL(T_15.CMN_CDVL, 'X') = 'X')           THEN ';실제소유자확인생략사유(06753)[' || TRIM(A.REL_OWNR_CNFM_EXCP_TAGT_CODE) || ']' END ||
+       CASE WHEN (TRIM(A.CRFL_FLTG_RSLT_CODE)      IS NOT NULL  AND NVL(T_16.CMN_CDVL, 'X') = 'X')            THEN ';요주의필터링결과(06719)[' || TRIM(A.CRFL_FLTG_RSLT_CODE) || ']' END ||
+       CASE WHEN (TRIM(A.CRFL_FLTG_NSPN_RSLT_CODE) IS NOT NULL  AND NVL(T_17.CMN_CDVL, 'X') = 'X')            THEN ';요주의필터링점검결과(06720)[' || TRIM(A.CRFL_FLTG_NSPN_RSLT_CODE) || ']' END ||
+     --CASE WHEN NVL(T_18.CHNL_SECT_CODE, 'X') = 'X'                                                          THEN ';채널구분[' || TRIM(A.CHNL_SECT_CODE) || ']' END ||
+       CASE WHEN NVL(T_19.CHNL_SECT_CODE, 'X') = 'X'                                                          THEN ';처리채널구분[' || TRIM(A.PRCE_CHNL_SECT_CODE) || ']' END ||
+       CASE WHEN (SUBSTR(A.PRCE_CHNL_SECT_CODE, 1, 1) = 'A'     AND NVL(T_20.DTBR_CODE, 'X') = 'X')           THEN ';등록지점[' || TRIM(A.RGBR_CODE) || ']' END ||
+       
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND NVL(T_21.CMN_CDVL, 'X') = 'X'         THEN ';개인거래목적(06738)[' || TRIM(E.NDVL_TRDG_PRPS_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND NVL(T_22.CMN_CDVL, 'X') = 'X'         THEN ';개인자금원천(06740)[' || TRIM(E.NDVL_FUNS_ORIG_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.ASMT_FNC_ASST_STN_CODE)  IS NOT NULL AND NVL(T_23.CMN_CDVL, 'X') = 'X' THEN ';추정금융자산현황(06742)[' || TRIM(E.ASMT_FNC_ASST_STN_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.NDVL_FRCT_TRDG_CNT_CODE) IS NOT NULL AND NVL(T_24.CMN_CDVL, 'X') = 'X' THEN ';개인예상거래횟수(06744)[' || TRIM(E.NDVL_FRCT_TRDG_CNT_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.NDVL_FRCT_TRDG_SCL_CODE) IS NOT NULL AND NVL(T_25.CMN_CDVL, 'X') = 'X' THEN ';개인예상거래규모(06742)[' || TRIM(E.NDVL_FRCT_TRDG_SCL_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.ASMT_RLES_SCL_CODE)      IS NOT NULL AND NVL(T_26.CMN_CDVL, 'X') = 'X' THEN ';추정부동산규모(06743)[' || TRIM(E.ASMT_RLES_SCL_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.ASMT_MVAS_SCL_CODE)      IS NOT NULL AND NVL(T_27.CMN_CDVL, 'X') = 'X' THEN ';추정동산규모(06743)[' || TRIM(E.ASMT_MVAS_SCL_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.ASMT_LBLT_SCL_CODE)      IS NOT NULL AND NVL(T_28.CMN_CDVL, 'X') = 'X' THEN ';추정부채규모(06743)[' || TRIM(E.ASMT_LBLT_SCL_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.YEAR_INCM_SCL_CODE)      IS NOT NULL AND NVL(T_29.CMN_CDVL, 'X') = 'X' THEN ';년소득규모(06742)[' || TRIM(E.YEAR_INCM_SCL_CODE) || ']' END ||
+       
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE IN ('2', '3') AND NVL(T_30.CMN_CDVL, 'X') = 'X' THEN ';법인거래목적(06739)[' || TRIM(E.INSN_TRDG_PRPS_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE IN ('2', '3') AND NVL(T_31.CMN_CDVL, 'X') = 'X' THEN ';법인자금원천(06741)[' || TRIM(E.INSN_FUNS_ORIG_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE IN ('2', '3') AND TRIM(E.INSN_FRCT_TRDG_CNT_CODE) IS NOT NULL AND NVL(T_32.CMN_CDVL, 'X') = 'X' THEN ';법인예상거래횟수(06744)[' || TRIM(E.INSN_FRCT_TRDG_CNT_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE IN ('2', '3') AND TRIM(E.INSN_FRCT_TRDG_SCL_CODE) IS NOT NULL AND NVL(T_33.CMN_CDVL, 'X') = 'X' THEN ';법인예상거래규모(06742)[' || TRIM(E.INSN_FRCT_TRDG_SCL_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE IN ('2', '3') AND TRIM(E.INSN_SCL_SECT_CODE)      IS NOT NULL AND NVL(T_34.CMN_CDVL, 'X') = 'X' THEN ';법인규모구분(06745)[' || TRIM(E.INSN_SCL_SECT_CODE) || ']' END ||
+       CASE WHEN A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE IN ('2', '3') AND TRIM(E.INSN_LSTG_MRKT_CODE)     IS NOT NULL AND NVL(T_35.CMN_CDVL, 'X') = 'X' THEN ';법인상장시장(06746)[' || TRIM(E.INSN_LSTG_MRKT_CODE) || ']' END
+
+       AS MNTN_DTLS_CTNT
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD                A
+  LEFT OUTER JOIN SID.IDO_A_MAH_EDD_FLFL_DTLD     E
+    ON E.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND E.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO   
+   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_01 -- CDD_TAGT_SECT_CODE;대상자구분
+    ON T_01.DEL_YN      = 'N' 
+   AND T_01.USE_YN      = 'Y'
+   AND T_01.CMN_CODE_ID = '06755'
+   AND T_01.CMN_CDVL    = A.CDD_TAGT_SECT_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_02 -- CDD_CLNT_SECT_CODE;고객구분
+    ON T_02.DEL_YN      = 'N' 
+   AND T_02.USE_YN      = 'Y'
+   AND T_02.CMN_CODE_ID = '06756'
+   AND T_02.CMN_CDVL    = A.CDD_CLNT_SECT_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_03 -- TAGT_ENTY_ALIS_TYPE_CODE;(고객)실명번호구분
+    ON T_03.DEL_YN      = 'N' 
+   AND T_03.USE_YN      = 'Y'
+   AND T_03.CMN_CODE_ID = '04232'
+   AND T_03.CMN_CDVL    = A.TAGT_ENTY_ALIS_TYPE_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_04 -- ORIG_ENTY_ALIS_TYPE_CODE;(원천)실명번호구분
+    ON T_04.DEL_YN      = 'N' 
+   AND T_04.USE_YN      = 'Y'
+   AND T_04.CMN_CODE_ID = '04232'
+   AND T_04.CMN_CDVL    = A.ORIG_ENTY_ALIS_TYPE_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_05 -- CDD_AGNT_RLTP_SECT_CODE;대리인관계
+    ON T_05.DEL_YN      = 'N' 
+   AND T_05.USE_YN      = 'Y'
+   AND T_05.CMN_CODE_ID = '06747'
+   AND T_05.CMN_CDVL    = A.CDD_AGNT_RLTP_SECT_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_06 -- CDD_AGNT_ENTS_DOC_CODE;대리인위임서류
+    ON T_06.DEL_YN      = 'N' 
+   AND T_06.USE_YN      = 'Y'
+   AND T_06.CMN_CODE_ID = '06770'
+   AND T_06.CMN_CDVL    = A.CDD_AGNT_ENTS_DOC_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_07 -- CDD_RGSN_RESN_CODE;등록사유
+    ON T_07.DEL_YN      = 'N' 
+   AND T_07.USE_YN      = 'Y'
+   AND T_07.CMN_CODE_ID = '06757'
+   AND T_07.CMN_CDVL    = A.CDD_RGSN_RESN_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_08 -- RLNM_CNFM_TKN_CODE;실명확인증표
+    ON T_08.DEL_YN      = 'N' 
+   AND T_08.USE_YN      = 'Y'
+   AND T_08.CMN_CODE_ID = '06758'
+   AND T_08.CMN_CDVL    = A.RLNM_CNFM_TKN_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_09 -- RLNM_CNFM_VRFT_MTHD_CODE;실명확인검증방법
+    ON T_09.DEL_YN      = 'N' 
+   AND T_09.USE_YN      = 'Y'
+   AND T_09.CMN_CODE_ID = '06750'
+   AND T_09.CMN_CDVL    = A.RLNM_CNFM_VRFT_MTHD_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_10 -- GNDR_SECT_CODE;성별
+    ON T_10.DEL_YN      = 'N' 
+   AND T_10.USE_YN      = 'Y'
+   AND T_10.CMN_CODE_ID = '00723'
+   AND T_10.CMN_CDVL    = A.GNDR_SECT_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_11 -- JOB_CODE;직업
+    ON T_11.DEL_YN      = 'N' 
+   AND T_11.USE_YN      = 'Y'
+   AND T_11.CMN_CODE_ID = '01437'
+   AND T_11.CMN_CDVL    = A.JOB_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_12 -- ESTT_PRPS_CODE;설립목적
+    ON T_12.DEL_YN      = 'N' 
+   AND T_12.USE_YN      = 'Y'
+   AND T_12.CMN_CODE_ID = '06751'
+   AND T_12.CMN_CDVL    = A.ESTT_PRPS_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_13 -- ESTT_PRPS_VRFT_MTHD_CODE;설립목적검증서류
+    ON T_13.DEL_YN      = 'N' 
+   AND T_13.USE_YN      = 'Y'
+   AND T_13.CMN_CODE_ID = '06752'
+   AND T_13.CMN_CDVL    = A.ESTT_PRPS_VRFT_MTHD_CODE
+  LEFT OUTER JOIN SID.IDO_A_UUE_INDY_CLSN         T_14 -- STND_INDY_CLSN_CODE;업종
+    ON T_14.INDY_CLSN_TYPE_CODE   = 'KS'
+   AND T_14.STND_INDY_CLSN_CODE   = A.STND_INDY_CLSN_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_15 -- REL_OWNR_CNFM_EXCP_TAGT_CODE;실제소유자확인생략사유
+    ON T_15.DEL_YN      = 'N' 
+   AND T_15.USE_YN      = 'Y'
+   AND T_15.CMN_CODE_ID = '06753'
+   AND T_15.CMN_CDVL    = A.REL_OWNR_CNFM_EXCP_TAGT_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_16 -- CRFL_FLTG_RSLT_CODE;요주의필터링결과
+    ON T_16.DEL_YN      = 'N' 
+   AND T_16.USE_YN      = 'Y'
+   AND T_16.CMN_CODE_ID = '06719'
+   AND T_16.CMN_CDVL    = A.CRFL_FLTG_RSLT_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_17 -- CRFL_FLTG_NSPN_RSLT_CODE;요주의필터링점검결과
+    ON T_17.DEL_YN      = 'N' 
+   AND T_17.USE_YN      = 'Y'
+   AND T_17.CMN_CODE_ID = '06720'
+   AND T_17.CMN_CDVL    = A.CRFL_FLTG_NSPN_RSLT_CODE
+--  LEFT OUTER JOIN SID.IDO_A_UWB_CHANNEL_CD        T_18 -- CHNL_SECT_CODE;채널구분
+--    ON T_18.CHNL_SECT_CODE = A.CHNL_SECT_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_CHANNEL_CD        T_19 -- PRCE_CHNL_SECT_CODE;처리채널구분
+    ON T_19.CHNL_SECT_CODE = A.PRCE_CHNL_SECT_CODE
+  LEFT OUTER JOIN SID.IDO_A_UUE_SAMSUNG_DPRT      T_20 -- RGBR_CODE:등록지점
+    ON T_20.DTBR_CODE = A.RGBR_CODE    
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_21 -- NDVL_TRDG_PRPS_CODE;개인거래목적코드
+    ON T_21.DEL_YN      = 'N' 
+   AND T_21.USE_YN      = 'Y'
+   AND T_21.CMN_CODE_ID = '06738'
+   AND T_21.CMN_CDVL    = E.NDVL_TRDG_PRPS_CODE    
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_22 -- NDVL_FUNS_ORIG_CODE;개인자금원천코드
+    ON T_22.DEL_YN      = 'N' 
+   AND T_22.USE_YN      = 'Y'
+   AND T_22.CMN_CODE_ID = '06740'
+   AND T_22.CMN_CDVL    = E.NDVL_FUNS_ORIG_CODE
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_23 -- ASMT_FNC_ASST_STN_CODE;추정금융자산현황코드
+    ON T_23.DEL_YN      = 'N' 
+   AND T_23.USE_YN      = 'Y'
+   AND T_23.CMN_CODE_ID = '06742'
+   AND T_23.CMN_CDVL    = E.ASMT_FNC_ASST_STN_CODE   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_24 -- NDVL_FRCT_TRDG_CNT_CODE;개인예상거래횟수코드
+    ON T_24.DEL_YN      = 'N' 
+   AND T_24.USE_YN      = 'Y'
+   AND T_24.CMN_CODE_ID = '06744'
+   AND T_24.CMN_CDVL    = E.NDVL_FRCT_TRDG_CNT_CODE   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_25 -- NDVL_FRCT_TRDG_SCL_CODE;개인예상거래규모코드
+    ON T_25.DEL_YN      = 'N' 
+   AND T_25.USE_YN      = 'Y'
+   AND T_25.CMN_CODE_ID = '06742'
+   AND T_25.CMN_CDVL    = E.NDVL_FRCT_TRDG_SCL_CODE   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_26 -- ASMT_RLES_SCL_CODE;추정부동산규모코드
+    ON T_26.DEL_YN      = 'N' 
+   AND T_26.USE_YN      = 'Y'
+   AND T_26.CMN_CODE_ID = '06743'
+   AND T_26.CMN_CDVL    = E.ASMT_RLES_SCL_CODE   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_27 -- ASMT_MVAS_SCL_CODE;추정동산규모코드
+    ON T_27.DEL_YN      = 'N' 
+   AND T_27.USE_YN      = 'Y'
+   AND T_27.CMN_CODE_ID = '06743'
+   AND T_27.CMN_CDVL    = E.ASMT_MVAS_SCL_CODE   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_28 -- ASMT_LBLT_SCL_CODE;추정부채규모코드
+    ON T_28.DEL_YN      = 'N' 
+   AND T_28.USE_YN      = 'Y'
+   AND T_28.CMN_CODE_ID = '06743'
+   AND T_28.CMN_CDVL    = E.ASMT_LBLT_SCL_CODE   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_29 -- YEAR_INCM_SCL_CODE;년소득규모코드
+    ON T_29.DEL_YN      = 'N' 
+   AND T_29.USE_YN      = 'Y'
+   AND T_29.CMN_CODE_ID = '06742'
+   AND T_29.CMN_CDVL    = E.YEAR_INCM_SCL_CODE   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_30 -- INSN_TRDG_PRPS_CODE;법인거래목적코드
+    ON T_30.DEL_YN      = 'N' 
+   AND T_30.USE_YN      = 'Y'
+   AND T_30.CMN_CODE_ID = '06739'
+   AND T_30.CMN_CDVL    = E.INSN_TRDG_PRPS_CODE   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_31 -- INSN_FUNS_ORIG_CODE;법인자금원천코드
+    ON T_31.DEL_YN      = 'N' 
+   AND T_31.USE_YN      = 'Y'
+   AND T_31.CMN_CODE_ID = '06741'
+   AND T_31.CMN_CDVL    = E.INSN_FUNS_ORIG_CODE   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_32 -- INSN_FRCT_TRDG_CNT_CODE;법인예상거래횟수코드
+    ON T_32.DEL_YN      = 'N' 
+   AND T_32.USE_YN      = 'Y'
+   AND T_32.CMN_CODE_ID = '06744'
+   AND T_32.CMN_CDVL    = E.INSN_FRCT_TRDG_CNT_CODE   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_33 -- INSN_FRCT_TRDG_SCL_CODE;법인예상거래규모코드
+    ON T_33.DEL_YN      = 'N' 
+   AND T_33.USE_YN      = 'Y'
+   AND T_33.CMN_CODE_ID = '06742'
+   AND T_33.CMN_CDVL    = E.INSN_FRCT_TRDG_SCL_CODE   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_34 -- INSN_SCL_SECT_CODE;법인규모구분코드
+    ON T_34.DEL_YN      = 'N' 
+   AND T_34.USE_YN      = 'Y'
+   AND T_34.CMN_CODE_ID = '06745'
+   AND T_34.CMN_CDVL    = E.INSN_SCL_SECT_CODE   
+  LEFT OUTER JOIN SID.IDO_A_UWB_COM_CD_DTL        T_35 -- INSN_LSTG_MRKT_CODE;법인상장시장코드
+    ON T_35.DEL_YN      = 'N' 
+   AND T_35.USE_YN      = 'Y'
+   AND T_35.CMN_CODE_ID = '06746'
+   AND T_35.CMN_CDVL    = E.INSN_LSTG_MRKT_CODE
+   
+ WHERE 1 = 1   
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+--   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}
+ 
+   AND A.CDD_CMPL_YN = 'Y'   
+--   AND A.CDD_CLNT_SECT_CODE IN ('1', '2', '3') -- 법인
+   
+   AND (NVL(T_01.CMN_CDVL, 'X') = 'X'                                                                -- CDD_TAGT_SECT_CODE;대상자구분
+    OR  NVL(T_02.CMN_CDVL, 'X') = 'X'                                                                -- CDD_CLNT_SECT_CODE;고객구분
+    OR  NVL(T_03.CMN_CDVL, 'X') = 'X'                                                                -- TAGT_ENTY_ALIS_TYPE_CODE;(고객)실명번호구분
+    OR  NVL(T_04.CMN_CDVL, 'X') = 'X'                                                                -- ORIG_ENTY_ALIS_TYPE_CODE;(원천)실명번호구분
+    OR  (TRIM(A.CDD_TAGT_SECT_CODE) = '02'             AND NVL(T_05.CMN_CDVL, 'X') = 'X')            -- CDD_AGNT_RLTP_SECT_CODE;대리인관계
+    OR  (TRIM(A.CDD_TAGT_SECT_CODE) = '02'             AND NVL(T_06.CMN_CDVL, 'X') = 'X')            -- CDD_AGNT_ENTS_DOC_CODE;대리인위임서류
+    OR  NVL(T_07.CMN_CDVL, 'X') = 'X'                                                                -- CDD_RGSN_RESN_CODE;등록사유
+    OR  (TRIM(A.RLNM_CNFM_TKN_CODE)        IS NOT NULL AND NVL(T_08.CMN_CDVL, 'X') = 'X')            -- RLNM_CNFM_TKN_CODE;실명확인증표
+    OR  (TRIM(A.RLNM_CNFM_VRFT_MTHD_CODE)  IS NOT NULL AND NVL(T_09.CMN_CDVL, 'X') = 'X')            -- RLNM_CNFM_VRFT_MTHD_CODE;실명확인검증방법
+    OR  (A.CDD_CLNT_SECT_CODE = '1'                    AND NVL(T_10.CMN_CDVL, 'X') = 'X')            -- GNDR_SECT_CODE;성별
+    OR  (A.CDD_CLNT_SECT_CODE = '1'                    AND NVL(T_11.CMN_CDVL, 'X') = 'X')            -- JOB_CODE;직업
+    OR  (A.CDD_CLNT_SECT_CODE = '3'                    AND NVL(T_12.CMN_CDVL, 'X') = 'X')            -- ESTT_PRPS_CODE;설립목적
+    OR  (A.CDD_CLNT_SECT_CODE = '3' AND TRIM(A.ESTT_PRPS_VRFT_MTHD_CODE) IS NOT NULL AND NVL(T_13.CMN_CDVL, 'X') = 'X')            -- ESTT_PRPS_VRFT_MTHD_CODE;설립목적검증서류
+    OR  (A.CDD_CLNT_SECT_CODE = '2'                    AND NVL(T_14.STND_INDY_CLSN_CODE, 'X') = 'X') -- STND_INDY_CLSN_CODE;업종
+    OR  (A.CDD_CLNT_SECT_CODE IN ('2', '3') AND TRIM(A.REL_OWNR_CNFM_EXCP_TAGT_CODE) IS NOT NULL AND NVL(T_15.CMN_CDVL, 'X') = 'X')            -- REL_OWNR_CNFM_EXCP_TAGT_CODE;실제소유자확인생략사유
+    OR  (TRIM(A.CRFL_FLTG_RSLT_CODE)      IS NOT NULL  AND NVL(T_16.CMN_CDVL, 'X') = 'X')            -- CRFL_FLTG_RSLT_CODE;요주의필터링결과
+    OR  (TRIM(A.CRFL_FLTG_NSPN_RSLT_CODE) IS NOT NULL  AND NVL(T_17.CMN_CDVL, 'X') = 'X')            -- CRFL_FLTG_NSPN_RSLT_CODE;요주의필터링점검결과
+--    OR  NVL(T_18.CHNL_SECT_CODE, 'X') = 'X'                                                          -- CHNL_SECT_CODE;채널구분
+    OR  NVL(T_19.CHNL_SECT_CODE, 'X') = 'X'                                                          -- PRCE_CHNL_SECT_CODE;처리채널구분
+    OR  (SUBSTR(A.PRCE_CHNL_SECT_CODE, 1, 1) = 'A'     AND NVL(T_20.DTBR_CODE, 'X') = 'X')           -- RGBR_CODE;등록지점
+    
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND NVL(T_21.CMN_CDVL, 'X') = 'X' -- NDVL_TRDG_PRPS_CODE;개인거래목적
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND NVL(T_22.CMN_CDVL, 'X') = 'X' -- NDVL_FUNS_ORIG_CODE;개인자금원천
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.ASMT_FNC_ASST_STN_CODE)  IS NOT NULL AND NVL(T_23.CMN_CDVL, 'X') = 'X' -- ASMT_FNC_ASST_STN_CODE;추정금융자산현황
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.NDVL_FRCT_TRDG_CNT_CODE) IS NOT NULL AND NVL(T_24.CMN_CDVL, 'X') = 'X' -- NDVL_FRCT_TRDG_CNT_CODE;개인예상거래횟수
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.NDVL_FRCT_TRDG_SCL_CODE) IS NOT NULL AND NVL(T_25.CMN_CDVL, 'X') = 'X' -- NDVL_FRCT_TRDG_SCL_CODE;개인예상거래규모
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.ASMT_RLES_SCL_CODE)      IS NOT NULL AND NVL(T_26.CMN_CDVL, 'X') = 'X' -- ASMT_RLES_SCL_CODE;추정부동산규모
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.ASMT_MVAS_SCL_CODE)      IS NOT NULL AND NVL(T_27.CMN_CDVL, 'X') = 'X' -- ASMT_MVAS_SCL_CODE;추정동산규모
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.ASMT_LBLT_SCL_CODE)      IS NOT NULL AND NVL(T_28.CMN_CDVL, 'X') = 'X' -- ASMT_LBLT_SCL_CODE;추정부채규모
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE = '1' AND TRIM(E.YEAR_INCM_SCL_CODE)      IS NOT NULL AND NVL(T_29.CMN_CDVL, 'X') = 'X' -- YEAR_INCM_SCL_CODE;년소득규모
+    
+    
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE IN ('2', '3') AND NVL(T_30.CMN_CDVL, 'X') = 'X' -- INSN_TRDG_PRPS_CODE;법인거래목적
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE IN ('2', '3') AND NVL(T_31.CMN_CDVL, 'X') = 'X' -- INSN_FUNS_ORIG_CODE;법인자금원천
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE IN ('2', '3') AND TRIM(E.INSN_FRCT_TRDG_CNT_CODE) IS NOT NULL AND NVL(T_32.CMN_CDVL, 'X') = 'X' -- INSN_FRCT_TRDG_CNT_CODE;법인예상거래횟수
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE IN ('2', '3') AND TRIM(E.INSN_FRCT_TRDG_SCL_CODE) IS NOT NULL AND NVL(T_33.CMN_CDVL, 'X') = 'X' -- INSN_FRCT_TRDG_SCL_CODE;법인예상거래규모
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE IN ('2', '3') AND TRIM(E.INSN_SCL_SECT_CODE)      IS NOT NULL AND NVL(T_34.CMN_CDVL, 'X') = 'X' -- INSN_SCL_SECT_CODE;법인규모구분
+    OR  A.EDD_TAGT_YN = 'Y' AND A.CDD_CLNT_SECT_CODE IN ('2', '3') AND TRIM(E.INSN_LSTG_MRKT_CODE)     IS NOT NULL AND NVL(T_35.CMN_CDVL, 'X') = 'X' -- INSN_LSTG_MRKT_CODE;법인상장시장
+    
+       ) 
+       
+   
+
+		]]>
+</insert>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<delete id="delete_CDD_201" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_201'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_201" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE 
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_201' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , 'CDD등록사유 : ' || A.CDD_RGSN_RESN_CODE || '.' ||
+       NVL((SELECT TRIM(T.CMN_CDVL_NAME) FROM SID.IDO_A_UWB_COM_CD_DTL T WHERE T.CMN_CODE_ID = '06757' AND T.CMN_CDVL = A.CDD_RGSN_RESN_CODE AND DEL_YN = 'N'), '') ||
+       CASE WHEN A.CDD_RGSN_RESN_CODE = '99' THEN '-' || TRIM(A.CDD_RGSN_RESN_NAME)
+            ELSE ''
+        END
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')  
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'      
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+   
+   AND A.CDD_RGSN_RESN_CODE NOT IN ('02', '04')
+   AND A.RGBR_CODE IN (SELECT CNTNT
+                         FROM SSQ.NIC92B
+                        WHERE CD = 'IB_DTBR' 
+                      )
+		]]>
+</insert>
+
+
+
+
+<delete id="delete_CDD_202" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_202'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_202" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_202' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '당사자구분 : 본인, 거래목적 : ' || 
+       CASE WHEN A.CDD_CLNT_SECT_CODE = '1' THEN B.NDVL_TRDG_PRPS_CODE || '.' || NVL((SELECT CMN_CDVL_NAME FROM SID.IDO_A_UWB_COM_CD_DTL WHERE CMN_CODE_ID = '06738' AND CMN_CDVL = B.NDVL_TRDG_PRPS_CODE), '') ||
+                                                 ', 자금원천 : ' || B.NDVL_FUNS_ORIG_CODE || '.' || NVL((SELECT CMN_CDVL_NAME FROM SID.IDO_A_UWB_COM_CD_DTL WHERE CMN_CODE_ID = '06740' AND CMN_CDVL = B.NDVL_FUNS_ORIG_CODE), '')
+                                            ELSE B.INSN_TRDG_PRPS_CODE || '.' || NVL((SELECT CMN_CDVL_NAME FROM SID.IDO_A_UWB_COM_CD_DTL WHERE CMN_CODE_ID = '06739' AND CMN_CDVL = B.INSN_TRDG_PRPS_CODE), '') ||
+                                                 ', 자금원천 : ' || B.INSN_FUNS_ORIG_CODE || '.' || NVL((SELECT CMN_CDVL_NAME FROM SID.IDO_A_UWB_COM_CD_DTL WHERE CMN_CODE_ID = '06741' AND CMN_CDVL = B.INSN_FUNS_ORIG_CODE), '')
+        END
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ INNER JOIN SID.IDO_A_MAH_EDD_FLFL_DTLD B
+    ON A.CDD_TAGT_ENTY_ID = B.CDD_TAGT_ENTY_ID
+   AND A.CDD_FLFL_SQNO    = B.CDD_FLFL_SQNO 
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+   
+   AND A.EDD_TAGT_YN      = 'Y'
+   AND A.CDD_TAGT_SECT_CODE = '01' -- 본인
+   
+   AND ((A.CDD_CLNT_SECT_CODE  = '1'          -- 개인
+   AND   B.NDVL_TRDG_PRPS_CODE = '07'	      -- 개인거래목적코드 : 07.대리인거래
+   AND   B.NDVL_FUNS_ORIG_CODE = '09')	      -- 개인자금원천코드 : 09.대리인거래
+   
+    OR  (A.CDD_CLNT_SECT_CODE   IN ('2', '3') -- 법인
+   AND   B.INSN_TRDG_PRPS_CODE  = '04'	      -- 법인거래목적코드 : 04.대리인거래
+   AND   B.INSN_FUNS_ORIG_CODE  = '07'))      -- 법인자금원천코드 : 07.대리인거래   
+		]]>
+</insert>
+
+
+
+
+<delete id="delete_CDD_203" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_203'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_203" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_203' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '영문(해외)주소 미존재; 거주국가 : ' || NVL(R.CNTY_CODE, 'XX') || '.' ||
+       NVL((SELECT TRIM(T.CNTY_NAME) FROM SID.IDO_A_UUE_COUNTRY_NAME T WHERE T.LANG_CODE = 'KO' AND T.CNTY_ID = A.RSDT_CNTY_ID AND ROWNUM = 1 ), '')
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B12 -- 개인CDD-자택
+    ON B12.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B12.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B12.CDD_CNTT_ADDR_SECT_CODE  = 'ADR'
+   AND B12.CDD_CNTT_ADDR_TAGT_CODE  = '12'
+  LEFT OUTER JOIN SID.IDO_A_UUE_ADDRESS U12
+    ON U12.CNTT_ADDR_ID             = B12.CNTT_ADDR_ID
+    
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B13 -- 개인CDD-직장
+    ON B13.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B13.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B13.CDD_CNTT_ADDR_SECT_CODE  = 'ADR'
+   AND B13.CDD_CNTT_ADDR_TAGT_CODE  = '13'
+  LEFT OUTER JOIN SID.IDO_A_UUE_ADDRESS U13
+    ON U13.CNTT_ADDR_ID             = B13.CNTT_ADDR_ID
+    
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B14 -- 개인CDD-실제거소
+    ON B14.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B14.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B14.CDD_CNTT_ADDR_SECT_CODE  = 'ADR'
+   AND B14.CDD_CNTT_ADDR_TAGT_CODE  = '14'
+  LEFT OUTER JOIN SID.IDO_A_UUE_ADDRESS U14
+    ON U14.CNTT_ADDR_ID             = B14.CNTT_ADDR_ID
+    
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B21 -- 법인CDD-사업장
+    ON B21.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B21.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B21.CDD_CNTT_ADDR_SECT_CODE  = 'ADR'
+   AND B21.CDD_CNTT_ADDR_TAGT_CODE  = '21'
+  LEFT OUTER JOIN SID.IDO_A_UUE_ADDRESS U21
+    ON U21.CNTT_ADDR_ID             = B21.CNTT_ADDR_ID
+   
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B22 -- 법인CDD-본점
+    ON B22.CDD_TAGT_ENTY_ID         = A.CDD_TAGT_ENTY_ID
+   AND B22.CDD_FLFL_SQNO            = A.CDD_FLFL_SQNO
+   AND B22.CDD_CNTT_ADDR_SECT_CODE  = 'ADR'
+   AND B22.CDD_CNTT_ADDR_TAGT_CODE  = '22'
+  LEFT OUTER JOIN SID.IDO_A_UUE_ADDRESS U22
+    ON U22.CNTT_ADDR_ID             = B22.CNTT_ADDR_ID   
+    
+  LEFT OUTER JOIN SID.IDO_A_UUE_COUNTRY R
+    ON A.RSDT_CNTY_ID   = R.CNTY_ID      
+ 
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'   
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+   
+   AND A.RSDT_CNTY_ID  > 0   
+   AND A.RSDT_CNTY_ID <> 1000000001 -- 거주국가ID
+   
+
+   AND ((TRIM(U12.PSTL_CODE) NOT IN ('00000', '000000') OR NVL(TRIM(U12.PSTL_CODE), 'X') = 'X')
+   AND  (TRIM(U13.PSTL_CODE) NOT IN ('00000', '000000') OR NVL(TRIM(U13.PSTL_CODE), 'X') = 'X')
+   AND  (TRIM(U13.PSTL_CODE) NOT IN ('00000', '000000') OR NVL(TRIM(U13.PSTL_CODE), 'X') = 'X')
+   AND  (TRIM(U14.PSTL_CODE) NOT IN ('00000', '000000') OR NVL(TRIM(U14.PSTL_CODE), 'X') = 'X')
+   AND  (TRIM(U21.PSTL_CODE) NOT IN ('00000', '000000') OR NVL(TRIM(U21.PSTL_CODE), 'X') = 'X')
+   AND  (TRIM(U22.PSTL_CODE) NOT IN ('00000', '000000') OR NVL(TRIM(U22.PSTL_CODE), 'X') = 'X'))
+   
+		]]>
+</insert>
+
+
+
+
+<delete id="delete_CDD_204" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_204'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_204" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_204' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '생년월일 : ' || TRIM(A.BRDT) || '인 미성년자가 고객ID : ' ||  A.CDD_ORIG_ENTY_ID || '(' || A.ORIG_CLNT_NAME || ')의 대리인으로 등록'
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ INNER JOIN SSQ.L_DATE_STND_VALU X1
+    ON X1.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X1.DATE_ANLY_SDVL = A.CDD_FLFL_DATE
+ INNER JOIN SSQ.L_DATE_STND_VALU X2
+    ON X2.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X2.DATE_ANLY_SDVL = A.BRDT
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}
+   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인
+   AND TRIM(A.BRDT) IS NOT NULL   
+   AND TRIM(A.BRDT) <= #{yyyymmdd}
+   
+   AND A.CDD_TAGT_SECT_CODE = '02' -- 대리인
+   AND TRUNC(MONTHS_BETWEEN(TO_DATE(X1.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X2.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) < 19     
+		]]>
+</insert>
+
+
+
+
+<delete id="delete_CDD_206" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_206'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_206" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_206' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '대표자(고령/미성년자) : 대표자1(' || A.RPST_1_BRDT || ',' || TRIM(A.RPST_1_NAME) || ')' ||
+       CASE WHEN TRIM(A.RPST_2_BRDT) IS NOT NULL THEN ';대표자2(' || A.RPST_2_BRDT || ',' || TRIM(A.RPST_2_NAME) || ')' 
+            ELSE ''
+        END ||
+       CASE WHEN TRIM(A.RPST_3_BRDT) IS NOT NULL THEN ';대표자3(' || A.RPST_3_BRDT || ',' || TRIM(A.RPST_3_NAME) || ')' 
+            ELSE ''
+        END
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ INNER JOIN SSQ.L_DATE_STND_VALU X
+    ON X.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X.DATE_ANLY_SDVL = A.CDD_FLFL_DATE
+   
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X1
+    ON X1.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X1.DATE_ANLY_SDVL = A.RPST_1_BRDT
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X2
+    ON X2.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X2.DATE_ANLY_SDVL = A.RPST_2_BRDT
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X3
+    ON X3.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X3.DATE_ANLY_SDVL = A.RPST_3_BRDT
+   
+ WHERE 1 = 1 
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}
+   
+   AND A.CDD_CLNT_SECT_CODE IN ('2', '3') -- 법인
+  
+   AND ((TRIM(A.RPST_1_BRDT) IS NOT NULL AND (TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X1.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+                                          OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X1.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10
+                                          OR  A.RPST_1_BRDT > TRIM(A.CDD_FLFL_DATE)))
+    OR  (TRIM(A.RPST_2_BRDT) IS NOT NULL AND (TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X2.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+                                          OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X2.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10
+                                          OR  A.RPST_2_BRDT > TRIM(A.CDD_FLFL_DATE)))
+    OR  (TRIM(A.RPST_3_BRDT) IS NOT NULL AND (TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X3.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+                                          OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X3.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10
+                                          OR  A.RPST_3_BRDT > TRIM(A.CDD_FLFL_DATE))))
+   
+		]]>
+</insert>
+
+
+
+
+<delete id="delete_CDD_207" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_207'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_207" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_207' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '설립일자 : ' || A.ETDT 
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ INNER JOIN SSQ.L_DATE_STND_VALU X1
+    ON X1.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X1.DATE_ANLY_SDVL = A.CDD_FLFL_DATE
+   
+ INNER JOIN SSQ.L_DATE_STND_VALU X2
+    ON X2.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X2.DATE_ANLY_SDVL = A.ETDT
+   
+ WHERE 1 = 1 
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}
+   
+   AND A.CDD_CLNT_SECT_CODE IN ('2', '3') -- 법인
+   
+   AND TRUNC(MONTHS_BETWEEN(TO_DATE(X1.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X2.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+		]]>
+</insert>
+
+
+
+
+<delete id="delete_CDD_208" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_208'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_208" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_208' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN TRIM(B01.REL_OWNR_BRDT) IS NOT NULL THEN '실제소유자 : ' || TRIM(B01.REL_OWNR_NAME) || '(' || TRIM(B01.REL_OWNR_BRDT) || ')' ELSE '' END ||
+       CASE WHEN TRIM(B02.REL_OWNR_BRDT) IS NOT NULL THEN ';' || TRIM(B02.REL_OWNR_NAME) || '(' || TRIM(B02.REL_OWNR_BRDT) || ')' ELSE '' END ||
+       CASE WHEN TRIM(B03.REL_OWNR_BRDT) IS NOT NULL THEN ';' || TRIM(B03.REL_OWNR_NAME) || '(' || TRIM(B03.REL_OWNR_BRDT) || ')' ELSE '' END ||
+       CASE WHEN TRIM(B04.REL_OWNR_BRDT) IS NOT NULL THEN ';' || TRIM(B04.REL_OWNR_NAME) || '(' || TRIM(B04.REL_OWNR_BRDT) || ')' ELSE '' END ||
+       CASE WHEN TRIM(B05.REL_OWNR_BRDT) IS NOT NULL THEN ';' || TRIM(B05.REL_OWNR_NAME) || '(' || TRIM(B05.REL_OWNR_BRDT) || ')' ELSE '' END ||
+       CASE WHEN TRIM(B06.REL_OWNR_BRDT) IS NOT NULL THEN ';' || TRIM(B06.REL_OWNR_NAME) || '(' || TRIM(B06.REL_OWNR_BRDT) || ')' ELSE '' END ||
+       CASE WHEN TRIM(B07.REL_OWNR_BRDT) IS NOT NULL THEN ';' || TRIM(B07.REL_OWNR_NAME) || '(' || TRIM(B07.REL_OWNR_BRDT) || ')' ELSE '' END ||
+       CASE WHEN TRIM(B08.REL_OWNR_BRDT) IS NOT NULL THEN ';' || TRIM(B08.REL_OWNR_NAME) || '(' || TRIM(B08.REL_OWNR_BRDT) || ')' ELSE '' END ||
+       CASE WHEN TRIM(B09.REL_OWNR_BRDT) IS NOT NULL THEN ';' || TRIM(B09.REL_OWNR_NAME) || '(' || TRIM(B09.REL_OWNR_BRDT) || ')' ELSE '' END ||
+       CASE WHEN TRIM(B10.REL_OWNR_BRDT) IS NOT NULL THEN ';' || TRIM(B10.REL_OWNR_NAME) || '(' || TRIM(B10.REL_OWNR_BRDT) || ')' ELSE '' END AS OWNR
+     , SYSDATE
+     , 'N'
+    
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ INNER JOIN SSQ.L_DATE_STND_VALU X
+    ON X.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X.DATE_ANLY_SDVL = A.CDD_FLFL_DATE
+   
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B01
+    ON B01.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B01.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B01.REL_OWNR_SQNO    = 1
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B02
+    ON B02.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B02.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND B02.REL_OWNR_SQNO    = 2
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B03
+    ON B03.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B03.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B03.REL_OWNR_SQNO    = 3
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B04
+    ON B04.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B04.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND B04.REL_OWNR_SQNO    = 4
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B05
+    ON B05.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B05.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B05.REL_OWNR_SQNO    = 5
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B06
+    ON B06.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B06.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND B06.REL_OWNR_SQNO    = 6
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B07
+    ON B07.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B07.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B07.REL_OWNR_SQNO    = 7
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B08
+    ON B08.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B08.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND B08.REL_OWNR_SQNO    = 8
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B09
+    ON B09.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B09.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B09.REL_OWNR_SQNO    = 9
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B10
+    ON B10.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B10.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO  
+   AND B10.REL_OWNR_SQNO    = 10
+  
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X01
+    ON X01.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X01.DATE_ANLY_SDVL = B01.REL_OWNR_BRDT
+   
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X02
+    ON X02.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X02.DATE_ANLY_SDVL = B02.REL_OWNR_BRDT
+   
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X03
+    ON X03.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X03.DATE_ANLY_SDVL = B03.REL_OWNR_BRDT
+   
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X04
+    ON X04.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X04.DATE_ANLY_SDVL = B04.REL_OWNR_BRDT
+   
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X05
+    ON X05.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X05.DATE_ANLY_SDVL = B05.REL_OWNR_BRDT
+   
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X06
+    ON X06.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X06.DATE_ANLY_SDVL = B06.REL_OWNR_BRDT
+   
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X07
+    ON X07.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X07.DATE_ANLY_SDVL = B07.REL_OWNR_BRDT
+   
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X08
+    ON X08.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X08.DATE_ANLY_SDVL = B08.REL_OWNR_BRDT 
+   
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X09
+    ON X09.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X09.DATE_ANLY_SDVL = B09.REL_OWNR_BRDT
+   
+  LEFT OUTER JOIN SSQ.L_DATE_STND_VALU X10
+    ON X10.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X10.DATE_ANLY_SDVL = B02.REL_OWNR_BRDT   
+   
+ WHERE 1 = 1 
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'   
+   AND A.CDD_CLNT_SECT_CODE IN ('2', '3') -- 법인
+   
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}
+   
+   AND (TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X01.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10 
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X02.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X03.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X04.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X05.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X06.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X07.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X08.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X09.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X10.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) <= 10
+    
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X01.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X02.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X03.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X04.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X05.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X06.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X07.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X08.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X09.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+    OR  TRUNC(MONTHS_BETWEEN(TO_DATE(X.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X10.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 100
+    
+    OR X01.DATE_ANLY_SDVL > A.CDD_FLFL_DATE
+    OR  X02.DATE_ANLY_SDVL > A.CDD_FLFL_DATE
+    OR  X03.DATE_ANLY_SDVL > A.CDD_FLFL_DATE
+    OR  X04.DATE_ANLY_SDVL > A.CDD_FLFL_DATE
+    OR  X05.DATE_ANLY_SDVL > A.CDD_FLFL_DATE
+    OR  X06.DATE_ANLY_SDVL > A.CDD_FLFL_DATE
+    OR  X07.DATE_ANLY_SDVL > A.CDD_FLFL_DATE
+    OR  X08.DATE_ANLY_SDVL > A.CDD_FLFL_DATE
+    OR  X09.DATE_ANLY_SDVL > A.CDD_FLFL_DATE
+    OR  X10.DATE_ANLY_SDVL > A.CDD_FLFL_DATE)
+    
+		]]>
+</insert>
+
+
+
+
+<delete id="delete_CDD_209" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_209'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_209" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_209' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '대표자 :' ||
+       CASE WHEN TRIM(A.RPST_1_NAME) IS NOT NULL THEN ' ' || TRIM(A.RPST_1_NAME) ELSE '' END ||
+       CASE WHEN TRIM(A.RPST_2_NAME) IS NOT NULL THEN ';' || TRIM(A.RPST_2_NAME) ELSE '' END || 
+       CASE WHEN TRIM(A.RPST_3_NAME) IS NOT NULL THEN ';' || TRIM(A.RPST_3_NAME) ELSE '' END ||
+ 
+       ' - 실제소유자 :' || 
+       CASE WHEN TRIM(B01.REL_OWNR_NAME) IS NOT NULL THEN ' ' || TRIM(B01.REL_OWNR_NAME) ELSE '' END ||
+       CASE WHEN TRIM(B02.REL_OWNR_NAME) IS NOT NULL THEN ';' || TRIM(B02.REL_OWNR_NAME) ELSE '' END ||
+       CASE WHEN TRIM(B03.REL_OWNR_NAME) IS NOT NULL THEN ';' || TRIM(B03.REL_OWNR_NAME) ELSE '' END ||
+       CASE WHEN TRIM(B04.REL_OWNR_NAME) IS NOT NULL THEN ';' || TRIM(B04.REL_OWNR_NAME) ELSE '' END ||
+       CASE WHEN TRIM(B05.REL_OWNR_NAME) IS NOT NULL THEN ';' || TRIM(B05.REL_OWNR_NAME) ELSE '' END ||
+       CASE WHEN TRIM(B06.REL_OWNR_NAME) IS NOT NULL THEN ';' || TRIM(B06.REL_OWNR_NAME) ELSE '' END ||
+       CASE WHEN TRIM(B07.REL_OWNR_NAME) IS NOT NULL THEN ';' || TRIM(B07.REL_OWNR_NAME) ELSE '' END ||
+       CASE WHEN TRIM(B08.REL_OWNR_NAME) IS NOT NULL THEN ';' || TRIM(B08.REL_OWNR_NAME) ELSE '' END ||
+       CASE WHEN TRIM(B09.REL_OWNR_NAME) IS NOT NULL THEN ';' || TRIM(B09.REL_OWNR_NAME) ELSE '' END ||
+       CASE WHEN TRIM(B10.REL_OWNR_NAME) IS NOT NULL THEN ';' || TRIM(B10.REL_OWNR_NAME) ELSE '' END AS MNTN_DTLS_CTNT
+     , SYSDATE
+     , 'N'
+    
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+  
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B01
+    ON B01.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B01.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B01.REL_OWNR_SQNO    = 1
+   AND B01.REL_OWNR_CNFM_MTHD_CODE = '5'
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B02
+    ON B02.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B02.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND B02.REL_OWNR_SQNO    = 2
+   AND B02.REL_OWNR_CNFM_MTHD_CODE = '5'
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B03
+    ON B03.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B03.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B03.REL_OWNR_SQNO    = 3
+   AND B03.REL_OWNR_CNFM_MTHD_CODE = '5'   
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B04
+    ON B04.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B04.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND B04.REL_OWNR_SQNO    = 4
+   AND B04.REL_OWNR_CNFM_MTHD_CODE = '5'
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B05
+    ON B05.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B05.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B05.REL_OWNR_SQNO    = 5
+   AND B05.REL_OWNR_CNFM_MTHD_CODE = '5'
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B06
+    ON B06.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B06.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND B06.REL_OWNR_SQNO    = 6
+   AND B06.REL_OWNR_CNFM_MTHD_CODE = '5'
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B07
+    ON B07.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B07.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B07.REL_OWNR_SQNO    = 7
+   AND B07.REL_OWNR_CNFM_MTHD_CODE = '5'
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B08
+    ON B08.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B08.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO 
+   AND B08.REL_OWNR_SQNO    = 8
+   AND B08.REL_OWNR_CNFM_MTHD_CODE = '5'
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B09
+    ON B09.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B09.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO
+   AND B09.REL_OWNR_SQNO    = 9
+   AND B09.REL_OWNR_CNFM_MTHD_CODE = '5'
+  LEFT OUTER JOIN SID.IDO_A_MAH_CDD_REL_OWNR_IFMN B10
+    ON B10.CDD_TAGT_ENTY_ID = A.CDD_TAGT_ENTY_ID
+   AND B10.CDD_FLFL_SQNO    = A.CDD_FLFL_SQNO  
+   AND B10.REL_OWNR_SQNO    = 10
+   AND B10.REL_OWNR_CNFM_MTHD_CODE = '5'
+   
+ WHERE 1 = 1 
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'   
+   AND A.CDD_CLNT_SECT_CODE IN ('2', '3') -- 법인
+   AND A.RGBR_CODE NOT IN ('19911', '19910')
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}
+      
+   AND (NVL(TRIM(B01.REL_OWNR_NAME), '@!$#') <> '@!$#'
+    OR  NVL(TRIM(B02.REL_OWNR_NAME), '@!$#') <> '@!$#'
+    OR  NVL(TRIM(B03.REL_OWNR_NAME), '@!$#') <> '@!$#'
+    OR  NVL(TRIM(B04.REL_OWNR_NAME), '@!$#') <> '@!$#'
+    OR  NVL(TRIM(B05.REL_OWNR_NAME), '@!$#') <> '@!$#'
+    OR  NVL(TRIM(B06.REL_OWNR_NAME), '@!$#') <> '@!$#'
+    OR  NVL(TRIM(B07.REL_OWNR_NAME), '@!$#') <> '@!$#'
+    OR  NVL(TRIM(B08.REL_OWNR_NAME), '@!$#') <> '@!$#'
+    OR  NVL(TRIM(B09.REL_OWNR_NAME), '@!$#') <> '@!$#'
+    OR  NVL(TRIM(B10.REL_OWNR_NAME), '@!$#') <> '@!$#')
+  
+   AND (NVL(TRIM(B01.REL_OWNR_NAME), '@!$#') NOT IN (NVL(TRIM(A.RPST_1_NAME), '#1'), NVL(TRIM(A.RPST_2_NAME), '#2'), NVL(TRIM(A.RPST_3_NAME), '#3'))
+   AND  NVL(TRIM(B02.REL_OWNR_NAME), '@!$#') NOT IN (NVL(TRIM(A.RPST_1_NAME), '#1'), NVL(TRIM(A.RPST_2_NAME), '#2'), NVL(TRIM(A.RPST_3_NAME), '#3'))
+   AND  NVL(TRIM(B03.REL_OWNR_NAME), '@!$#') NOT IN (NVL(TRIM(A.RPST_1_NAME), '#1'), NVL(TRIM(A.RPST_2_NAME), '#2'), NVL(TRIM(A.RPST_3_NAME), '#3'))
+   AND  NVL(TRIM(B04.REL_OWNR_NAME), '@!$#') NOT IN (NVL(TRIM(A.RPST_1_NAME), '#1'), NVL(TRIM(A.RPST_2_NAME), '#2'), NVL(TRIM(A.RPST_3_NAME), '#3'))
+   AND  NVL(TRIM(B05.REL_OWNR_NAME), '@!$#') NOT IN (NVL(TRIM(A.RPST_1_NAME), '#1'), NVL(TRIM(A.RPST_2_NAME), '#2'), NVL(TRIM(A.RPST_3_NAME), '#3'))
+   AND  NVL(TRIM(B06.REL_OWNR_NAME), '@!$#') NOT IN (NVL(TRIM(A.RPST_1_NAME), '#1'), NVL(TRIM(A.RPST_2_NAME), '#2'), NVL(TRIM(A.RPST_3_NAME), '#3'))
+   AND  NVL(TRIM(B07.REL_OWNR_NAME), '@!$#') NOT IN (NVL(TRIM(A.RPST_1_NAME), '#1'), NVL(TRIM(A.RPST_2_NAME), '#2'), NVL(TRIM(A.RPST_3_NAME), '#3'))
+   AND  NVL(TRIM(B08.REL_OWNR_NAME), '@!$#') NOT IN (NVL(TRIM(A.RPST_1_NAME), '#1'), NVL(TRIM(A.RPST_2_NAME), '#2'), NVL(TRIM(A.RPST_3_NAME), '#3'))
+   AND  NVL(TRIM(B09.REL_OWNR_NAME), '@!$#') NOT IN (NVL(TRIM(A.RPST_1_NAME), '#1'), NVL(TRIM(A.RPST_2_NAME), '#2'), NVL(TRIM(A.RPST_3_NAME), '#3'))
+   AND  NVL(TRIM(B10.REL_OWNR_NAME), '@!$#') NOT IN (NVL(TRIM(A.RPST_1_NAME), '#1'), NVL(TRIM(A.RPST_2_NAME), '#2'), NVL(TRIM(A.RPST_3_NAME), '#3')))  
+  
+		]]>
+</insert>
+
+
+
+
+<delete id="delete_CDD_210" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_210'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_210" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_210' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '업종 : ' || A.STND_INDY_CLSN_CODE || '.' || NVL((SELECT TRIM(CMN_CDVL_NAME) FROM SID.IDO_A_UWB_COM_CD_DTL WHERE CMN_CODE_ID = '00631' AND DEL_YN='N' AND CMN_CDVL = A.STND_INDY_CLSN_CODE), '') 
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE 1 = 1 
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}
+   
+   AND A.CDD_CLNT_SECT_CODE = '2' -- 영리법인
+   AND A.TAGT_CLNT_NAME     LIKE '%대부%'
+   AND A.STND_INDY_CLSN_CODE <> '99998'
+		]]>
+</insert>
+
+
+
+
+<delete id="delete_CDD_211" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_211'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_211" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_211' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '영문명 : ' || TRIM(A.TAGT_ENNM) 
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE 1 = 1 
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}
+   
+   AND TRIM(A.TAGT_ENNM) IS NOT NULL
+   AND LENGTH(TRIM(A.TAGT_ENNM)) <= 2
+		]]>
+</insert>
+
+
+
+
+<delete id="delete_CDD_212" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_212'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_212" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_212' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '생년월일 : ' || A.BRDT || ', 직업 : ' || A.JOB_CODE || '.' ||
+       NVL((SELECT TRIM(T.CMN_CDVL_NAME) FROM SID.IDO_A_UWB_COM_CD_DTL T WHERE T.CMN_CODE_ID = '01437' AND T.CMN_CDVL = A.JOB_CODE), '') ||
+       CASE WHEN SUBSTR(A.JOB_CODE, 2,2) = '90' AND TRIM(A.JOB_NAME) IS NOT NULL THEN '-' || TRIM(A.JOB_NAME)
+            ELSE ''
+        END
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ INNER JOIN SSQ.L_DATE_STND_VALU X1
+    ON X1.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X1.DATE_ANLY_SDVL = A.CDD_FLFL_DATE
+ INNER JOIN SSQ.L_DATE_STND_VALU X2
+    ON X2.DATE_TYPE_SDVL = 'YYYYMMDD'
+   AND X2.DATE_ANLY_SDVL = A.BRDT
+ WHERE 1 = 1 
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}
+   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인
+   AND TRIM(A.BRDT) IS NOT NULL   
+   AND A.JOB_CODE = '960'
+   
+   AND TRUNC(MONTHS_BETWEEN(TO_DATE(X1.DATE_ANLY_SDVL, 'YYYYMMDD'), TO_DATE(X2.DATE_ANLY_SDVL, 'YYYYMMDD')) / 12) >= 19
+		]]>
+</insert>
+
+
+
+
+<delete id="delete_CDD_213" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_213'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_213" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_213' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '직업 : ' || A.JOB_CODE || '.' ||
+       NVL((SELECT TRIM(T.CMN_CDVL_NAME) FROM SID.IDO_A_UWB_COM_CD_DTL T WHERE T.CMN_CODE_ID = '01437' AND T.CMN_CDVL = A.JOB_CODE), '') || '-' || TRIM(A.JOB_NAME)
+     , SYSDATE
+     , 'N'
+     
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE 1 = 1   
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}
+   
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 개인   
+   AND A.JOB_CODE IN ('190', '290', '390', '490', '990')
+   AND TRIM(A.JOB_NAME) IN ('.', '기타')
+		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_214" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_214'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+<insert id="insert_CDD_214" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT a.CDD_FLFL_DATE
+     , 'CDD_214' 
+     , a.CDD_TAGT_ENTY_ID
+     , a.CDD_FLFL_SQNO    
+     , '법인설립일자 공란인 경우'
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE a.CDD_FLFL_DATE = #{yyyymmdd}
+   AND A.CDD_CLNT_SECT_CODE <> '1' -- 1개인 2,3법인
+   AND TRIM(ETDT) IS NULL
+   AND TRIM(cdd_flfl_date) IS NOT NULL
+		]]>
+</insert>
+   
+
+
+<delete id="delete_CDD_215" parameterType="cddVO">
+
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_215'
+   AND MNTN_DATE      = #{yyyymmdd}
+
+</delete>
+<insert id="insert_CDD_215" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT a.CDD_FLFL_DATE
+     , 'CDD_215'
+     , a.CDD_TAGT_ENTY_ID
+     , a.CDD_FLFL_SQNO
+     , '실명확인증표 발급일자 공란인 경우 - 실명확인증증표 : ' ||TRIM(RLNM_CNFM_TKN_CODE) || ' ' 
+     ||(SELECT CMN_CDVL_NAME
+          FROM SID.IDO_A_UWB_COM_CD_DTL
+         WHERE DEL_YN= 'N'
+           AND USE_YN = 'Y'
+           AND CMN_CODE_ID = '06758'
+           AND CMN_CDVL = A.RLNM_CNFM_TKN_CODE) || ', 발급일자 : ' || TRIM(ISNC_DATE)
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE a.CDD_FLFL_DATE = #{yyyymmdd}
+   AND TRIM(ISNC_DATE) IS NULL
+   AND TRIM(RLNM_CNFM_TKN_CODE) IS NOT NULL
+ 		]]>
+</insert>
+
+
+<delete id="delete_CDD_216" parameterType="cddVO">
+
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_216'
+   AND MNTN_DATE      = #{yyyymmdd}
+
+</delete>
+<insert id="insert_CDD_216" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+ SELECT A.CDD_FLFL_DATE AS CDD수행일자
+     , 'CDD_216' 
+     , A.CDD_TAGT_ENTY_ID AS 고객엔티티ID
+     , A.CDD_FLFL_SQNO    AS CDD순번
+     , 'CDD등록사유 : ' || A.CDD_RGSN_RESN_CODE || '.' ||
+       NVL((SELECT TRIM(T.CMN_CDVL_NAME) FROM SID.IDO_A_UWB_COM_CD_DTL T WHERE T.CMN_CODE_ID = '06757' AND T.CMN_CDVL = A.CDD_RGSN_RESN_CODE AND DEL_YN = 'N'), '') ||
+       CASE WHEN A.CDD_RGSN_RESN_CODE = '99' THEN '-' || TRIM(A.CDD_RGSN_RESN_NAME)
+            ELSE ''
+       END AS CDD등록사유
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')  
+   AND A.PRCE_CHNL_SECT_CODE LIKE 'A%'     
+   AND A.CDD_CLNT_SECT_CODE = '1' -- 1개인
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+   AND A.CDD_RGSN_RESN_CODE = '94'
+ 		]]>
+</insert>
+
+
+
+<delete id="delete_CDD_301" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_301'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_301" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_301' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN TRIM(A.TAGT_CLNT_NAME) IS NULL THEN '고객명 공란'  || CASE WHEN TRIM(A.CDD_TAGT_CLNT_NO_CRYP) IS NULL THEN ', 실명번호 공란' ELSE '' END
+            ELSE CASE WHEN TRIM(A.CDD_TAGT_CLNT_NO_CRYP) IS NULL THEN '실명번호 공란' ELSE '' END 
+        END
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}    
+   AND A.CDD_CLNT_SECT_CODE = '1'
+   AND A.RGBR_CODE IN ('21080', '11670')  --21080: 채널개발팀. 11670 : 디지털업무지원팀
+   AND (TRIM(A.TAGT_CLNT_NAME)        IS NULL
+       OR TRIM(A.CDD_TAGT_CLNT_NO_CRYP) IS NULL)
+ 		]]>
+</insert>
+
+
+<delete id="delete_CDD_302" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_302'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_302" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT CDD_FLFL_DATE
+     , 'CDD_302' 
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO    
+     , '같은 숫자로만 구성된 연락처'
+     , SYSDATE
+     , 'N'
+  FROM (SELECT A.CDD_FLFL_DATE
+             , A.CDD_TAGT_ENTY_ID
+             , A.CDD_FLFL_SQNO
+          FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+             , SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B
+             , SID.IDO_A_UUE_PHONE C
+         WHERE TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+           AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+           AND A.CDD_FLFL_DATE = #{yyyymmdd}    
+           AND A.RGBR_CODE IN ('21080', '11670')  --21080: 채널개발팀. 11670 : 디지털업무지원팀 
+           AND A.CDD_TAGT_ENTY_ID = B.CDD_TAGT_ENTY_ID
+           AND CDD_CNTT_ADDR_SECT_CODE = 'TEL'
+           AND B.CNTT_ADDR_ID = C.CNTT_ADDR_ID(+)
+           AND C.PHON_NO_CRYP IN ( 'Pj+nQdI2eq0j+Z+VDDvVZQ==' /* 1111 */
+                                 , 'bNS0U4fqoor5YEfmyoPlZw==' /* 2222 */
+                                 , 'R0t5ea0pkuV4QIqq2+oqDg==' /* 3333 */
+                                 , 'RdvkOOLkioP/vukn9NwBTw==' /* 4444 */
+                                 , 'LrbX7l+ivpWenBaJjIlh4g==' /* 5555 */
+                                 , 'YMYNuLjqfQi7LjQVgAV7LQ==' /* 6666 */
+                                 , 'S2fQxA2AKL9V5XR+eu4/cw==' /* 7777 */
+                                 , '7p4vJLHxJy3qseFKbKD61A==' /* 8888 */
+                                 , 'A1iqcvratOTldsxGopMamg==' /* 9999 */
+                                 , 'pbxlHfNoIqmootYVo11MYw==' /* 0000 */
+                                 , 'gHajhP2y4y5PXs1rZNijsw==' /* 1000 */
+                                 , 'UTlri7Ek29czuN0BmcwClg==' /* 0001 */
+                                 )
+        UNION ALL
+        SELECT A.CDD_FLFL_DATE
+             , A.CDD_TAGT_ENTY_ID
+             , A.CDD_FLFL_SQNO
+          FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+             , SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B
+             , SID.IDO_A_UUE_MOBILE C
+         WHERE TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+           AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+           AND A.CDD_FLFL_DATE = #{yyyymmdd}    
+           AND A.RGBR_CODE IN ('21080', '11670')  --21080: 채널개발팀. 11670 : 디지털업무지원팀 
+           AND A.CDD_CLNT_SECT_CODE = '1'
+           AND A.CDD_TAGT_ENTY_ID = B.CDD_TAGT_ENTY_ID
+           AND CDD_CNTT_ADDR_SECT_CODE = 'MOB'
+           AND B.CNTT_ADDR_ID = c.CNTT_ADDR_ID(+)
+           AND (
+               (C.MOBL_PHON_ECNO_CRYP IN ('Pj+nQdI2eq0j+Z+VDDvVZQ==' /* 1111 */
+                                        , 'bNS0U4fqoor5YEfmyoPlZw==' /* 2222 */
+                                        , 'R0t5ea0pkuV4QIqq2+oqDg==' /* 3333 */
+                                        , 'RdvkOOLkioP/vukn9NwBTw==' /* 4444 */
+                                        , 'LrbX7l+ivpWenBaJjIlh4g==' /* 5555 */
+                                        , 'YMYNuLjqfQi7LjQVgAV7LQ==' /* 6666 */
+                                        , 'S2fQxA2AKL9V5XR+eu4/cw==' /* 7777 */
+                                        , '7p4vJLHxJy3qseFKbKD61A==' /* 8888 */
+                                        , 'A1iqcvratOTldsxGopMamg==' /* 9999 */
+                                        , 'pbxlHfNoIqmootYVo11MYw==' /* 0000 */
+                                        , 'gHajhP2y4y5PXs1rZNijsw==' /* 1000 */
+                                        , 'UTlri7Ek29czuN0BmcwClg==' /* 0001 */
+                                        ) )
+            OR (C.MOBL_PHON_NO_CRYP IN ('Pj+nQdI2eq0j+Z+VDDvVZQ==' /* 1111 */
+                                       , 'bNS0U4fqoor5YEfmyoPlZw==' /* 2222 */
+                                       , 'R0t5ea0pkuV4QIqq2+oqDg==' /* 3333 */
+                                       , 'RdvkOOLkioP/vukn9NwBTw==' /* 4444 */
+                                       , 'LrbX7l+ivpWenBaJjIlh4g==' /* 5555 */
+                                       , 'YMYNuLjqfQi7LjQVgAV7LQ==' /* 6666 */
+                                       , 'S2fQxA2AKL9V5XR+eu4/cw==' /* 7777 */
+                                       , '7p4vJLHxJy3qseFKbKD61A==' /* 8888 */
+                                       , 'A1iqcvratOTldsxGopMamg==' /* 9999 */
+                                       , 'pbxlHfNoIqmootYVo11MYw==' /* 0000 */
+                                       , 'gHajhP2y4y5PXs1rZNijsw==' /* 1000 */
+                                       , 'UTlri7Ek29czuN0BmcwClg==' /* 0001 */
+                                       ) )
+              )
+       ) A
+ 		]]>
+</insert>
+
+<delete id="delete_CDD_303" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_303'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_303" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_303' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , '현재 유효하지 않은 연락처'  
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+     , SID.IDO_A_MAH_CDD_CNTT_ADDR_IF B
+     , SID.IDO_A_UUE_MOBILE C
+ WHERE TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}    
+   AND A.RGBR_CODE IN ('21080', '11670')  --21080: 채널개발팀. 11670 : 디지털업무지원팀 
+   AND A.CDD_CLNT_SECT_CODE = '1'
+   AND A.CDD_TAGT_ENTY_ID = B.CDD_TAGT_ENTY_ID
+   AND CDD_CNTT_ADDR_SECT_CODE = 'MOB'
+   AND B.CNTT_ADDR_ID = C.CNTT_ADDR_ID(+)
+   AND (C.MOBL_PHON_IDNF_NO_CRYP IN ('xraRrgGVHSDW1mpORDWEZg==' /* 011 */
+                                   , '7c2fcSpgRDUU0pBZPMtW6g==' /* 016 */
+                                   , '0mrMDKwvAkx453o8JADMRQ==' /* 017 */
+                                   , 'cs+m4Wd7QgbXTjBxarfWbw==' /* 018 */
+                                   , 'IckDg0A2ue5ExCW1PxDjMg==' /* 019 */
+                                    ) )
+ 		]]>
+</insert>
+
+
+<delete id="delete_CDD_304" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_304'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_304" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT a.CDD_FLFL_DATE
+     , 'CDD_304'
+     , a.CDD_TAGT_ENTY_ID
+     , a.CDD_FLFL_SQNO
+     , CASE WHEN TRIM(A.ISNC_DATE) IS NULL  THEN '실명확인증표 발급일자 공란인 경우 - 실명확인증증표 : ' ||TRIM(RLNM_CNFM_TKN_CODE) || ' ' 
+       ||(SELECT CMN_CDVL_NAME
+          FROM SID.IDO_A_UWB_COM_CD_DTL
+         WHERE DEL_YN= 'N'
+           AND USE_YN = 'Y'
+           AND CMN_CODE_ID = '06758'
+           AND CMN_CDVL = A.RLNM_CNFM_TKN_CODE) || ', 발급일자 : ' || TRIM(ISNC_DATE) 
+           
+        WHEN REGEXP_LIKE(A.ISNC_DATE, '[~!@#$%^&*_+\={}|;:".<>/?()-]')  THEN '실명확인증표 발급일자 특수문자가 존재하는 경우 - 실명확인증증표 : ' ||TRIM(RLNM_CNFM_TKN_CODE) || ' ' 
+       ||(SELECT CMN_CDVL_NAME
+          FROM SID.IDO_A_UWB_COM_CD_DTL
+         WHERE DEL_YN= 'N'
+           AND USE_YN = 'Y'
+           AND CMN_CODE_ID = '06758'
+           AND CMN_CDVL = A.RLNM_CNFM_TKN_CODE) || ', 발급일자 : ' || TRIM(ISNC_DATE) 
+           
+        WHEN A.ISNC_DATE > #{yyyymmdd}  THEN '실명확인증표 발급일자 미래일자인 경우 - 실명확인증증표 : ' ||TRIM(RLNM_CNFM_TKN_CODE) || ' ' 
+       ||(SELECT CMN_CDVL_NAME
+          FROM SID.IDO_A_UWB_COM_CD_DTL
+         WHERE DEL_YN= 'N'
+           AND USE_YN = 'Y'
+           AND CMN_CODE_ID = '06758'
+           AND CMN_CDVL = A.RLNM_CNFM_TKN_CODE) || ', 발급일자 : ' || TRIM(ISNC_DATE)
+        END AS 사유
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE A.CDD_FLFL_DATE = #{yyyymmdd}
+   AND (TRIM(A.ISNC_DATE) IS NULL 
+       OR A.ISNC_DATE > #{yyyymmdd}
+       OR REGEXP_LIKE(A.ISNC_DATE, '[~!@#$%^&*_+\={}|;:".<>/?()-]'))
+   AND TRIM(A.RLNM_CNFM_TKN_CODE) IS NOT NULL
+   AND A.RGBR_CODE IN ('21080', '11670')  --21080: 채널개발팀. 11670 : 디지털업무지원팀 
+   AND A.CDD_CLNT_SECT_CODE = '1'      
+ 		]]>
+</insert>
+
+
+<delete id="delete_CDD_305" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_305'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_305" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_305' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN REGEXP_LIKE(TRIM(A.TAGT_CLNT_NAME), '[~!@#$%^&*_+\={}|;:".<>/?()-]') THEN '특수문자 포함'
+            WHEN REGEXP_LIKE(TRIM(A.TAGT_CLNT_NAME), '[0-9]') THEN '숫자 포함'
+            WHEN REGEXP_LIKE(TRIM(A.TAGT_CLNT_NAME), '[a-z]') THEN '영문 포함'
+        END
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.RGBR_CODE IN ('21080', '11670')
+   AND A.CDD_CLNT_SECT_CODE = '1'  
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}
+   AND REGEXP_LIKE(TRIM(A.TAGT_CLNT_NAME), '[a-z0-9~!@#$%^&*_+\={}|;:".<>/?()-]')
+   AND A.NTNY_ID = 1000000001
+ 		]]>
+</insert>
+
+<delete id="delete_CDD_306" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_306'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_306" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_306' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN REGEXP_LIKE(A.TAGT_ENNM, '[가-힣]') THEN '한글이름 포함: ' ||TRIM(A.TAGT_ENNM) || CASE WHEN REGEXP_LIKE(A.TAGT_ENNM, '[~!@#$%^&*_+\={}|;:".<>/?]') THEN ', 특수기호 포함' ELSE '' END
+            WHEN REGEXP_LIKE(A.TAGT_ENNM, '[~!@#$%^&*_+\={}|;:".<>/?]') THEN '특수기호 포함 : ' ||TRIM(A.TAGT_ENNM) 
+        END AS 사유
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}    
+   AND A.RGBR_CODE IN ('21080', '11670')  --21080: 채널개발팀. 11670 : 디지털업무지원팀
+   AND A.CDD_CLNT_SECT_CODE = '1'  
+   AND REGEXP_LIKE(A.TAGT_ENNM, '[가-힣~!@#$%^&*_+\={}|;:".<>/?]')
+ 		]]>
+</insert>
+
+<delete id="delete_CDD_307" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_307'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_307" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_307' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN REGEXP_LIKE(TRIM(B.NDVL_TRDG_PRPS_NAME), '[a-z0-9~!@#$%^&*_+\={}|;:"<>/?]') THEN '거래목적 특수문자/숫자/영문 포함'
+            WHEN REGEXP_LIKE(TRIM(B.NDVL_FUNS_ORIG_NAME), '[a-z0-9~!@#$%^&*_+\={}|;:"<>/?]') THEN '자금원천 특수문자/숫자/영문 포함'
+            WHEN REGEXP_LIKE(TRIM(B.INSN_TRDG_PRPS_NAME), '[a-z0-9~!@#$%^&*_+\={}|;:"<>/?]') THEN '거래목적 특수문자/숫자/영문 포함'
+            WHEN REGEXP_LIKE(TRIM(B.INSN_FUNS_ORIG_NAME), '[a-z0-9~!@#$%^&*_+\={}|;:"<>/?]') THEN '자금원천 특수문자/숫자/영문 포함'
+        END
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ INNER JOIN SID.IDO_A_MAH_EDD_FLFL_DTLD B
+    ON A.CDD_TAGT_ENTY_ID = B.CDD_TAGT_ENTY_ID
+   AND A.CDD_FLFL_SQNO    = B.CDD_FLFL_SQNO 
+ WHERE 1 = 1
+   AND A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}  
+   AND A.RGBR_CODE IN ('21080', '11670')  --21080: 채널개발팀. 11670 : 디지털업무지원팀
+   AND A.CDD_CLNT_SECT_CODE = '1'  
+   AND A.EDD_TAGT_YN      = 'Y'
+   AND A.CDD_TAGT_SECT_CODE = '01' -- 본인
+   
+   AND ((A.CDD_CLNT_SECT_CODE  = '1'          -- 개인
+         AND ((B.NDVL_TRDG_PRPS_CODE = '99' AND REGEXP_LIKE(TRIM(B.NDVL_TRDG_PRPS_NAME), '[a-z0-9~!@#$%^&*_+\={}|;:"<>/?]'))	      -- 개인거래목적코드 : 99.기타
+          OR (B.NDVL_FUNS_ORIG_CODE = '99' AND REGEXP_LIKE(TRIM(B.NDVL_FUNS_ORIG_NAME), '[a-z0-9~!@#$%^&*_+\={}|;:"<>/?]'))))	      -- 개인자금원천코드 : 99.기타
+   
+    OR (A.CDD_CLNT_SECT_CODE   IN ('2', '3') -- 법인
+         AND ((B.INSN_TRDG_PRPS_CODE  = '99' AND REGEXP_LIKE(TRIM(B.INSN_TRDG_PRPS_NAME), '[a-z0-9~!@#$%^&*_+\={}|;:"<>/?]'))	      -- 법인거래목적코드 : 99.기타
+          OR (B.INSN_FUNS_ORIG_CODE  = '99' AND REGEXP_LIKE(TRIM(B.INSN_FUNS_ORIG_NAME), '[a-z0-9~!@#$%^&*_+\={}|;:"<>/?]')))))      -- 법인자금원천코드 : 99.기타
+ 		]]>
+</insert>
+
+
+<delete id="delete_CDD_308" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_308'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_308" parameterType="cddVO">
+<![CDATA[
+INSERT INTO SSQ.L_CDD_MNTN_DTLD
+     ( MNTN_DATE
+     , MNTN_STNR_CODE
+     , CDD_TAGT_ENTY_ID
+     , CDD_FLFL_SQNO
+     , MNTN_DTLS_CTNT
+     , PRCE_DATE_TIME
+     , ACTN_RSLT_SECT_CODE
+     )
+SELECT A.CDD_FLFL_DATE
+     , 'CDD_308' 
+     , A.CDD_TAGT_ENTY_ID
+     , A.CDD_FLFL_SQNO    
+     , CASE WHEN TRIM(A.JOB_NAME) = '기타' THEN '기타'  || CASE WHEN REGEXP_LIKE(A.JOB_NAME, '[0-9]') THEN ', 숫자 포함' ELSE '' END
+            WHEN TRIM(A.JOB_NAME) = '기타' THEN '기타'  || CASE WHEN REGEXP_LIKE(A.JOB_NAME, '[~!@#$%^&*_+\={}|;:"<>/?]') THEN ', 특수기호 포함' ELSE '' END
+            WHEN REGEXP_LIKE(A.JOB_NAME, '[0-9]') THEN '숫자 포함'  || CASE WHEN REGEXP_LIKE(A.JOB_NAME, '[~!@#$%^&*_+\={}|;:"<>/?]') THEN ', 특수기호 포함' ELSE '' END
+            WHEN REGEXP_LIKE(A.JOB_NAME, '[0-9]') THEN '숫자 포함' 
+            ELSE CASE WHEN REGEXP_LIKE(A.JOB_NAME, '[~!@#$%^&*_+\={}|;:"<>/?]') THEN '특수기호 포함' ELSE '' END 
+        END AS 사유
+     , SYSDATE
+     , 'N'
+  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A
+ WHERE A.DEL_YN <> 'Y'
+   AND TRIM(A.CDD_FLFL_DATE) IS NOT NULL   
+   AND A.CLNT_RISK_RTNG_CODE IN ('H', 'M', 'L')
+   AND A.CDD_FLFL_DATE = #{yyyymmdd}    
+   AND A.RGBR_CODE IN ('21080', '11670')  --21080: 채널개발팀. 11670 : 디지털업무지원팀
+   AND A.CDD_CLNT_SECT_CODE = '1'  
+   AND A.JOB_CODE = '990'
+   AND (A.JOB_NAME = '기타' OR REGEXP_LIKE(A.JOB_NAME, '[0-9~!@#$%^&*_+\={}|;:"<>/?]'))
+ 		]]>
+</insert>
+
+
+<delete id="delete_CDD_309" parameterType="cddVO">
+DELETE SSQ.L_CDD_MNTN_DTLD
+ WHERE MNTN_STNR_CODE = 'CDD_309'
+   AND MNTN_DATE      = #{yyyymmdd}
+</delete>
+
+<insert id="insert_CDD_309" parameterType="cddVO">
+<![CDATA[
+
+
+ 		]]>
+</insert>
+
+
+
+
+<insert id="insetStartlog" parameterType="martVO">
+<![CDATA[
+MERGE INTO SSQ.NIC93B A USING
+(
+ SELECT 'CDD000'           AS JOB_ID
+       , 'CDD모니터링 추출'        AS JOB_NM
+       , SYSDATE           AS STRT_DY_TM
+       , SYSDATE           AS END_DY_TM
+       , 'Y'                AS LAST_YN
+    FROM DUAL
+) B
+ON ( A.JOB_ID = B.JOB_ID)
+WHEN Matched THEN
+     UPDATE SET  A.JOB_NM = B.JOB_NM
+                 , A.STRT_DY_TM = B.STRT_DY_TM
+             --  , A.END_DY_TM  = B.END_DY_TM
+                 , A.LAST_YN    = B.LAST_YN
+
+  WHEN NOT MATCHED THEN
+      INSERT ( JOB_ID
+              , JOB_NM
+              , STRT_DY_TM
+              , END_DY_TM
+              , LAST_YN
+              ) VALUES ( B.JOB_ID
+                        , B.JOB_NM
+                        , B.STRT_DY_TM
+                        , B.END_DY_TM
+                        , B.LAST_YN
+                        )
+]]>
+</insert>
+
+
+<insert id="insetEndlog" parameterType="martVO">
+<![CDATA[
+MERGE INTO SSQ.NIC93B A USING
+(
+ SELECT 'CDD000'           AS JOB_ID
+       , 'CDD모니터링 추출'        AS JOB_NM
+       , SYSDATE           AS STRT_DY_TM
+       , SYSDATE           AS END_DY_TM
+       , 'Y'                AS LAST_YN
+    FROM DUAL
+) B
+ON ( A.JOB_ID = B.JOB_ID)
+WHEN Matched THEN
+     UPDATE SET  A.JOB_NM = B.JOB_NM
+                 --, A.STRT_DY_TM = B.STRT_DY_TM
+                 , A.END_DY_TM  = B.END_DY_TM
+                 , A.LAST_YN    = B.LAST_YN
+
+  WHEN NOT MATCHED THEN
+      INSERT ( JOB_ID
+              , JOB_NM
+              , STRT_DY_TM
+              , END_DY_TM
+              , LAST_YN
+              ) VALUES ( B.JOB_ID
+                        , B.JOB_NM
+                        , B.STRT_DY_TM
+                        , B.END_DY_TM
+                        , B.LAST_YN
+                        )
+]]>
+</insert>
+
+
+</mapper>

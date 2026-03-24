@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="schd">
+	
+<select id="selectSchdIng" resultType="schdVO">
+	SELECT M.BAS_YYMM
+	      , SUBSTR(M.BAS_YYMM,1,4) AS BAS_YYYY
+	      , A.FIX_YN
+	      , M.FIX_DT
+	      , NVL(M.ING_STEP,0) AS ING_STEP
+	      , A.VALT_SDT
+	      , A.VALT_EDT
+	      , A.REAL_EDT
+	      , A.TGT_TRN_SDT
+	      , A.TGT_TRN_EDT
+	  FROM SRBA_VALT_SCHD_M M ,SRBA_VALT_SCHD_D A
+	 WHERE 1=1
+	   AND M.BAS_YYMM = A.BAS_YYMM
+	   AND M.BAS_YYMM = (SELECT MAX(BAS_YYMM) FROM SRBA_VALT_SCHD_M WHERE BAS_YYMM != '999912')
+	   AND A.RBA_VALT_SMDV_C = '2.3'
+	   AND A.FIX_YN ='1'
+</select>
+
+<select id="selectSchdIng_step" resultType="schdVO">
+	SELECT M.BAS_YYMM
+	      , SUBSTR(M.BAS_YYMM,1,4) AS BAS_YYYY
+	      , A.FIX_YN
+	      , M.FIX_DT
+	      , NVL(M.ING_STEP,0) AS ING_STEP
+	      , A.VALT_SDT
+	      , A.VALT_EDT
+	      , A.REAL_EDT
+	      , A.TGT_TRN_SDT
+	      , A.TGT_TRN_EDT
+	  FROM SRBA_VALT_SCHD_M M ,SRBA_VALT_SCHD_D A
+	 WHERE 1=1
+	   AND M.BAS_YYMM = A.BAS_YYMM
+	   AND M.BAS_YYMM = #{basYymm}
+	   AND A.RBA_VALT_SMDV_C = #{ingStep}
+	   AND A.FIX_YN ='1'
+</select>
+
+<!-- 진행 회차 및 상태 업데이트 -->
+<update id="updateSchIng1" parameterType="schdVO">
+	UPDATE SRBA_VALT_SCHD_D
+	SET REAL_EDT = TO_CHAR(SYSDATE,'YYYYMMDD')
+	WHERE BAS_YYMM = #{basYymm}
+	AND   RBA_VALT_SMDV_C = '2.3'
+</update>
+
+<update id="updateSchIng2" parameterType="schdVO">
+	UPDATE SRBA_VALT_SCHD_D
+	SET REAL_EDT = TO_CHAR(SYSDATE,'YYYYMMDD')
+	WHERE BAS_YYMM = #{basYymm}
+	AND   RBA_VALT_SMDV_C = '3.3'
+</update>
+
+<update id="updateSchIng3" parameterType="schdVO">
+	UPDATE SRBA_VALT_SCHD_D
+	SET REAL_EDT = TO_CHAR(SYSDATE,'YYYYMMDD')
+	WHERE BAS_YYMM = #{basYymm}
+	AND   RBA_VALT_SMDV_C = '3.4'
+</update>
+
+<!-- 진행 회차 및 상태 업데이트 -->
+<update id="updateSchIngM" parameterType="schdVO">
+	UPDATE SRBA_VALT_SCHD_M
+	SET ING_STEP = #{ingStep}
+	WHERE BAS_YYMM = #{basYymm}
+</update>
+	
+<select id="selectMltfRowDataChk" parameterType="schdVO" resultType="String">
+	SELECT (CASE WHEN RSK_CNT > 0 AND CNT = 0 THEN 'Y'
+                 ELSE 'N' END ) RUSTL  
+      FROM (SELECT COUNT(*) RSK_CNT
+              FROM SRBA_V_RSK_R 
+             WHERE 1=1
+               AND BAS_YYMM = #{basYymm}
+           ) M
+          ,(SELECT COUNT(*) CNT
+              FROM SRBA_V_MLTF_CUST_I
+             WHERE 1=1
+               AND BAS_YYMM = #{basYymm}
+           ) A
+</select>	
+
+</mapper>	

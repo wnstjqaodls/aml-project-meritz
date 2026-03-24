@@ -1,0 +1,852 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="RBA_99">
+
+    <!-- START RBA_99_01_01 -->
+    
+    <select id="RBA_99_01_01_01_getCRE_OGN_CCD" parameterType="hashMap" resultType="DataObj">
+        SELECT CRE_OGN_CCD FROM IC_EDU_M
+    </select>
+    
+    <select id="RBA_99_01_01_01_doSearch" parameterType="hashMap" resultType="DataObj">
+    	SELECT A.EDU_ID AS EDU_ID,
+		       A.EDU_NM AS EDU_NM,
+		       GET_CODE_NAME('A401', A.CRE_OGN_CCD) AS CRE_OGN_CCD,
+		       A.EDU_CCD AS EDU_CCD,
+		       A.OGN_NM AS OGN_NM,
+		       B.EDU_TGT_CCD AS EDU_TGT_CCD,
+		       B.EDU_TGT_CCD_NM AS EDU_TGT_CCD_NM,
+		       A.EDU_POS AS EDU_POS,
+		       A.DR_DPRT_CD AS DR_DPRT_CD,
+		       C.DEP_TITLE AS DEP_TITLE,
+		       A.EDU_STS_CD AS EDU_STS_CD,
+		       A.EDU_START_DT AS EDU_START_DT,
+		       A.EDU_END_DT AS EDU_END_DT,
+		       A.EDU_HH AS EDU_HH,
+		       A.TCHR_NM AS TCHR_NM,
+		       A.TCHR_CERT_CCD AS TCHR_CERT_CCD,
+		       A.EDU_CHK_YN AS EDU_CHK_YN,
+		       A.EDU_OBJ_CTNT AS EDU_OBJ_CTNT,
+		       A.DR_DT AS DR_DT,
+		       A.ING_R AS ING_R,
+		       (SELECT COUNT(JKW_NO) FROM IC_EDU_TGT_JKW D  JOIN C_USER C
+	                      ON D.JKW_NO=C.LOGIN_ID WHERE D.EDU_ID =A.EDU_ID AND D.ING_YN ='1')  AS EDU_CNT,	-- 교육 이수자 수
+	           G.LV3,
+	           G.GYLJ_ID,
+               G.GYLJ_S_C,
+               (SELECT DTL_C_NM FROM SRBA_DTL_C WHERE GRP_C = 'KR04' AND DTL_C = G.GYLJ_S_C) AS GYLJ_S_C_NM,
+               CASE WHEN NVL(G.GYLJ_S_C, 0) = '3' THEN 'Y'	/* 지표결재상태코드(A014) = 3(완료) */
+                       ELSE 'N' END FINL_GYLJ_S,				/* 최종승인여부 */
+                NVL(( SELECT NVL(H.ROLE_ID, 0) AS ROLE_ID
+                           FROM C_GYLJ_H H
+                          WHERE H.GYLJ_ID = G.GYLJ_ID
+                            AND H.GYLJ_SER = ( SELECT MAX(GYLJ_SER)
+                                                 FROM C_GYLJ_H
+                                                WHERE GYLJ_ID = G.GYLJ_ID
+                                             )
+                       ), 0) AS GYLJ_ROLE_ID,
+                ( SELECT CASE WHEN G.GYLJ_S_C = '22' THEN RTN_ROLE_ID
+                                 ELSE NEXT_GYLJ_ROLE_ID END AS ROLE_ID
+                     FROM C_GYLJ_D 
+                     WHERE GYLJ_LINE_G_C  = 'RBA99' 
+                      AND GYLJ_ROLE_ID = NVL( ( SELECT NVL(H.ROLE_ID, 0) AS ROLE_ID
+                           FROM C_GYLJ_H H
+                          WHERE H.GYLJ_ID = G.GYLJ_ID
+                            AND H.GYLJ_SER = ( SELECT MAX(GYLJ_SER)
+                                                 FROM C_GYLJ_H
+                                                WHERE GYLJ_ID = G.GYLJ_ID
+                                             )
+                       ), 0) ) as NEXT_GYLJ_ROLE_ID,
+                (SELECT GYLJ_ROLE_ID
+                    FROM C_GYLJ_D
+                    WHERE GYLJ_LINE_G_C  = 'RBA99'
+                    AND SNO = (SELECT MIN(SNO) FROM C_GYLJ_D WHERE GYLJ_LINE_G_C  = 'RBA99' ) )  AS FIRST_GYLJ,
+                (SELECT GYLJ_ROLE_ID
+                    FROM C_GYLJ_D
+                    WHERE GYLJ_LINE_G_C  = 'RBA99'
+                    AND SNO = (SELECT MAX(SNO) FROM C_GYLJ_D WHERE GYLJ_LINE_G_C  = 'RBA99' ))  AS END_GYLJ
+		FROM IC_EDU_M A
+		INNER JOIN (
+		    SELECT EDU_ID,
+		    LISTAGG(GET_CODE_NAME('A403', EDU_TGT_CCD), ',') WITHIN GROUP (ORDER BY EDU_ID) AS EDU_TGT_CCD_NM,
+            LISTAGG(EDU_TGT_CCD, ',') WITHIN GROUP (ORDER BY EDU_ID) AS EDU_TGT_CCD
+		    FROM IC_EDU_TGT_CCD
+		    GROUP BY EDU_ID
+		) B ON A.EDU_ID = B.EDU_ID
+		INNER JOIN C_DEP_INFO C ON A.DR_DPRT_CD = C.DEP_DESC
+		LEFT JOIN SRBA_APPR_M G ON SUBSTR(A.EDU_START_DT,3,8) = G.BAS_YYMM
+              AND A.EDU_ID = G.LV3
+		WHERE 1=1
+			<if test="CRE_OGN_CCD != 'ALL' and CRE_OGN_CCD != ''">    
+				AND  A.CRE_OGN_CCD = #{CRE_OGN_CCD}
+			</if>
+			<if test="EDU_TGT_CCD != 'ALL' and EDU_TGT_CCD != ''">
+				<choose>        
+					<when test='EDU_TGT_CCD == "1008"'>
+						AND (B.EDU_TGT_CCD LIKE '%' || '1001' || '%' AND B.EDU_TGT_CCD LIKE '%' || '1002' || '%')
+					</when>
+					<when test='EDU_TGT_CCD == "1009"'>
+						AND (B.EDU_TGT_CCD NOT LIKE '%' || '1001' || '%' AND B.EDU_TGT_CCD NOT LIKE '%' || '1002' || '%')
+					</when>
+					<otherwise>
+						AND B.EDU_TGT_CCD LIKE '%' || #{EDU_TGT_CCD} || '%'
+					</otherwise>
+				</choose>
+			</if>
+			<if test="EDU_NM != '' ">    
+				AND UPPER(EDU_NM) LIKE '%'|| UPPER(#{EDU_NM}) || '%'
+			</if>			
+			<if test="EDU_CCD != 'ALL' and EDU_CCD != ''">    
+				AND  A.EDU_CCD = #{EDU_CCD}
+			</if>
+			<if test="EDU_CHK_YN != 'ALL' and EDU_CHK_YN != ''">    
+				AND  A.EDU_CHK_YN = #{EDU_CHK_YN}
+			</if>
+			<if test="GYLJ_S_C != 'ALL' and GYLJ_S_C != ''">    
+				AND  G.GYLJ_S_C = #{GYLJ_S_C}
+			</if>
+			AND A.EDU_START_DT BETWEEN #{EDU_START_DT} AND #{EDU_END_DT}
+		ORDER BY TO_NUMBER(A.EDU_ID) DESC
+    </select>
+    
+    
+    <delete id="RBA_99_01_01_01_doEduDelete" parameterType="HashMap">
+		DELETE FROM IC_EDU_M
+		WHERE 1 = 1
+		  AND EDU_ID = #{EDU_ID}
+	</delete>
+	
+	<delete id="RBA_99_01_01_01_doEduDelete_TGT" parameterType="HashMap">
+		DELETE FROM IC_EDU_TGT_CCD
+		WHERE 1 = 1
+		  AND EDU_ID = #{EDU_ID}
+	</delete>
+
+	<delete id="RBA_99_01_01_01_doEduDelete_TGT_JKW_ALL" parameterType="HashMap">
+		DELETE FROM IC_EDU_TGT_JKW
+		WHERE 1 = 1
+		  AND EDU_ID = #{EDU_ID}
+	</delete>
+	
+	<delete id="RBA_99_01_01_01_doEduDelete_TGT_JKW" parameterType="HashMap">
+		DELETE FROM IC_EDU_TGT_JKW
+		WHERE 1 = 1
+		  AND EDU_ID = #{EDU_ID}
+		  AND JKW_NO IN (
+		  
+		  		SELECT REGEXP_SUBSTR(#{JKW_NO}, '[^,]+',1,LEVEL)
+		  		  FROM DUAL
+		  		 CONNECT BY REGEXP_SUBSTR(#{JKW_NO} , '[^,]+' , 1, LEVEL) IS NOT NULL
+		  )
+	</delete>
+
+	<delete id="RBA_99_01_01_01_doEduDelete_TGT_JKW_OLD" parameterType="HashMap">
+		DELETE FROM IC_EDU_TGT_JKW
+		WHERE 1 = 1
+		  AND EDU_ID = #{EDU_ID}
+		  AND JKW_NO = #{JKW_NO}
+	</delete>
+	
+	<delete id="RBA_99_01_01_01_doEduDelete_ATTCH_FILE" parameterType="HashMap">
+		DELETE FROM RBA_ATTCH_FILE A
+		 WHERE A.ATTCH_FILE_NO = (SELECT B.ATTCH_FILE_NO
+								    FROM IC_EDU_M B 
+								   WHERE B.EDU_ID = #{EDU_ID})
+	</delete>
+	
+    <insert id="RBA_99_01_01_02_doSaveEmp" parameterType="hashMap">
+    	INSERT INTO IC_EDU_TGT_JKW
+    	(
+    		EDU_ID,
+    		NOTE_CTNT, 	 -- 사용하지 않는 컬럼에 "성명"
+			JKW_NO,
+            EDU_TGT_CCD, -- 사용하지 않는 컬럼에 "직위"
+			DPRT_CD,
+			ING_YN,
+			ING_DT,
+			DR_DT,
+            DR_TIME,
+            DR_OP_JKW_NO,
+            CHG_DT,
+			CHG_TIME,
+			CHG_OP_JKW_NO
+    	)VALUES
+    	(
+			#{EDU_ID, jdbcType=VARCHAR},
+			#{USER_NM, jdbcType=VARCHAR},
+			#{JKW_NO, jdbcType=VARCHAR},
+			#{POSITION_NM, jdbcType=VARCHAR},
+            NVL((SELECT TRIM(TO_CHAR(DEP_ID , '9999999999')) AS DPRT_CD FROM C_DEP_INFO WHERE DEP_TITLE = #{DEP_NM, jdbcType=VARCHAR}) , SUBSTR(#{DEP_NM, jdbcType=VARCHAR} , 1,10) ),
+			#{ING_YN, jdbcType=VARCHAR},
+			#{ING_DT, jdbcType=VARCHAR},
+			TO_CHAR(SYSDATE,'YYYYMMDD'),
+			TO_CHAR(SYSDATE,'HH24MISS'),
+			#{DR_OP_JKW_NO, jdbcType=VARCHAR},
+			TO_CHAR(SYSDATE,'YYYYMMDD'),
+			TO_CHAR(SYSDATE,'HH24MISS'),
+			#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+    	)
+    	
+    </insert>
+
+    <update id="RBA_99_01_01_02_doUpdateEmp_NEW" parameterType="hashMap">
+	    MERGE INTO IC_EDU_TGT_JKW
+		      USING DUAL
+		      ON ( EDU_ID = #{EDU_ID, jdbcType=VARCHAR} AND JKW_NO = #{JKW_NO, jdbcType=VARCHAR})
+		      WHEN MATCHED THEN
+			UPDATE SET
+<!-- 		            EDU_ID = #{EDU_ID, jdbcType=VARCHAR}, -->
+<!-- 		            JKW_NO = #{JKW_NO, jdbcType=VARCHAR}, -->
+<!-- 		            DPRT_CD = #{DEP_ID, jdbcType=VARCHAR}, -->
+		            ING_YN = #{ING_YN, jdbcType=VARCHAR},
+		            ING_DT = #{ING_DT, jdbcType=VARCHAR},
+		            DPRT_CD  = NVL((SELECT TRIM(TO_CHAR(DEP_ID , '9999999999')) AS DPRT_CD FROM C_DEP_INFO WHERE DEP_TITLE = #{DEP_NM, jdbcType=VARCHAR}) , SUBSTR(#{DEP_NM, jdbcType=VARCHAR} , 1,10) ),
+<!-- 		            DR_TIME = TO_CHAR(SYSDATE,'HH24MISS'), -->
+<!-- 		            DR_OP_JKW_NO = #{DR_OP_JKW_NO, jdbcType=VARCHAR}, -->
+		            CHG_DT = TO_CHAR(SYSDATE,'YYYYMMDD'),
+		            CHG_TIME = TO_CHAR(SYSDATE,'HH24MISS'),
+		            CHG_OP_JKW_NO = #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+			WHEN NOT MATCHED THEN
+			INSERT
+			    (
+		    		EDU_ID,
+		    		NOTE_CTNT, 	 -- 사용하지 않는 컬럼에 "성명"
+					JKW_NO,
+					EDU_TGT_CCD, -- 사용하지 않는 컬럼에 "직위"
+					DPRT_CD,
+					ING_YN,
+					ING_DT,
+					DR_DT,
+		            DR_TIME,
+		            DR_OP_JKW_NO,
+		            CHG_DT,
+					CHG_TIME,
+					CHG_OP_JKW_NO
+		    	)VALUES
+		    	(
+					#{EDU_ID, jdbcType=VARCHAR},
+					#{USER_NM, jdbcType=VARCHAR},
+					#{JKW_NO, jdbcType=VARCHAR},
+					#{POSITION_NM, jdbcType=VARCHAR},
+					 NVL((SELECT TRIM(TO_CHAR(DEP_ID , '9999999999')) AS DPRT_CD FROM C_DEP_INFO WHERE DEP_TITLE = #{DEP_NM, jdbcType=VARCHAR}) , SUBSTR(#{DEP_NM, jdbcType=VARCHAR} , 1,10) ),
+					#{ING_YN, jdbcType=VARCHAR},
+					#{ING_DT, jdbcType=VARCHAR},
+					TO_CHAR(SYSDATE,'YYYYMMDD'),
+					TO_CHAR(SYSDATE,'HH24MISS'),
+					#{DR_OP_JKW_NO, jdbcType=VARCHAR},
+					TO_CHAR(SYSDATE,'YYYYMMDD'),
+					TO_CHAR(SYSDATE,'HH24MISS'),
+					#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+		    	)
+    	
+    </update>
+    
+    <update id="RBA_99_01_01_02_doUpdateEmp" parameterType="hashMap">
+    	UPDATE SET IC_EDU_TGT_JKW
+    	(
+    		EDU_ID,
+			JKW_NO,
+			DPRT_CD,
+			ING_YN,
+			ING_DT,
+			DR_DT,
+            DR_TIME,
+            DR_OP_JKW_NO,
+            CHG_DT,
+			CHG_TIME,
+			CHG_OP_JKW_NO
+    	)VALUES
+    	(
+			#{EDU_ID, jdbcType=VARCHAR},
+			#{JKW_NO, jdbcType=VARCHAR},
+			#{DEP_ID, jdbcType=VARCHAR},
+			#{ING_YN, jdbcType=VARCHAR},
+			#{ING_DT, jdbcType=VARCHAR},
+			TO_CHAR(SYSDATE,'YYYYMMDD'),
+			TO_CHAR(SYSDATE,'HH24MISS'),
+			#{DR_OP_JKW_NO, jdbcType=VARCHAR},
+			TO_CHAR(SYSDATE,'YYYYMMDD'),
+			TO_CHAR(SYSDATE,'HH24MISS'),
+			#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+    	)
+    	
+    </update>
+	
+    
+    <!-- START RBA_99_01_02 -->
+    <select id="RBA_99_01_01_02_EDU_ID_MAXSEQ" parameterType="hashMap" resultType="DataObj">
+        SELECT NVL(MAX(EDU_ID), 0) + 1 AS EDU_ID_SEQ
+  		  FROM IC_EDU_M 
+    </select>
+    <select id="RBA_99_01_01_02_EDU_ID_SEQ_nextval" parameterType="hashMap" resultType="DataObj">
+        SELECT EDU_ID_SEQ.nextval AS EDU_ID_SEQ
+        FROM DUAL
+    </select>
+    <select id="RBA_99_01_01_02_EDU_GYLJ_ID_SEQ_nextval" parameterType="hashMap" resultType="DataObj">
+  		  SELECT C_GYLJ_H_SEQ.NEXTVAL AS EDU_ID_SEQ
+          FROM DUAL
+    </select>
+    
+    <update id="RBA_99_01_01_02_doDeleteFile" parameterType="hashMap">
+    	DELETE FROM RBA_ATTCH_FILE WHERE ATTCH_FILE_NO IN (
+	        SELECT T01.ATTCH_FILE_NO  
+			  FROM RBA_ATTCH_FILE T01
+			     , IC_EDU_M T02
+			 WHERE T01.ATTCH_FILE_NO = T02.ATTCH_FILE_NO
+		   AND T02.EDU_ID = #{EDU_ID}  
+		   AND T01.ATTCH_FILE_NO  = #{ATTCH_FILE_NO}
+	 	)
+    </update>
+    
+    <insert id="RBA_99_01_01_02_doSave" parameterType="hashMap">
+    	INSERT INTO IC_EDU_M (
+				    EDU_ID,             -- 교육ID
+				    DR_DPRT_CD,         -- 등록부서코드
+				    EDU_NM,             -- 교육명(과정명)
+				    CRE_OGN_CCD,        -- 생성기관구분코드(제작기관)_A401 , 교육기관
+				    <if test="CRE_OGN_CCD == '02'">  
+					    OGN_NM,        	-- 기관명
+				    </if>
+				    EDU_CCD,            -- 교육구분코드(교육형태)_A402
+				    EDU_STS_CD,         -- 교육상태코드(진행상태)_A405
+				    EDU_START_DT,       -- 교육시작일
+				    EDU_END_DT,         -- 교육종료일
+				    EDU_POS,            -- 교육위치(교육장소)
+				    EDU_HH,             -- 교육시간(시)
+				    TCHR_NM,            -- 강사명
+				    TCHR_HIST,      	-- 강사약력
+				    EDU_OBJ_CTNT,       -- 교육목적내용(교육목적)
+				    ATTCH_FILE_NO,      -- 첨부파일파일번호
+				    EDU_STD_CNT,      	-- 교육 대상자 수
+				    EDU_ESTD_CNT,      	-- 교육 수료자 수
+				    EDU_CHK_YN,      	-- 이해도 점검 여부
+				    <if test="TCHR_CERT_CCD != null"> 
+					    TCHR_CERT_CCD,     	-- 교육대상 중 (직접입력) 대상
+				    </if>
+				    DR_DT,              -- 등록일자
+				    DR_TIME,            -- 등록시간
+				    DR_OP_JKW_NO,       -- 등록조작자번호
+				    CHG_DT,             -- 변경일자 
+				    CHG_TIME,           -- 변경시간
+				    CHG_OP_JKW_NO       -- 변경조작자번호
+		  )VALUES(
+		  			#{EDU_ID}, 
+		  			#{DR_DPRT_CD}, 
+		  			#{EDU_NM}, 
+		  			#{CRE_OGN_CCD},
+				    <if test="CRE_OGN_CCD == '02'">  
+		  				#{OGN_NM}, 
+					</if>
+		  			#{EDU_CCD}, 
+		  			#{EDU_STS_CD}, 
+    				#{EDU_START_DT}, 
+    				#{EDU_END_DT}, 
+    				#{EDU_POS}, 
+    				#{EDU_HH}, 
+    				#{TCHR_NM}, 
+    				#{TCHR_HIST}, 
+    				#{EDU_OBJ_CTNT},
+    				#{ATTCH_FILE_NO}, 
+    				#{EDU_STD_CNT}, 
+    				#{EDU_ESTD_CNT}, 
+    				#{EDU_CHK_YN}, 
+    			   <if test="TCHR_CERT_CCD != null"> 
+	    				#{TCHR_CERT_CCD}, 
+    				</if>
+    				TO_CHAR(SYSDATE, 'YYYYMMDD'),
+    				TO_CHAR(SYSDATE, 'HH24MISS'),
+    				#{DR_OP_JKW_NO}, 
+    				TO_CHAR(SYSDATE, 'YYYYMMDD'),
+    				TO_CHAR(SYSDATE, 'HH24MISS'), 
+    				#{CHG_OP_JKW_NO}
+    		)
+    </insert>
+    
+    <insert id="RBA_99_01_01_02_doSave_2" parameterType="hashMap">
+    	INSERT INTO IC_EDU_TGT_CCD (EDU_ID, EDU_TGT_CCD, DR_DT, DR_TIME, DR_OP_JKW_NO, CHG_DT, CHG_TIME, CHG_OP_JKW_NO) VALUES(
+			#{EDU_ID},
+			#{EDU_TGT_CCD},
+			TO_CHAR(SYSDATE,'YYYYMMDD'),
+       		TO_CHAR(SYSDATE,'HH24MISS'),
+			#{DR_OP_JKW_NO},
+			TO_CHAR(SYSDATE,'YYYYMMDD'),
+       		TO_CHAR(SYSDATE,'HH24MISS'),
+			#{CHG_OP_JKW_NO}	
+		)
+    </insert>
+    
+    <update  id="RBA_99_01_01_02_doDelete_2" parameterType="hashMap" >
+	DELETE FROM IC_EDU_TGT_CCD                         
+	 WHERE EDU_ID = #{EDU_ID}
+	 AND EDU_TGT_CCD = #{EDU_TGT_CCD}
+	</update>
+    
+    
+    
+    <select id="RBA_99_01_01_02_getSearch"  parameterType="hashMap" resultType="DataObj">
+		SELECT A.EDU_ID, 
+		  	   A.DR_DPRT_CD, 
+		   	   A.EDU_NM, 
+		       A.CRE_OGN_CCD, 
+		       A.OGN_NM, 
+		   	   A.EDU_CCD,
+               B.EDU_TGT_CCD AS EDU_TGT_CCD,
+		       B.EDU_TGT_CCD_NM AS EDU_TGT_CCD_NM,
+		   	   A.EDU_STS_CD, 
+		   	   A.EDU_START_DT,
+		   	   A.EDU_END_DT,
+		   	   A.EDU_POS, 
+		   	   A.EDU_HH, 
+		   	   A.ING_R, 
+		   	   A.TCHR_NM, 
+		   	   A.TCHR_HIST, 
+		   	   A.TCHR_CERT_CCD,
+		   	   A.EDU_OBJ_CTNT,
+               A.EDU_STD_CNT,
+               A.EDU_ESTD_CNT,
+               A.EDU_CHK_YN,
+		   	   A.ATTCH_FILE_NO,
+		   	   TO_CHAR(TO_DATE(A.DR_DT, 'YYYYMMDD'),'YYYY-MM-DD') AS  DR_DT ,
+		   	   A.DR_TIME,
+		   	   A.DR_OP_JKW_NO,
+		   	   A.CHG_DT,
+		   	   A.CHG_TIME,
+		   	   A.CHG_OP_JKW_NO
+		FROM IC_EDU_M A 
+        INNER JOIN (
+		    SELECT EDU_ID,
+		    LISTAGG(GET_CODE_NAME('A403', EDU_TGT_CCD), ',') WITHIN GROUP (ORDER BY EDU_ID) AS EDU_TGT_CCD_NM,
+            LISTAGG(EDU_TGT_CCD, ',') WITHIN GROUP (ORDER BY EDU_ID) AS EDU_TGT_CCD
+		    FROM IC_EDU_TGT_CCD
+		    GROUP BY EDU_ID
+		) B ON A.EDU_ID = B.EDU_ID
+		INNER JOIN C_DEP_INFO C ON A.DR_DPRT_CD = C.DEP_DESC
+		WHERE 1=1
+		  AND A.EDU_ID = #{EDU_ID}
+	</select>
+    
+    <select id="RBA_99_01_01_02_getRbaAttchInfo"  parameterType="hashMap" resultType="DataObj">
+		SELECT 
+		        ROW_NUMBER() over (order by T01.ATTCH_FILE_NO, T01.FILE_SER)  AS CNT,
+		        T01.ATTCH_FILE_NO,                        
+		        T01.FILE_SER,
+		        T01.DATA_G,                         
+		        T01.FILE_POS,                         
+		        T01.LOSC_FILE_NM,                     
+		        T01.PHSC_FILE_NM,                     
+		        T01.FILE_SIZE,                        
+		        T01.DOWNLOAD_CNT,                   
+		        T01.DR_OP_JKW_NO,                       
+		        GET_LOGINID_NAME(T01.DR_OP_JKW_NO) AS REG_NM,
+		        T01.DR_DT                        
+		  FROM RBA_ATTCH_FILE T01
+		     , IC_EDU_M T02
+		 WHERE T01.ATTCH_FILE_NO = T02.ATTCH_FILE_NO
+		   AND T02.EDU_ID = #{EDU_ID}  
+		ORDER BY T01.ATTCH_FILE_NO, T01.FILE_SER
+	</select>
+	
+    <select id="RBA_99_01_01_02_getEduAttchInfo"  parameterType="hashMap" resultType="DataObj">
+		SELECT 
+		        T01.ATTCH_FILE_NO,                        
+		        T01.FILE_SER,
+		        T01.DATA_G,                         
+		        T01.FILE_POS,                         
+		        T01.LOSC_FILE_NM,                     
+		        T01.PHSC_FILE_NM,                     
+		        T01.FILE_SIZE,                        
+		        T01.DOWNLOAD_CNT,                   
+		        T01.DR_OP_JKW_NO,                       
+		        GET_LOGINID_NAME(T01.DR_OP_JKW_NO) AS REG_NM,
+		        T01.DR_DT                        
+		  FROM RBA_ATTCH_FILE T01
+		     , IC_EDU_M T02
+		 WHERE T01.ATTCH_FILE_NO = T02.ATTCH_FILE_NO
+		   AND T02.EDU_ID = #{EDU_ID}  
+		ORDER BY T01.ATTCH_FILE_NO, T01.FILE_SER
+	</select>
+	
+	<select id="RBA_99_01_01_02_getTGTSearch"  parameterType="hashMap" resultType="DataObj">
+		SELECT EDU_TGT_CCD         
+		  FROM IC_EDU_TGT_CCD
+		 WHERE EDU_ID = #{EDU_ID}  
+		ORDER BY EDU_TGT_CCD
+	</select>
+	
+	<select id="RBA_99_01_01_02_isTGTSearch"  parameterType="hashMap" resultType="DataObj">
+		SELECT EDU_TGT_CCD         
+		  FROM IC_EDU_TGT_CCD
+		 WHERE EDU_ID = #{EDU_ID}
+		 AND EDU_TGT_CCD = #{EDU_TGT_CCD}
+	</select>
+		
+	<update id="RBA_99_01_01_02_doUpdate" parameterType="hashMap">
+		UPDATE IC_EDU_M 
+		SET
+				EDU_NM = #{EDU_NM , jdbcType=VARCHAR}, 
+				DR_DPRT_CD =#{DR_DPRT_CD , jdbcType=VARCHAR},
+				CRE_OGN_CCD = #{CRE_OGN_CCD, jdbcType=VARCHAR},
+				EDU_CCD = #{EDU_CCD, jdbcType=VARCHAR}, 
+    			EDU_START_DT= #{EDU_START_DT, jdbcType=VARCHAR}, 
+    			EDU_END_DT = #{EDU_END_DT, jdbcType=VARCHAR}, 
+    			EDU_POS = #{EDU_POS, jdbcType=VARCHAR}, 
+    			EDU_HH = #{EDU_HH, jdbcType=VARCHAR}, 
+    			TCHR_NM = #{TCHR_NM, jdbcType=VARCHAR}, 
+    			TCHR_HIST = #{TCHR_HIST, jdbcType=VARCHAR}, 
+    			EDU_OBJ_CTNT = #{EDU_OBJ_CTNT, jdbcType=VARCHAR},
+    			EDU_STD_CNT = #{EDU_STD_CNT, jdbcType=VARCHAR},
+    			EDU_ESTD_CNT = #{EDU_ESTD_CNT, jdbcType=VARCHAR},
+    			EDU_CHK_YN = #{EDU_CHK_YN, jdbcType=VARCHAR},
+    			ATTCH_FILE_NO = #{ATTCH_FILE_NO, jdbcType=VARCHAR},
+    			<if test="TCHR_CERT_CCD != null"> 
+    				TCHR_CERT_CCD = #{TCHR_CERT_CCD, jdbcType=VARCHAR}, 
+   				</if>  
+    			CHG_DT = to_char(sysdate, 'YYYYMMDD'), 
+    			CHG_TIME = to_char(sysdate, 'hh24miss'), 
+    			CHG_OP_JKW_NO = #{CHG_OP_JKW_NO, jdbcType=VARCHAR}
+		 WHERE EDU_ID = #{EDU_ID}
+	</update>
+	
+	<update id="RBA_99_01_01_02_doEndEdu" parameterType="hashMap">
+		UPDATE IC_EDU_M 
+		SET
+				EDU_STS_CD = #{EDU_STS_CD}, 
+    			EDU_END_DT = to_char(sysdate, 'YYYYMMDD'),     			  
+    			CHG_DT = to_char(sysdate, 'YYYYMMDD'), 
+    			CHG_TIME = to_char(sysdate, 'hh24miss'), 
+    			CHG_OP_JKW_NO = #{CHG_OP_JKW_NO}
+		 WHERE EDU_ID = #{EDU_ID}
+	</update>
+    
+    <select id="RBA_99_01_01_03_GetEDUInfo" parameterType="hashMap" resultType="DataObj">
+     SELECT A.EDU_ID,
+     		A.EDU_NM,
+     		TO_CHAR(TO_DATE(A.EDU_START_DT, 'YYYYMMDD'), 'YYYY-MM-DD') AS EDU_START_DT,
+     		TO_CHAR(TO_DATE(A.EDU_END_DT, 'YYYYMMDD'), 'YYYY-MM-DD') AS EDU_END_DT,
+     		GET_CODE_NAME('A401',A.CRE_OGN_CCD) AS CRE_OGN,
+     		GET_CODE_NAME('A402',A.EDU_CCD) AS EDU_TYPE,
+     		B.EDU_TGT_CCD_NM AS EDU_TGT,
+     		A.EDU_POS,
+     		A.EDU_HH
+     FROM IC_EDU_M A
+     INNER JOIN (
+		    SELECT EDU_ID,
+		    LISTAGG(GET_CODE_NAME('A403', EDU_TGT_CCD), ',') WITHIN GROUP (ORDER BY EDU_ID) AS EDU_TGT_CCD_NM,
+            LISTAGG(EDU_TGT_CCD, ',') WITHIN GROUP (ORDER BY EDU_ID) AS EDU_TGT_CCD
+		    FROM IC_EDU_TGT_CCD
+		    GROUP BY EDU_ID
+		) B ON A.EDU_ID = B.EDU_ID
+     	AND A.EDU_ID = #{EDU_ID, jdbcType=VARCHAR}
+ 	</select>
+ 
+	<select id="RBA_99_01_01_03_GetJKWInfo" parameterType="hashMap" resultType="DataObj">
+		SELECT ROW_NUMBER() OVER (ORDER BY NVL(B.DEP_ID , A.DPRT_ID_NUM)) AS CNT,
+		        A.EDU_ID,
+		        NVL(B.DEP_ID , A.DPRT_ID_NUM) AS DEP_ID,
+		        COALESCE(B.DEP_TITLE, SUBSTR(TRIM(A.DPRT_CD) ,1,10)) AS DEP_NM,
+		        A.JKW_NO,
+		        NVL(C.USER_NM , A.NOTE_CTNT) AS USER_NM,
+		        NVL( ( SELECT DISPLAY_NM FROM C_CD_NM WHERE LANG_CD = 'ko-KR' AND CD_ID = C.POSITION_CODE ) , A.EDU_TGT_CCD ) AS POSITION_NM ,
+		        A.ING_DT ,
+		        A.ING_YN  
+		  FROM (
+		  
+		         SELECT A.*,
+		            CASE WHEN REGEXP_LIKE(TRIM(A.DPRT_CD) , '^\d+$')
+		                 THEN TO_NUMBER(TRIM(A.DPRT_CD))
+		             END AS DPRT_ID_NUM
+		           FROM IC_EDU_TGT_JKW A
+		          WHERE A.EDU_ID = #{EDU_ID, jdbcType=VARCHAR}
+		  
+		  )A
+		  LEFT JOIN C_USER C
+		         ON A.JKW_NO=C.LOGIN_ID
+		  LEFT JOIN C_DEP_INFO B
+		         ON A.DPRT_ID_NUM = B.DEP_ID
+		 ORDER BY NVL(B.DEP_ID , A.DPRT_ID_NUM)
+ 	</select>
+ 	
+ 	<select id="RBA_99_01_01_03_VERIFY_JKW_AND_DPT" parameterType="hashMap" resultType="DataObj">
+		SELECT C.LOGIN_ID, 
+			C.USER_NM, 
+			D.DEP_ID, 
+			D.DEP_TITLE,
+			D.DEP_DESC
+	    FROM C_USER C
+	    JOIN C_DEP_INFO D
+	    ON C.DEP_ID = D.DEP_ID
+	    	AND C.USER_NM= #{JKW_NM, jdbcType=VARCHAR}
+	    	AND C.LOGIN_ID= #{JKW_NO}
+	    	AND D.DEP_TITLE= #{DPRT_NM, jdbcType=VARCHAR}
+	</select>
+	
+	<update id="RBA_99_01_01_03_MERGE_IC_EDU_TGT_JKW" parameterType="hashMap">
+	MERGE INTO IC_EDU_TGT_JKW A
+	      USING (SELECT C.LOGIN_ID, 
+				 C.USER_NM,
+				 D.DEP_ID, 
+				 D.DEP_TITLE,
+				 D.DEP_DESC
+			    FROM C_USER C, C_DEP_INFO D
+			    WHERE C.DEP_ID = D.DEP_ID
+			    	AND C.USER_NM= #{JKW_NM, jdbcType=VARCHAR}
+			    	AND D.DEP_TITLE= #{DPRT_NM, jdbcType=VARCHAR} ) T
+	      ON (
+	      		A.EDU_ID = #{EDU_ID, jdbcType=VARCHAR}
+	      		AND A.JKW_NO = #{JKW_NO, jdbcType=VARCHAR}
+      			AND A.JKW_NO = T.LOGIN_ID
+	      		AND A.DPRT_CD = T.DEP_DESC
+			 )
+	      WHEN MATCHED THEN
+	    UPDATE SET
+	    	  EDU_TGT_CCD  		= #{EDU_TGT_CCD, jdbcType=VARCHAR},
+	          ING_YN  		= #{ING_YN, jdbcType=VARCHAR},
+	          NOTE_CTNT       = #{NOTE_CTNT, jdbcType=VARCHAR},
+	          CHG_DT        = TO_CHAR(SYSDATE , 'YYYYMMDD'),
+	          CHG_TIME      = TO_CHAR(SYSDATE , 'HH24MISS'),
+	          CHG_OP_JKW_NO = #{CHG_OP_JKW_NO, jdbcType=VARCHAR}
+	    WHEN NOT MATCHED THEN
+	    INSERT
+	        (
+	            EDU_ID,
+				JKW_NO,
+				DPRT_CD,
+				EDU_TGT_CCD,
+				ING_YN,
+				NOTE_CTNT,
+				DR_DT,
+				DR_TIME,
+				DR_OP_JKW_NO,
+				CHG_DT,
+				CHG_TIME,
+				CHG_OP_JKW_NO
+	        )
+	        VALUES
+	        (
+	          #{EDU_ID,  jdbcType=VARCHAR}
+	         ,#{JKW_NO,   jdbcType=VARCHAR}
+	         ,#{DPRT_CD, jdbcType=VARCHAR}
+	         ,#{EDU_TGT_CCD,    jdbcType=VARCHAR}
+	         ,#{ING_YN,    jdbcType=VARCHAR}
+	         ,#{NOTE_CTNT,    jdbcType=VARCHAR}
+	         ,TO_CHAR(SYSDATE , 'YYYYMMDD')
+	         ,TO_CHAR(SYSDATE , 'HH24MISS')
+	         ,#{DR_OP_JKW_NO,  jdbcType=VARCHAR}
+	         ,TO_CHAR(SYSDATE , 'YYYYMMDD')
+	         ,TO_CHAR(SYSDATE , 'HH24MISS')
+	         ,#{CHG_OP_JKW_NO,  jdbcType=VARCHAR}
+	        )
+	</update>
+
+	<delete  id="RBA_99_01_01_03_DELETE_IC_EDU_TGT_JKW" parameterType="DataObj" >
+	DELETE FROM IC_EDU_TGT_JKW                
+		WHERE EDU_ID = #{EDU_ID, jdbcType=VARCHAR}
+		  AND DPRT_CD = (SELECT DEP_DESC FROM C_DEP_INFO WHERE DEP_TITLE = #{DPRT_NM, jdbcType=VARCHAR})
+		  AND JKW_NO = #{JKW_NO, jdbcType=VARCHAR}
+	</delete>
+	
+	<update id="RBA_99_01_01_03_ING_R_UPDATE" parameterType="DataObj">
+		UPDATE IC_EDU_M 
+		 SET	ING_R = #{ING_R} 
+		 WHERE EDU_ID = #{EDU_ID}
+	</update>
+    
+    <!-- START RBA_99_02_01 -->
+    <select id="RBA_99_02_01_01_doSearch" parameterType="hashMap" resultType="DataObj">
+        SELECT ROW_NUMBER() OVER (ORDER BY DPRT_CD, USER_NM) AS CNT,
+        		A.EDU_ID,
+        		D.DEP_TITLE AS DPRT_NM,
+        		A.JKW_NO,
+        		C.USER_NM AS JKW_NM,
+        		SUM(CASE WHEN A.ING_YN = 'Y' THEN B.EDU_HH ELSE 0 END) OVER(PARTITION BY A.JKW_NO) AS EDU_SUM_HH, -- 시간 합산은 이수여부가 Y 일때만
+        		GET_CODE_NAME('A403',A.EDU_TGT_CCD) AS EDU_TGT,
+        		A.ING_YN,
+        		B.EDU_NM,
+        		B.EDU_HH,
+        		B.EDU_START_DT,
+				B.EDU_END_DT
+        FROM IC_EDU_TGT_JKW A,
+        	 IC_EDU_M B,
+        	 C_USER C,
+        	 C_DEP_INFO D
+        WHERE 
+        		A.EDU_ID=B.EDU_ID AND
+<![CDATA[
+        		B.EDU_START_DT >= #{stDate} AND
+        		B.EDU_END_DT <= #{edDate} AND
+]]>   
+				C.LOGIN_ID = A.JKW_NO AND
+				A.DPRT_CD = D.DEP_ID
+			<if test="branchCode != '' and branchCode != '99999'">             
+                AND #{branchCode} IN (SELECT DPRT_CD FROM C_DEP_INFO)                            
+            </if>
+            <if test="JKW_NM != '' and JKW_NM  != null">      	
+                AND (C.USER_NM LIKE '%'||#{JKW_NM}||'%') 
+            </if>
+            <if test="JKW_NO != '' and JKW_NO  != null"> 
+                AND (A.JKW_NO = #{JKW_NO}) 
+            </if>
+            <if test="EDU_NM != '' and EDU_NM  != null"> 
+                AND (B.EDU_NM LIKE '%'||#{EDU_NM}||'%') 
+            </if>
+            <if test="EDU_TGT_CCD_YN != 1"> 
+                  AND A.EDU_TGT_CCD = #{EDU_TGT_CCD}
+            </if> 
+            <if test="ING_ALL_YN != 1"> 
+               AND A.ING_YN = #{ING_YN}
+            </if>
+        ORDER BY CNT
+    </select>
+
+    <!-- START RBA_99_03_01 -->
+    <select id="RBA_99_03_01_01_doSearch" parameterType="hashMap" resultType="DataObj">
+    	SELECT ROWNUM AS SEQ
+			  ,JKW_NO
+			  ,JKW_NM
+			  ,DPRT_NM
+			  ,DPRT_CD
+			  ,CAMS
+			  ,KCAMS
+			  ,TPAC1
+			  ,TPAC2
+			  ,ANTI_LANDER_AG_PRO
+			  ,ANTI_LANDER_AG_FU
+			  ,BRAN_COMP_OFFI
+			  ,SKK_UNI_FIN_LEAD
+			  ,E_MK_ANTI_LANDER_COURSE
+			  ,DK_UNI_MASTER_COURSE
+			  ,APL_PNT
+		FROM (SELECT A.JKW_NO AS JKW_NO
+				    ,MAX(C.USER_NM) AS JKW_NM
+		  		    ,MAX(D.DEP_TITLE) AS DPRT_NM
+				    ,MAX(A.DPRT_CD) AS DPRT_CD
+				    ,MAX(CASE WHEN B.CERT_CCD ='1001' THEN B.ACQ_DT ELSE '-' END) AS CAMS
+				    ,MAX(CASE WHEN B.CERT_CCD ='1002' THEN B.ACQ_DT ELSE '-' END) AS KCAMS
+				    ,MAX(CASE WHEN B.CERT_CCD ='1003' THEN B.ACQ_DT ELSE '-' END) AS TPAC1
+				    ,MAX(CASE WHEN B.CERT_CCD ='1004' THEN B.ACQ_DT ELSE '-' END) AS TPAC2
+				    ,MAX(CASE WHEN B.CERT_CCD ='1005' THEN B.ACQ_DT ELSE '-' END) AS ANTI_LANDER_AG_PRO
+				    ,MAX(CASE WHEN B.CERT_CCD ='1006' THEN B.ACQ_DT ELSE '-' END) AS ANTI_LANDER_AG_FU
+				    ,MAX(CASE WHEN B.CERT_CCD ='1007' THEN B.ACQ_DT ELSE '-' END) AS BRAN_COMP_OFFI
+				    ,MAX(CASE WHEN B.CERT_CCD ='1008' THEN B.ACQ_DT ELSE '-' END) AS SKK_UNI_FIN_LEAD
+				    ,MAX(CASE WHEN B.CERT_CCD ='1009' THEN B.ACQ_DT ELSE '-' END) AS E_MK_ANTI_LANDER_COURSE
+				    ,MAX(CASE WHEN B.CERT_CCD ='1010' THEN B.ACQ_DT ELSE '-' END) AS DK_UNI_MASTER_COURSE
+				    ,MAX(A.APL_PNT) AS APL_PNT
+			   FROM IC_CERT_M A
+			   LEFT OUTER JOIN IC_CERT_CCD B ON A.JKW_NO = B.JKW_NO,
+				    C_USER C, C_DEP_INFO D, (SELECT JKW_NO 
+				    						   FROM IC_CERT_CCD
+				    						  <if test="CERT_CCD != 'ALL' and CERT_CCD != null " >
+				    						  WHERE CERT_CCD = #{CERT_CCD, jdbcType=VARCHAR}
+				    						  </if>
+				    						) T
+			  WHERE C.LOGIN_ID = A.JKW_NO
+			    AND D.DEP_DESC = A.DPRT_CD
+			  <if test="branchCode != '' and branchCode != '999'">             
+		        AND #{branchCode} IN (SELECT DPRT_CD FROM C_DEP_INFO)                            
+		      </if>
+			  <if test="CERT_CCD != 'ALL' and CERT_CCD != null " >
+		        AND A.JKW_NO=T.JKW_NO
+		      </if>
+			  <if test="QUA_NAME != '' and QUA_NAME  != null"> 
+		        AND (C.USER_NM LIKE '%'||#{QUA_NAME}||'%') 
+		      </if>
+			  GROUP BY A.JKW_NO
+			  ORDER BY DPRT_NM
+		)
+		ORDER BY ROWNUM
+    </select>
+    
+    <delete  id="RBA_99_03_01_01_DELETE_IC_CERT_M" parameterType="DataObj" >
+		DELETE FROM IC_CERT_M                
+		 WHERE JKW_NO = #{JKW_NO, jdbcType=VARCHAR}
+	</delete>
+	
+	<delete  id="RBA_99_03_01_01_DELETE_IC_CERT_CCD" parameterType="DataObj" >
+		DELETE FROM IC_CERT_CCD             
+		 WHERE JKW_NO = #{JKW_NO, jdbcType=VARCHAR}
+	</delete>
+    
+    <select id="RBA_99_03_01_01_SEARCH_JKW_AND_DPT" parameterType="hashMap" resultType="DataObj">
+		SELECT C.LOGIN_ID, 
+			C.USER_NM, 
+			D.DEP_ID, 
+			D.DEP_TITLE,
+			D.DEP_DESC
+	    FROM C_USER C, C_DEP_INFO D
+	    WHERE C.DEP_ID = D.DEP_ID
+	    	AND C.USER_NM= #{JKW_NM, jdbcType=VARCHAR}
+	    	AND D.DEP_TITLE= #{DPRT_NM, jdbcType=VARCHAR}
+	</select>
+	
+	<update id="RBA_99_03_01_01_INSERT_IC_CERT_CCD" parameterType="hashMap">
+		<![CDATA[
+		INSERT INTO IC_CERT_CCD
+	        (
+	            ACQ_DT,
+				JKW_NO,
+				CERT_CCD,
+				DR_DT,
+				DR_TIME,
+				DR_OP_JKW_NO,
+				CHG_DT,
+				CHG_TIME,
+				CHG_OP_JKW_NO
+	        )
+	        VALUES
+	        (
+	          #{ACQ_DT,  jdbcType=VARCHAR}
+	         ,#{JKW_NO,    jdbcType=VARCHAR}
+	         ,#{CERT_CCD,    jdbcType=VARCHAR}
+	         ,TO_CHAR(SYSDATE , 'YYYYMMDD')
+	         ,TO_CHAR(SYSDATE , 'HH24MISS')
+	         ,#{OP_JKW_NO,  jdbcType=VARCHAR}
+	         ,TO_CHAR(SYSDATE , 'YYYYMMDD')
+	         ,TO_CHAR(SYSDATE , 'HH24MISS')
+	         ,#{OP_JKW_NO,  jdbcType=VARCHAR}
+	        )
+		]]>            
+	</update>
+	
+	<update id="RBA_99_03_01_01_MERGE_IC_CERT_M" parameterType="hashMap">
+	MERGE INTO IC_CERT_M A
+	      USING DUAL
+	      ON (
+      			A.JKW_NO = #{JKW_NO,    jdbcType=VARCHAR}
+	      		AND A.DPRT_CD = #{DPRT_CD,    jdbcType=VARCHAR}
+			 )
+	      WHEN MATCHED THEN
+	    UPDATE SET
+	          APL_PNT  		= #{APL_PNT},
+	          CHG_DT        = TO_CHAR(SYSDATE , 'YYYYMMDD'),
+	          CHG_TIME      = TO_CHAR(SYSDATE , 'HH24MISS'),
+	          CHG_OP_JKW_NO = #{OP_JKW_NO, jdbcType=VARCHAR}
+	    WHEN NOT MATCHED THEN
+	    INSERT
+	        (
+				JKW_NO,
+				DPRT_CD,
+				APL_PNT,
+				DR_DT,
+				DR_TIME,
+				DR_OP_JKW_NO,
+				CHG_DT,
+				CHG_TIME,
+				CHG_OP_JKW_NO
+	        )
+	        VALUES
+	        (
+	          #{JKW_NO,    jdbcType=VARCHAR}
+	         ,#{DPRT_CD,    jdbcType=VARCHAR}
+	         ,#{APL_PNT}
+	         ,TO_CHAR(SYSDATE , 'YYYYMMDD')
+	         ,TO_CHAR(SYSDATE , 'HH24MISS')
+	         ,#{OP_JKW_NO,  jdbcType=VARCHAR}
+	         ,TO_CHAR(SYSDATE , 'YYYYMMDD')
+	         ,TO_CHAR(SYSDATE , 'HH24MISS')
+	         ,#{OP_JKW_NO,  jdbcType=VARCHAR}
+	        )
+	</update>
+    
+</mapper>

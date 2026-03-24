@@ -1,0 +1,26 @@
+<!ELEMENT log-service (log-service-config*)>
+
+<!ELEMENT log-service-config (log-location?, log-level?, log-directory?, max-log-size?, show-prefix?, check-param?, log-param*, description?)>
+<!ELEMENT log-location (#PCDATA)> <!-- NOT_LOGGING | ONLY_FILE | ONLY_CONSOLE | CONSOLE_FILE -->
+<!ELEMENT log-level (#PCDATA)> <!-- ERROR | WARNING | INFO | DEBUG -->
+<!ELEMENT log-directory (#PCDATA)>
+<!ELEMENT max-log-size (#PCDATA)> <!-- int value, default=50 -->
+<!ELEMENT show-prefix (#PCDATA)> <!-- true | false, default=false -->
+<!ELEMENT check-param (#PCDATA)> <!-- true | false, default=false -->
+<!ELEMENT log-param (param-name, param-value)>
+
+<!ELEMENT param-name (#PCDATA)>
+<!ELEMENT param-value (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+
+<!ATTLIST log-service
+	defaultElement CDATA #IMPLIED
+	verbose (true | false) 'false'>
+
+<!ATTLIST log-service-config
+	name CDATA #REQUIRED
+	deploy (true | false) 'false'
+	loadOnStartup CDATA #IMPLIED
+	verbose (true | false) 'false'
+	lastModified CDATA #IMPLIED
+	target CDATA #IMPLIED>	

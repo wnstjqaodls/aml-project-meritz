@@ -1,0 +1,63 @@
+<!ELEMENT domain-service (domain-service-config*, machine-config*)>
+<!ELEMENT domain-service-config (log-type,log-level,log-location,default-instance-max-user,default-instance-max-user-return-page,default-instance-max-ejb,default-instance-max-ejb-return-code,peak-point-control-status,default-monitoring-interval,application-check-page,domain-url*,domain-uri-prefix-type*,domain-uri-prefix*,domain-name*,env-param*,instance-config*,description?)>
+<!ELEMENT log-type (#PCDATA)>
+<!ELEMENT log-level (#PCDATA)>
+<!ELEMENT log-location (#PCDATA)>
+
+<!ELEMENT default-instance-max-user (#PCDATA)>
+<!ELEMENT default-instance-max-user-return-page (#PCDATA)>
+<!ELEMENT default-instance-max-ejb (#PCDATA)>
+<!ELEMENT default-instance-max-ejb-return-code (#PCDATA)>
+<!ELEMENT peak-point-control-status (#PCDATA)>
+<!ELEMENT default-monitoring-interval (#PCDATA)>
+<!ELEMENT application-check-page (#PCDATA)>
+<!ELEMENT domain-url (#PCDATA)>
+<!ELEMENT domain-uri-prefix-type (#PCDATA)>
+<!ELEMENT domain-uri-prefix (#PCDATA)>
+<!ELEMENT domain-name (#PCDATA)>
+
+<!ELEMENT env-param (param-name*, param-value*)>
+<!ELEMENT param-name (#PCDATA)>
+<!ELEMENT param-value (#PCDATA)>
+
+<!ELEMENT instance-config (instance-id,instance-type,instance-tier,instance-domain,instance-machine,instance-ip,
+instance-port,instance-system-id,instance-system-password,instance-max-user,instance-max-ejb,
+instance-channel,instance-status,description?)>
+<!ELEMENT instance-id (#PCDATA)>
+<!ELEMENT instance-type (#PCDATA)>
+<!ELEMENT instance-tier (#PCDATA)>
+<!ELEMENT instance-domain (#PCDATA)>
+<!ELEMENT instance-machine (#PCDATA)>
+<!ELEMENT instance-ip (#PCDATA)>
+<!ELEMENT instance-port (#PCDATA)>
+<!ELEMENT instance-system-id (#PCDATA)>
+<!ELEMENT instance-system-password (#PCDATA)>
+<!ELEMENT instance-max-user (#PCDATA)>
+<!ELEMENT instance-max-ejb (#PCDATA)>
+<!ELEMENT instance-channel (#PCDATA)>
+<!ELEMENT instance-status (#PCDATA)>
+
+<!ELEMENT machine-config (machine-id,machine-ip,machine-os,machine-cpu,machine-memory,description?)>
+<!ELEMENT machine-id (#PCDATA)>
+<!ELEMENT machine-ip (#PCDATA)>
+<!ELEMENT machine-os (#PCDATA)>
+<!ELEMENT machine-cpu (#PCDATA)>
+<!ELEMENT machine-memory (#PCDATA)>
+
+<!ELEMENT description (#PCDATA)>
+
+<!-- ******************************************************* ATTLIST ******************************************************* -->
+
+<!ATTLIST domain-service
+	defaultElement CDATA #IMPLIED
+	verbose (true | false) 'false'>
+	
+<!ATTLIST domain-service-config
+	name CDATA #REQUIRED
+	deploy (true | false) 'false'
+	loadOnStartup CDATA #IMPLIED
+	verbose (true | false) 'false'
+	lastModified CDATA #IMPLIED
+	target CDATA #IMPLIED>
+
+		

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="euc-kr"?>
+<!-- UTF-8 처리 -->
+
+<!DOCTYPE query-service SYSTEM "query-service.dtd">
+
+	<query-service verbose="true" defaultElement="jspeed.query.file.meta">
+
+		<query-service-config name="jspeed.query" deploy="true" loadOnStartup="100" verbose="true" lastModified="1075638871397" target="all.all">
+			<config-alias>DB QUERY Management</config-alias>
+			<repository-class>jspeed.base.internal.BaseRepository</repository-class>
+			<pre-load>true</pre-load>
+			<query-param>
+				<param-name>list-page</param-name>
+				<param-value>/jspeed/base/query/queryItemList.jsp</param-value>
+			</query-param>
+			<query-param>
+				<param-name>create-statement</param-name>
+				<param-value>insert into jf_query (QUERY_ID,  TARGET_DOMAIN,  QUERY_TYPE,  QUERY_CONTENT1, QUERY_CONTENT2, QUERY_CONTENT3, QUERY_CONTENT4, JDBC_SERVICE,  STATEMENT_TYPE,  CRE_USER,  CRE_DATE,  DSC_USER,  DSC_DATE) values (?,?,?,?,?,?,?,?,?,?,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'),?,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'))</param-value>
+			</query-param>
+			<query-param>
+				<param-name>remove-statement</param-name>
+				<param-value>delete from jf_query where QUERY_ID=?</param-value>
+			</query-param>
+			<query-param>
+				<param-name>repository-type</param-name>
+				<param-value>DB</param-value>
+			</query-param>
+			<query-param>
+				<param-name>site-load-statement</param-name>
+				<param-value>select QUERY_ID key, QUERY_ID,TARGET_DOMAIN,  QUERY_TYPE,  QUERY_CONTENT1 QUERY_CONTENTS, QUERY_CONTENT2, QUERY_CONTENT3, QUERY_CONTENT4, JDBC_SERVICE,  STATEMENT_TYPE,  CRE_USER,  CRE_DATE, DSC_USER,  DSC_DATE from jf_query where TARGET_DOMAIN=?</param-value>
+			</query-param>
+			<query-param>
+				<param-name>modify-statement</param-name>
+				<param-value>update jf_query set TARGET_DOMAIN=?, QUERY_TYPE=?,  QUERY_CONTENT1=?, QUERY_CONTENT2=?, QUERY_CONTENT3=?, QUERY_CONTENT4=?, JDBC_SERVICE=?, STATEMENT_TYPE=?, DSC_USER=?,DSC_DATE=TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') where QUERY_ID=?</param-value>
+			</query-param>
+			<query-param>
+				<param-name>load-statement</param-name>
+				<param-value>select QUERY_ID key, QUERY_ID,TARGET_DOMAIN,  QUERY_TYPE,  QUERY_CONTENT1 QUERY_CONTENTS, QUERY_CONTENT2, QUERY_CONTENT3, QUERY_CONTENT4,  JDBC_SERVICE,  STATEMENT_TYPE,  CRE_USER,  CRE_DATE, DSC_USER,  DSC_DATE from jf_query</param-value>
+			</query-param>
+			<query-param>
+				<param-name>page-load-statement</param-name>
+				<param-value>select /*+ index_desc (x PK_JF_QUERY) */ QUERY_ID key, QUERY_ID,TARGET_DOMAIN,  QUERY_TYPE,  JDBC_SERVICE,  STATEMENT_TYPE, CRE_USER,  CRE_DATE, DSC_USER,  DSC_DATE from(select /*+ index_desc (x PK_JF_QUERY) */ CEIL(rownum/?) page, QUERY_ID key, QUERY_ID,TARGET_DOMAIN,  QUERY_TYPE,  JDBC_SERVICE,  STATEMENT_TYPE, CRE_USER,  CRE_DATE, DSC_USER,  DSC_DATE from(select /*+ index_desc (x PK_JF_QUERY) */ QUERY_ID key, QUERY_ID,TARGET_DOMAIN,  QUERY_TYPE,  JDBC_SERVICE,  STATEMENT_TYPE, CRE_USER,  CRE_DATE, DSC_USER,  DSC_DATE from jf_query x where cre_date&lt;=to_char(sysdate,'yyyymmddhh24miss') and sDomainIDs and cre_user like ?||'%' and query_id like '%'||?||'%' order by query_id asc)) where page=?</param-value>
+			</query-param>
+			<query-param>
+				<param-name>jndi-name</param-name>
+				<param-value>jSpeedDataSource</param-value>
+			</query-param>
+			<query-param>
+				<param-name>total-count-statement</param-name>
+				<param-value>select count(*) from jf_query where sDomainIDs AND CRE_USER like ?||'%' AND QUERY_ID like '%'||?||'%'</param-value>
+			</query-param>
+			<query-param>
+				<param-name>single-load-statement</param-name>
+				<param-value>select QUERY_ID key, QUERY_ID,TARGET_DOMAIN,  QUERY_TYPE,  QUERY_CONTENT1 QUERY_CONTENTS, QUERY_CONTENT2, QUERY_CONTENT3, QUERY_CONTENT4,  JDBC_SERVICE,  STATEMENT_TYPE,  CRE_USER,  CRE_DATE, DSC_USER,  DSC_DATE from jf_query where QUERY_ID=?</param-value>
+			</query-param>
+			<description>QUERY properties</description>
+		</query-service-config>
+
+		<query-service-config name="jspeed.query.param" deploy="true" loadOnStartup="100" verbose="true" lastModified="1075140603177" target="all.all">
+			<config-alias>DB QUERY PARAM Management</config-alias>
+			<repository-class>jspeed.base.BaseRepository</repository-class>
+			<pre-load>true</pre-load>
+			<query-param>
+				<param-name>load-statement</param-name>
+				<param-value>select QUERY_ID||'.'||PARAM_ORDER key,QUERY_ID,PARAM_ORDER,COLUMN_TYPE, CRE_USER,CRE_DATE,DSC_USER,DSC_DATE from jf_query_param order by QUERY_ID,PARAM_ORDER</param-value>
+			</query-param>
+			<query-param>
+				<param-name>repository-type</param-name>
+				<param-value>DB</param-value>
+			</query-param>
+			<query-param>
+				<param-name>list-page</param-name>
+				<param-value>/jspeed/base/query/queryTemplateList.jsp</param-value>
+			</query-param>
+			<query-param>
+				<param-name>create-statement</param-name>
+				<param-value>insert into jf_query_param (QUERY_ID,PARAM_ORDER,COLUMN_TYPE, CRE_USER,CRE_DATE,DSC_USER,DSC_DATE) values (?,?,?,?,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'),?,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'))</param-value>
+			</query-param>
+			<query-param>
+				<param-name>modify-statement</param-name>
+				<param-value>update jf_query_param set COLUMN_TYPE=?, DSC_USER=?,DSC_DATE=TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') where QUERY_ID=? and PARAM_ORDER=?</param-value>
+			</query-param>
+			<query-param>
+				<param-name>single-load-statement</param-name>
+				<param-value>select QUERY_ID||'.'||PARAM_ORDER key,QUERY_ID,PARAM_ORDER,COLUMN_TYPE, CRE_USER,CRE_DATE,DSC_USER,DSC_DATE from jf_query_param where QUERY_ID=? and PARAM_ORDER=?</param-value>
+			</query-param>
+			<query-param>
+				<param-name>jndi-name</param-name>
+				<param-value>jSpeedDataSource</param-value>
+			</query-param>
+			<query-param>
+				<param-name>remove-statement</param-name>
+				<param-value>delete from jf_query_param where QUERY_ID=?</param-value>
+			</query-param>
+			<query-param>
+				<param-name>site-load-statement</param-name>
+				<param-value>select QUERY_ID||'.'||PARAM_ORDER key,QUERY_ID,PARAM_ORDER,COLUMN_TYPE, CRE_USER,CRE_DATE,DSC_USER,DSC_DATE from jf_query_param where QUERY_ID=? order by QUERY_ID,PARAM_ORDER</param-value>
+			</query-param>
+			<query-param>
+				<param-name>page-load-statement</param-name>
+				<param-value>select * from ( select QUERY_ID||'.'||PARAM_ORDER key,QUERY_ID,PARAM_ORDER,COLUMN_TYPE, CRE_USER,CRE_DATE,DSC_USER,DSC_DATE,CEIL(rownum/?) page from jf_query_param) where page=?</param-value>
+			</query-param>
+			<description>QUERY PARAM properties</description>
+		</query-service-config>
+
+	</query-service>

@@ -1,0 +1,30 @@
+<!ELEMENT jdbc-service (jdbc-service-config*, available-conn-handler*)>
+
+<!ELEMENT jdbc-service-config (log-type, log-level, log-location,conn-handler, limit-time, limit-row, conn-param*, description?)>
+<!ELEMENT log-type (#PCDATA)>
+<!ELEMENT log-level (#PCDATA)>
+<!ELEMENT log-location (#PCDATA)>
+<!ELEMENT conn-handler (#PCDATA)> <!-- jspeed.base.jdbc.ConnectionHandler interface -->
+<!ELEMENT limit-time (#PCDATA)>
+<!ELEMENT limit-row (#PCDATA)>
+<!ELEMENT conn-param (param-name, param-value)>
+
+<!ELEMENT available-conn-handler (conn-handler, help-page)>
+<!ELEMENT help-page (#PCDATA)>
+
+<!ELEMENT param-name (#PCDATA)>
+<!ELEMENT param-value (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+
+<!ATTLIST jdbc-service
+	defaultElement CDATA #IMPLIED
+	verbose (true | false) 'false'>
+
+<!ATTLIST jdbc-service-config
+	name CDATA #REQUIRED
+	deploy (true | false) 'false'
+	loadOnStartup CDATA #IMPLIED
+	verbose (true | false) 'false'
+	monitor (true | false) 'false'
+	lastModified CDATA #IMPLIED
+	target CDATA #IMPLIED>	

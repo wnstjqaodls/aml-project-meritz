@@ -1,0 +1,270 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="trn">
+
+
+	<!-- 매월 계좌상품 거래원장 -->
+	<insert id="insertGnlGdsTrnI" parameterType="schdVO">
+		INSERT  /*+ APPEND PARALLEL(KRBA_TRN_I 6) */ INTO KRBA_TRN_I
+		(
+		    BAS_YYMM, GNL_AC_NO, SRVC_G_C, DL_DT, DL_SQ, GDS_NO, RNMCNO, CHNL_CLSN_CODE, DL_CHNNL_CD, DL_TYP_CD, DL_WY_CD,
+			ACNT_TYPE_CLSN_CODE, PRDT_CLSN_CODE, SERV_CLSN_CODE, HANDLNG_BRN_CD, MNGG_BRN_CD, PRFT_BRN_CD, VALT_BRNO,
+			DL_AMT, PECO_TRN_CD, TRDG_CODE,BNCC_TRN_YN,CRDT_TRN_YN,
+			DR_DT,  DR_TIME
+		)
+		SELECT /*+ PARALLEL(M 6) */
+			 BAS_YYMM
+			  ,GNL_AC_NO
+			  ,(CASE WHEN ACNT_TYPE_CLSN_CODE = 'P01' THEN '01'
+			         WHEN ACNT_TYPE_CLSN_CODE = 'P02' THEN '02'
+			         WHEN ACNT_TYPE_CLSN_CODE = 'P03' THEN '03'
+			         WHEN ACNT_TYPE_CLSN_CODE = 'P04' THEN '04'
+			         WHEN ACNT_TYPE_CLSN_CODE = 'P05' THEN '05'
+			         WHEN ACNT_TYPE_CLSN_CODE = 'P06' THEN '06'
+			         WHEN ACNT_TYPE_CLSN_CODE = 'P07' THEN '07'
+			         WHEN ACNT_TYPE_CLSN_CODE = 'P08' THEN '08'
+			         WHEN ACNT_TYPE_CLSN_CODE = 'P09' THEN '09'
+			         WHEN ACNT_TYPE_CLSN_CODE = 'P10' THEN '10'
+			         ELSE '*' END
+			  ) SRVC_G_C
+			  ,'2025' || SUBSTR(DL_DT,5,4) AS DL_DT
+			  ,DL_SQ
+			  ,GDS_NO
+			  ,RNMCNO
+			  ,CHNL_CLSN_CODE
+			  ,DL_CHNNL_CD
+			  ,DL_TYP_CD
+			  ,DL_WY_CD
+			  ,ACNT_TYPE_CLSN_CODE --계좌유형분류
+			  ,PRDT_CLSN_CODE --금융상품분류
+			  ,SERV_CLSN_CODE --금융서비스분류
+			  ,HANDLNG_BRN_CD --처리지점
+			  ,MNGG_BRN_CD --관리지점
+			  ,PRFT_BRN_CD --실적지점
+			  <!-- 스마트 지점은 관리지점이 평가지점이다. -->
+			  ,(CASE WHEN PRFT_BRN_CD = '21320' THEN MNGG_BRN_CD ELSE NVL(PRFT_BRN_CD,MNGG_BRN_CD) END) VALT_BRNO
+			  ,DL_AMT
+			  ,PECO_TRN_CD
+			  ,TRDG_CODE
+			  ,BNCC_TRN_YN
+			  ,CRDT_TRN_YN
+			  ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+			  ,TO_CHAR(SYSDATE, 'HH24MISS')
+		FROM
+		(
+		    SELECT
+		    	#{basYymm} BAS_YYMM
+		        ,GNL_AC_NO
+		        ,DL_DT
+		        ,DL_SQ
+		        ,GDS_NO
+		        ,RNMCNO
+		        ,CHNL_CLSN_CODE
+		        ,DL_CHNNL_CD
+		        ,DL_TYP_CD
+		        ,DL_WY_CD
+		        ,ACNT_TYPE_CLSN_CODE --계좌유형분류
+		        ,PRDT_CLSN_CODE --금융상품분류
+		        ,SERV_CLSN_CODE --금융서비스분류
+		        ,HANDLNG_BRN_CD --처리지점
+		        ,MNGG_BRN_CD --관리지점
+		        ,PRFT_BRN_CD --실적지점
+		        ,DL_AMT
+		        ,PECO_TRN_CD
+		        ,TRDG_CODE
+		        ,BNCC_TRN_YN
+		        ,CRDT_TRN_YN
+		    FROM NIC61B
+		    WHERE 1=1
+		    AND DL_DT >= #{tgtTrnSdt}
+		    AND DL_DT &lt; #{tgtTrnEdt}
+		) M
+	</insert>
+
+
+
+	<!-- 매월 금융상품 거래원장 -->
+	<insert id="insertFinanceGdsTrnI" parameterType="schdVO">
+		INSERT /*+ APPEND PARALLEL(KRBA_TRN_I 6) */ INTO KRBA_TRN_I
+		(
+		    BAS_YYMM, GNL_AC_NO, SRVC_G_C, DL_DT, DL_SQ, GDS_NO, RNMCNO, CHNL_CLSN_CODE, DL_CHNNL_CD, DL_TYP_CD, DL_WY_CD,
+			ACNT_TYPE_CLSN_CODE, PRDT_CLSN_CODE, SERV_CLSN_CODE, HANDLNG_BRN_CD, MNGG_BRN_CD, PRFT_BRN_CD, VALT_BRNO,
+			DL_AMT, PECO_TRN_CD, TRDG_CODE,BNCC_TRN_YN,CRDT_TRN_YN,
+			DR_DT,  DR_TIME
+		)
+		SELECT /*+ PARALLEL(M 6) */
+		  BAS_YYMM
+		  ,GNL_AC_NO
+		  ,(CASE WHEN PRDT_CLSN_CODE = 'A' THEN '11'  -- 주식
+		         WHEN PRDT_CLSN_CODE = 'B' THEN '12'  -- 선물
+		         WHEN PRDT_CLSN_CODE = 'C' THEN '13'  -- 옵션
+		         WHEN PRDT_CLSN_CODE = 'D' THEN '14'  -- 채권
+		         WHEN PRDT_CLSN_CODE = 'E' THEN '15'  -- 파생결합증권
+		         WHEN PRDT_CLSN_CODE = 'F' THEN '16'  -- 파생계약상품
+		         WHEN PRDT_CLSN_CODE = 'G' THEN '17'  -- 펀드
+		         WHEN PRDT_CLSN_CODE = 'I' THEN '18'  -- 신탁
+		         WHEN PRDT_CLSN_CODE = 'K' THEN '19'  -- 방카
+		         WHEN PRDT_CLSN_CODE = 'M' THEN '20'  -- 단기상품
+		         WHEN PRDT_CLSN_CODE = 'O' THEN '21'  -- 일반상품
+		         ELSE '**' END
+		  ) SRVC_G_C
+		  ,DL_DT
+		  ,DL_SQ
+		  ,GDS_NO
+		  ,RNMCNO
+		  ,CHNL_CLSN_CODE
+		  ,DL_CHNNL_CD
+		  ,DL_TYP_CD
+		  ,DL_WY_CD
+		  ,ACNT_TYPE_CLSN_CODE --계좌유형분류
+		  ,PRDT_CLSN_CODE --금융상품분류
+		  ,SERV_CLSN_CODE --금융서비스분류
+		  ,HANDLNG_BRN_CD --처리지점
+		  ,MNGG_BRN_CD --관리지점
+		  ,PRFT_BRN_CD --실적지점
+		  ,(CASE WHEN PRFT_BRN_CD = '21320' THEN MNGG_BRN_CD ELSE NVL(PRFT_BRN_CD,MNGG_BRN_CD) END) VALT_BRNO
+		  ,DL_AMT
+		  ,PECO_TRN_CD
+		  ,TRDG_CODE
+		  ,BNCC_TRN_YN
+		  ,CRDT_TRN_YN
+		  ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		  ,TO_CHAR(SYSDATE, 'HH24MISS')
+		FROM
+		(
+		    SELECT
+		        #{basYymm} BAS_YYMM
+		        ,GNL_AC_NO
+		        ,DL_DT
+		        ,DL_SQ
+		        ,GDS_NO
+		        ,RNMCNO
+		        ,CHNL_CLSN_CODE
+		        ,DL_CHNNL_CD
+		        ,DL_TYP_CD
+		        ,DL_WY_CD
+		        ,ACNT_TYPE_CLSN_CODE --계좌유형분류
+		        ,PRDT_CLSN_CODE --금융상품분류
+		        ,SERV_CLSN_CODE --금융서비스분류
+		        ,HANDLNG_BRN_CD --처리지점
+		        ,MNGG_BRN_CD --관리지점
+		        ,PRFT_BRN_CD --실적지점
+		        ,DL_AMT
+		        ,PECO_TRN_CD
+		        ,TRDG_CODE
+		        ,BNCC_TRN_YN
+		        ,CRDT_TRN_YN
+		    FROM NIC61B
+		    WHERE 1=1
+		    AND DL_DT >= #{tgtTrnSdt}
+		    AND DL_DT &lt; #{tgtTrnEdt}
+		    AND GDS_NO NOT IN ('M1210', 'M1211')
+		    AND PRDT_CLSN_CODE IS NOT NULL
+		) M
+	</insert>
+
+
+	<!-- 매월 금융서비스 거래원장 -->
+	<insert id="insertFinanceServiceTrnI" parameterType="schdVO">
+		INSERT /*+ APPEND PARALLEL(KRBA_TRN_I 6) */ INTO KRBA_TRN_I
+		(
+		    BAS_YYMM, GNL_AC_NO, SRVC_G_C, DL_DT, DL_SQ, GDS_NO, RNMCNO, CHNL_CLSN_CODE, DL_CHNNL_CD, DL_TYP_CD, DL_WY_CD,
+			ACNT_TYPE_CLSN_CODE, PRDT_CLSN_CODE, SERV_CLSN_CODE, HANDLNG_BRN_CD, MNGG_BRN_CD, PRFT_BRN_CD, VALT_BRNO,
+			DL_AMT, PECO_TRN_CD, TRDG_CODE,BNCC_TRN_YN,CRDT_TRN_YN,
+			DR_DT,  DR_TIME
+		)
+		SELECT /*+ PARALLEL(M 6) */
+			  BAS_YYMM
+			  ,GNL_AC_NO
+			  ,(CASE WHEN SERV_CLSN_CODE = 'S01' THEN '22'  -- 계좌입출금
+			         WHEN SERV_CLSN_CODE = 'S02' THEN '23'  -- 신용
+			         WHEN SERV_CLSN_CODE = 'S03' THEN '24'  -- IB금융
+			         WHEN SERV_CLSN_CODE = 'S04' THEN '25'  -- 인수및중개
+			         ELSE '***' END
+			  ) SRVC_G_C
+			  ,DL_DT
+			  ,DL_SQ
+			  ,GDS_NO
+			  ,RNMCNO
+			  ,CHNL_CLSN_CODE
+			  ,DL_CHNNL_CD
+			  ,DL_TYP_CD
+			  ,DL_WY_CD
+			  ,ACNT_TYPE_CLSN_CODE --계좌유형분류
+			  ,PRDT_CLSN_CODE --금융상품분류
+			  ,SERV_CLSN_CODE --금융서비스분류
+			  ,HANDLNG_BRN_CD --처리지점
+			  ,MNGG_BRN_CD --관리지점
+			  ,PRFT_BRN_CD --실적지점
+			  ,(CASE WHEN PRFT_BRN_CD = '21320' THEN MNGG_BRN_CD ELSE NVL(PRFT_BRN_CD,MNGG_BRN_CD) END) VALT_BRNO
+			  ,DL_AMT
+			  ,PECO_TRN_CD
+			  ,TRDG_CODE
+			  ,BNCC_TRN_YN
+			  ,CRDT_TRN_YN
+		  	  ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+		  	  ,TO_CHAR(SYSDATE, 'HH24MISS')
+		FROM
+		(
+		    SELECT
+		         #{basYymm} BAS_YYMM
+		        ,GNL_AC_NO
+		        ,DL_DT
+		        ,DL_SQ
+		        ,GDS_NO
+		        ,RNMCNO
+		        ,CHNL_CLSN_CODE
+		        ,DL_CHNNL_CD
+		        ,DL_TYP_CD
+		        ,DL_WY_CD
+		        ,ACNT_TYPE_CLSN_CODE --계좌유형분류
+		        ,PRDT_CLSN_CODE --금융상품분류
+		        ,SERV_CLSN_CODE --금융서비스분류
+		        ,HANDLNG_BRN_CD --처리지점
+		        ,MNGG_BRN_CD --관리지점
+		        ,PRFT_BRN_CD --실적지점
+		        ,DL_AMT
+		        ,PECO_TRN_CD
+		        ,TRDG_CODE
+		        ,BNCC_TRN_YN
+		        ,CRDT_TRN_YN
+		    FROM NIC61B
+		    WHERE 1=1
+		    AND DL_DT >= #{tgtTrnSdt}
+		    AND DL_DT &lt; #{tgtTrnEdt}
+		    AND SERV_CLSN_CODE IS NOT NULL
+		) M
+	</insert>
+
+
+	<!-- 해당월 거래원장 삭제  PATITION TABLE일 경우 -->
+<!-- 	<delete id="deleteTrnI" parameterType="schdVO" > -->
+	<!-- alter table SSQ.KRBA_TRN_I truncate PARTITION (#{ptrYymm}) -->
+		<!-- CALL SSQ.TRUNC_PART_TABLE('KRBA_TRN_I',#{ptrYymm}) -->
+<!-- 	</delete> -->
+
+
+	<!-- 해당월 거래원장 삭제 -->
+	<delete id="deleteTrnI" parameterType="schdVO" >
+		 DELETE FROM KRBA_TRN_I
+		 WHERE DL_DT = #{tgtTrnSdt}
+	</delete> 
+
+
+
+	<!-- 해당월 해당 지점 거래원장 삭제 -->
+	<delete id="deleteTrnIBrno" parameterType="schdVO" >
+		 DELETE FROM KRBA_TRN_I
+		 WHERE VALT_BRNO IN ('21070' , '23070')
+	</delete>
+
+	<!-- 거래원장 삭제 매일배치로 오늘일자의 1년전 데이터 삭제 -->
+	<delete id="deleteDayTrnI" parameterType="schdVO" >
+		DELETE FROM KRBA_TRN_I
+		WHERE 1=1
+		AND DL_DT = TO_CHAR(ADD_MONTHS(TRUNC(SYSDATE),-12),'YYYYMMDD')
+	</delete>
+
+
+</mapper>

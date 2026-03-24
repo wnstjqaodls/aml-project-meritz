@@ -1,0 +1,1130 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper  namespace="AML_50">
+
+    <!-- 시뮬레이션 -->
+<select id="AML_50_01_01_01_getBasicRuleQuery0" parameterType="hashMap" resultType="hashMap">
+    SELECT A.BIZ_ID
+          ,CASE B.MA01_1 
+                WHEN 'Y' THEN '1' 
+                         ELSE '0' 
+            END AS MA01_1
+          ,MA01_6 AS CODE
+          ,B.RT30_1
+          ,BIZ_NM AS NAME
+          ,CASE WHEN C.MA06_1 IS NOT NULL THEN '1' ELSE '0' END M_FLAG
+      FROM C_BIZ  A 
+          ,MMA010TB B
+      LEFT OUTER JOIN (SELECT * 
+                         FROM MMA070TB 
+                        WHERE MA06_1='M') C
+        ON (C.MA07_1=B.MA01_6)
+     WHERE A.BIZ_ID = B.RT30_1
+       AND B.MA01_8='S'
+       AND A.BIZ_ID = #{RS20_1}
+</select>
+
+<select id="AML_50_01_01_01_getBasicRuleQuery1" parameterType="hashMap" resultType="hashMap">
+    SELECT B.RT31_1
+          ,B.MA01_2
+      FROM C_BIZ A
+          ,MMA010TB B
+     WHERE A.BIZ_ID=B.RT30_1
+       AND B.MA01_6=  #{CODE}
+</select>
+
+<select id="AML_50_01_01_01_getBasicRuleQuery2" parameterType="hashMap" resultType="hashMap">
+    SELECT B.RS31_1
+          ,C.RS32_1
+          ,B.RS31_4
+      FROM BRT3B0TB A
+          ,BRS310TB B
+          ,BRS320TB C
+     WHERE RT31_1= #{RT31_1} --Param
+       AND A.RS32_1=B.RS31_3
+       AND A.RS31_1=B.RS31_1
+       AND B.RS31_1=C.RS31_1
+       AND B.RS31_3=C.RS32_1
+</select>
+
+<select id="AML_50_01_01_01_getBasicRuleQuery3" parameterType="hashMap" resultType="hashMap">
+    SELECT RS31_1
+          ,RS32_1
+          ,TO_CHAR(RS34_1, 'FM90.99999999') AS RS34_1 FROM BRS340TB
+     WHERE RS31_1 = #{RS31_1} --Param
+       AND RS32_1 = #{RS32_1} --Param
+       AND RS34_2 =1
+</select>
+
+<select id="AML_50_01_01_01_getBasicRuleQuery4" parameterType="hashMap" resultType="hashMap">
+    SELECT A.RS33_1 AS SEQ 
+          ,A.RS33_3 AS NAME 
+          ,B.RS3A_1 AS INPUT
+          ,A.RS33_2 AS TYPE
+          ,A.RS31_1 || '::' || A.RS33_1 AS RULE
+      FROM BRS330TB A
+          ,BRS3A0TB B
+          ,BRS360TB C
+     WHERE A.RS31_1 = B.RS31_1
+       AND A.RS32_1 = B.RS32_1
+       AND A.RS33_1 = B.RS33_1
+       AND B.RS31_1 = C.RS31_1
+       AND B.RS32_1 = C.RS32_1
+       AND B.RS34_1 = C.RS34_1
+       AND B.RS35_1 = C.RS35_1
+       AND B.RS31_1 = #{RS31_1} --Param RS31_1
+       AND B.RS32_1 = #{RS32_1} --Param RS32_1
+       AND B.RS34_1 = #{RS34_1} --Param RS34_1
+       AND C.RS36_1 = 2
+       AND C.RS36_2 = #{RS36_2}
+     ORDER BY A.RS33_1
+</select>
+
+<select id="AML_50_01_01_01_getDetailRuleQuery1" parameterType="hashMap" resultType="hashMap">
+    SELECT B.MA01_6 AS CODE
+          ,B.MA01_2 AS RS31_1
+      FROM C_BIZ A
+          ,MMA010TB B
+     WHERE A.BIZ_ID=B.RT30_1
+       AND B.RT30_1=#{RS20_1}
+</select>
+<select id="AML_50_01_01_01_getDetailRuleQuery2" parameterType="hashMap" resultType="hashMap">
+    SELECT B.RS31_1
+          ,C.RS32_1
+          ,RS31_3
+          ,RS31_T
+          ,RS31_U
+          ,RS31_Y AS UPD_DT
+          ,RS31_Z
+          ,GET_USER_NAME(RS31_Z) AS UPD_NM
+          ,RS32_2
+          ,RS32_3
+          ,RS32_4
+      FROM BRT3B0TB A
+          ,BRS310TB B
+          ,BRS320TB C
+     WHERE RT31_1=(SELECT B.RT31_1
+                     FROM C_BIZ X
+                         ,MMA010TB Y
+                    WHERE X.BIZ_ID=Y.RT30_1
+                      AND Y.MA01_6= (SELECT MA01_6
+                                       FROM C_BIZ T 
+                                           ,MMA010TB U
+                                       LEFT OUTER JOIN (SELECT * 
+                                                          FROM MMA070TB 
+                                                         WHERE MA06_1='M') V
+                                         ON (V.MA07_1=U.MA01_6)
+                                      WHERE T.BIZ_ID = U.RT30_1
+                                        AND U.MA01_8='S'
+                                        AND T.BIZ_ID = #{RS20_1})
+                  )
+       AND A.RS32_1=B.RS31_3
+       AND A.RS31_1=B.RS31_1
+       AND B.RS31_1=C.RS31_1
+       AND B.RS31_3=C.RS32_1
+</select>
+
+<select id="AML_50_01_01_09_getRuleState" parameterType="hashMap" resultType="DataObj">
+    SELECT SN_PRGRS_CCD, IS_UPD, DECODE(IS_UPD, 'X', '0', DEPLOY_DT) AS DEPLOY_DT
+          ,NVL(SN_PRGRS_CCD_NM, '미결재') AS SN_PRGRS_CCD_NM
+      FROM (
+             SELECT NVL(A.SN_PRGRS_CCD,'X') AS SN_PRGRS_CCD
+                   ,GET_CODE_NAME('S041',A.SN_PRGRS_CCD) AS SN_PRGRS_CCD_NM
+                   ,CASE WHEN D.RS32_1=C.RS31_3 AND D.RS34_2 = 1 THEN 'O' ELSE 'X' END AS IS_UPD
+                   ,CASE WHEN NVL(A.SN_PRGRS_CCD,'9') = '9' 
+                          AND D.RS32_1=C.RS31_6 
+                          AND D.RS34_U = 2
+                         THEN SUBSTR(C.RS31_Y,1,8) 
+                         ELSE '0' 
+                     END AS DEPLOY_DT
+               FROM NIC58B A
+                   ,BRS320TB B
+                   ,BRS310TB C
+                   ,BRS340TB D
+              WHERE B.RS32_2 = DECODE(#{RULE_ID}, '0000', 'CTR기준금액', #{RULE_ID})
+                AND B.RS31_1 = C.RS31_1
+                AND C.RS31_1 = D.RS31_1
+                AND D.RS32_1 = A.RULE_UPD_MAJ_VER(+)
+                AND D.RS34_1 = A.RULE_UPD_MIN_VER(+)
+                AND A.RULE_ID(+) = REPLACE(#{RULE_ID}, '기준DATA_', '')
+              ORDER BY D.RS32_1 DESC
+                      ,D.RS34_1 DESC
+                      ,A.INST_ID DESC NULLS LAST
+           )
+     WHERE ROWNUM = 1
+</select>
+
+<select id="AML_50_09_01_01_getApprovalInfoRA" parameterType="hashMap" resultType="DataObj">
+    <![CDATA[
+    SELECT SUBSTR(B.APP_DT,1,4)||'-'||SUBSTR(B.APP_DT,5,2)||'-'||SUBSTR(B.APP_DT,7,2) AS SN_REQ_DY_TM
+          ,'KYC' AS INST_CCD
+          ,GET_CODE_NAME('A038', NVL(B.SN_CCD, 'N')) AS SN_CCD_NM
+          ,A.ITEM_NM
+          ,'조회' AS UPD_HIS
+          ,'조회' AS APP_HIS
+          ,NVL(B.RSN_CNTNT, '') AS RSN_CNTNT
+          ,B.SNO
+          ,B.WLR_SQ
+          ,B.REG_DT
+          ,B.SN_CCD
+          ,(SELECT C.ROLE_NM FROM C_ROLE C WHERE C.ROLE_ID = B.APPR_ROLE_ID) AS APPR_ROLE_NM -- 결재한사람
+          ,(SELECT C.ROLE_NM FROM C_ROLE C WHERE C.ROLE_ID = B.TARGET_ROLE_ID) AS TARGET_ROLE_NM -- 결재할사람
+          ,B.NUM_SQ
+          ,B.GYLJ_LINE_G_C
+          ,CASE WHEN B.GYLJ_LINE_G_C = 'RA1' THEN '위험평가등급'
+                WHEN B.GYLJ_LINE_G_C = 'RA2' THEN '위험평가항목점수'
+                WHEN B.GYLJ_LINE_G_C = 'RA3' THEN '위험평가항목가중치'
+                ELSE '' 
+            END AS GYLJ_LINE_GUBUN
+          ,B.APP_NO
+          ,A.RA_ITEM_CD
+          ,A.CS_TYP_CD
+          ,A.NEW_OLD_GBN_CD
+          ,A.APP_NO
+          ,A.ORDER_NO
+          ,B.TARGET_ROLE_ID
+          ,B.PRV_APP_NO
+      FROM AML_APPR B
+          ,(
+             SELECT A.RA_ITEM_CD
+                   ,'' AS CS_TYP_CD
+                   ,'' AS NEW_OLD_GBN_CD
+                   ,A.LST_APP_NO  AS APP_NO
+                   ,'3' AS ORDER_NO  --점수
+                   ,(
+                     (
+                       SELECT GET_CODE_NAME('A040',RA_MDL_GBN_CD) 
+                         FROM RA_ITEM 
+                        WHERE RA_ITEM_CD = A.RA_ITEM_CD
+                     ) ||' '|| A.RA_ITEM_NM 
+                    ) AS ITEM_NM
+               FROM RA_ITEM A
+              UNION ALL
+             SELECT '' AS RA_ITEM_CD
+                   ,A.CS_TYP_CD
+                   ,A.NEW_OLD_GBN_CD
+                   ,A.LST_WGHT_APP_NO AS APP_NO
+                   , '1' AS ORDER_NO  --가중치
+                   ,('가중치 ' || GET_CODE_NAME('A030',A.NEW_OLD_GBN_CD) ||' '|| GET_CODE_NAME('M012', A.CS_TYP_CD) ) AS ITEM_NM
+               FROM RA_CS_TYP_MNG A
+              UNION ALL
+             SELECT '' AS RA_ITEM_CD
+                   , A.CS_TYP_CD
+                   ,A.NEW_OLD_GBN_CD
+                   ,A.LST_GRD_APP_NO  AS APP_NO
+                   , '2' AS ORDER_NO  -- 등급
+                   ,('등급판정 ' || GET_CODE_NAME('A030',A.NEW_OLD_GBN_CD) ||' '|| GET_CODE_NAME('M012', A.CS_TYP_CD) ) AS ITEM_NM
+               FROM RA_CS_TYP_MNG A
+           ) A
+     WHERE B.GYLJ_LINE_G_C IN ('RA1','RA2','RA3')
+       AND B.APP_NO = A.APP_NO
+       AND B.TARGET_ROLE_ID = #{RA_ROLE_ID}
+       AND B.APP_DT BETWEEN #{stDate} AND #{edDate}
+     ORDER BY B.APP_DT DESC
+             ,B.APP_NO DESC
+    ]]>
+</select>
+
+<select id="AML_50_09_01_01_getApprovalInfoRAList" parameterType="hashMap" resultType="DataObj">
+    <![CDATA[
+    SELECT SUBSTR(B.APP_DT,1,4)||'-'||SUBSTR(B.APP_DT,5,2)||'-'||SUBSTR(B.APP_DT,7,2) AS SN_REQ_DY_TM
+          ,CASE WHEN B.SN_CCD= 'E' THEN  SUBSTR(B.APP_DT,1,4)||'-'||SUBSTR(B.APP_DT,5,2)||'-'||SUBSTR(B.APP_DT,7,2)
+                ELSE '' 
+            END AS SN_END_DY_TM
+          ,'KYC' AS INST_CCD
+          ,GET_CODE_NAME('A038', NVL(B.SN_CCD, 'N')) AS SN_CCD_NM
+          ,A.ITEM_NM
+          ,'조회' AS UPD_HIS
+          ,'조회' AS APP_HIS
+          ,NVL(B.RSN_CNTNT, '') AS RSN_CNTNT
+          ,B.SNO
+          ,B.WLR_SQ
+          ,B.REG_DT
+          ,B.SN_CCD
+          ,(SELECT C.ROLE_NM FROM C_ROLE C WHERE C.ROLE_ID = B.APPR_ROLE_ID) AS APPR_ROLE_NM -- 결재한사람
+          ,(SELECT C.ROLE_NM FROM C_ROLE C WHERE C.ROLE_ID = B.TARGET_ROLE_ID) AS TARGET_ROLE_NM -- 결재할사람
+          ,B.NUM_SQ
+          ,B.GYLJ_LINE_G_C
+          ,CASE WHEN B.GYLJ_LINE_G_C = 'RA1' THEN '위험평가등급'
+                WHEN B.GYLJ_LINE_G_C = 'RA2' THEN '위험평가항목점수'
+                WHEN B.GYLJ_LINE_G_C = 'RA3' THEN '위험평가항목가중치'
+                ELSE '' 
+            END AS GYLJ_LINE_GUBUN
+          ,B.APP_NO
+          ,A.RA_ITEM_CD
+          ,A.CS_TYP_CD
+          ,A.NEW_OLD_GBN_CD
+          ,A.APP_NO
+          ,A.ORDER_NO
+          ,B.TARGET_ROLE_ID
+          ,B.PRV_APP_NO
+      FROM AML_APPR B
+          ,(
+             SELECT X.RA_ITEM_CD
+                   ,'' AS CS_TYP_CD
+                   ,'' AS NEW_OLD_GBN_CD
+                   ,X.LST_APP_NO  AS APP_NO
+                   , '3' AS ORDER_NO  --점수
+                   ,((SELECT GET_CODE_NAME('A040',RA_MDL_GBN_CD)  FROM RA_ITEM WHERE RA_ITEM_CD = X.RA_ITEM_CD) ||' '|| X.RA_ITEM_NM ) AS ITEM_NM
+               FROM RA_ITEM X
+              UNION ALL
+             SELECT '' AS RA_ITEM_CD
+                   ,Y.CS_TYP_CD
+                   ,Y.NEW_OLD_GBN_CD
+                   ,Y.LST_WGHT_APP_NO AS APP_NO
+                   , '1' AS ORDER_NO  --가중치
+                   ,('가중치 ' || GET_CODE_NAME('A030',Y.NEW_OLD_GBN_CD) ||' '|| GET_CODE_NAME('M012', Y.CS_TYP_CD) ) AS ITEM_NM
+               FROM RA_CS_TYP_MNG Y
+              UNION ALL
+             SELECT '' AS RA_ITEM_CD
+                   ,Z.CS_TYP_CD
+                   ,Z.NEW_OLD_GBN_CD
+                   ,Z.LST_GRD_APP_NO  AS APP_NO
+                   , '2' AS ORDER_NO  -- 등급
+                   ,('등급판정 ' || GET_CODE_NAME('A030',Z.NEW_OLD_GBN_CD) ||' '|| GET_CODE_NAME('M012', Z.CS_TYP_CD) ) AS ITEM_NM
+               FROM RA_CS_TYP_MNG Z
+            ) A
+     WHERE B.GYLJ_LINE_G_C IN ('RA1','RA2','RA3')
+       AND B.APP_NO = A.APP_NO
+       AND B.APP_DT BETWEEN #{stDate} AND #{edDate}
+     ORDER BY B.APP_DT DESC 
+             ,B.APP_NO DESC
+    ]]>
+</select>
+
+<select id="AML_50_09_01_01_getApprovalInfo" parameterType="hashMap" resultType="DataObj">
+    <![CDATA[
+    SELECT TO_CHAR(TO_DATE(SUBSTR(A.SN_REQ_DY_TM,1,8),'YYYYMMDD'),'YYYY-MM-DD') AS SN_REQ_DY_TM
+          ,A.INST_CCD
+          ,GET_CODE_NAME('S041', A.SN_PRGRS_CCD) AS ACT_NAME
+          ,DECODE(A.INST_CCD, 'CTR', 'CTR', 'KYC', C.RS32_2, 'STR', NVL(B.RULE_GB,C.RS32_2)) AS RULE_GB
+          ,DECODE(A.INST_CCD, 'CTR 기준금액', 'CTR', 'KYC', C.RS32_2, 'STR', NVL(B.RULE_DESC, C.RS32_2)) AS RULE_DESC
+          ,'조회' AS UPD_HIS
+          ,'조회' AS APP_HIS
+          ,CASE WHEN A.SN_END_DY_TM IS NOT NULL
+                THEN TO_CHAR(TO_DATE(SUBSTR(A.SN_END_DY_TM,1,8),'YYYYMMDD'),'YYYY-MM-DD') 
+            END AS SN_END_DY_TM
+          ,CASE WHEN A.SN_PRGRS_CCD = '9'
+                THEN TO_CHAR(TO_DATE(SUBSTR(D.RS31_Y,1,8),'YYYYMMDD'),'YYYY-MM-DD') 
+            END AS DEPLOY_DT
+          ,A.INST_ID
+          ,C.RS31_1
+          ,C.RS32_1
+          ,C.RS32_2
+          ,C.RS32_3
+          ,DECODE(A.INST_CCD, 'CTR', 'CTR기준금액', A.RULE_ID) AS RULE_ID
+          ,D.RS20_1
+          ,F.WORK_ID
+          ,A.RULE_UPD_MAJ_VER AS MAJ_A
+          ,A.RULE_UPD_MIN_VER AS MIN_A
+          ,A.RULE_LST_MAJ_VER AS MAJ_B
+          ,A.RULE_LST_MIN_VER AS MIN_B
+          ,A.SN_REQ_CMNT
+      FROM NIC58B A
+          ,(
+             SELECT '['||Y.MA01_6||'] '|| X.BIZ_NM AS RULE_GB
+                   ,X.BIZ_DESC AS RULE_DESC
+                   ,Y.MA01_6
+                   ,Y.RT30_1
+               FROM C_BIZ X
+                   ,MMA010TB Y
+                   ,C_PKG_BIZ_MAP Z
+              WHERE X.BIZ_ID = Y.RT30_1
+                AND X.BIZ_ID = Z.BIZ_ID
+                AND Z.PKG_ID = '6'
+           ) B
+          ,(
+             SELECT X.INST_ID
+                   ,X.WORK_ID
+                   ,X.ACT_NAME
+                   ,X.ACT_ID
+               FROM V_WF_STANDBY X
+             WHERE (
+                        (X.PERSON_YN='Y' AND X.PARTICIPANT_ID = #{USER_ID})
+                     OR (     X.PERSON_YN='N' 
+                          AND X.PARTICIPANT_ID IN (
+                                                    SELECT U.DEP_ID || '.' || ROLE_ID 
+                                                      FROM C_USER_GROUP_ROLE T
+                                                          ,C_USER U
+                                                     WHERE T.USER_ID = #{USER_ID}  
+                                                       AND T.USER_ID = U.USER_ID
+                                                       AND U.DEP_ID || '.' || ROLE_ID  = #{ROLE_ID} 
+                                                   ) 
+                        )
+                   )
+           ) F
+          ,BRS320TB C
+          ,BRS310TB D
+          ,BRS340TB E
+     WHERE A.RULE_ID = B.MA01_6(+)
+       AND A.INST_ID = F.INST_ID
+       AND (DECODE(A.INST_CCD, 'STR', '기준DATA_'||A.RULE_ID, 'KYC', A.RULE_ID, 'CTR기준금액') = C.RS32_2  OR A.RULE_ID = TO_CHAR(C.RS31_1))
+       AND C.RS31_1 = D.RS31_1
+       AND C.RS32_1 = A.RULE_UPD_MAJ_VER
+       AND D.RS31_1 = E.RS31_1
+       AND E.RS32_1 = A.RULE_UPD_MAJ_VER
+       AND E.RS34_1 = A.RULE_UPD_MIN_VER
+    ]]>
+       <if test="INST_CCD != ''">
+       AND A.INST_CCD IN ('STR', 'CTR')
+       </if>
+    <![CDATA[
+       AND SUBSTR(A.SN_REQ_DY_TM,1,8) BETWEEN #{stDate} AND #{edDate}
+       AND A.SN_PRGRS_CCD ='1'
+     ORDER BY A.INST_ID DESC
+    ]]>
+</select>
+
+<select id="AML_50_09_02_01_getApprovalInfoSearch" parameterType="hashMap" resultType="DataObj">
+    <choose>                                                                                                                                 
+        <when test="useBRMiner == 'Y'.toString()">                                                                                           
+    SELECT TO_CHAR(TO_DATE(SUBSTR(A.SN_REQ_DY_TM,1,8),'YYYYMMDD'),'YYYY-MM-DD') AS SN_REQ_DY_TM                                              
+          ,A.INST_CCD                                                                                                                        
+          ,GET_CODE_NAME('S041', A.SN_PRGRS_CCD) AS ACT_NAME                                                                                 
+          ,DECODE(A.INST_CCD, 'CTR', 'CTR', 'KYC', C.RS32_2, 'STR', NVL(B.RULE_GB,C.RS32_2)) AS RULE_GB                                      
+          ,DECODE(A.INST_CCD, 'CTR 기준금액', 'KYC', C.RS32_2, 'STR', NVL(B.RULE_DESC, C.RS32_2)) AS RULE_DESC                                   
+          ,'조회' AS UPD_HIS                                                                                                                   
+          ,'조회' AS APP_HIS                                                                                                                   
+          ,CASE WHEN A.SN_END_DY_TM IS NOT NULL                                                                                              
+                THEN TO_CHAR(TO_DATE(SUBSTR(A.SN_END_DY_TM,1,8),'YYYYMMDD'),'YYYY-MM-DD')                                                    
+            END AS SN_END_DY_TM                                                                                                              
+          ,CASE WHEN A.SN_PRGRS_CCD = '9' AND E.RS32_1=D.RS31_6 AND E.RS34_U = 2                                                             
+                THEN TO_CHAR(TO_DATE(SUBSTR(D.RS31_Y,1,8),'YYYYMMDD'),'YYYY-MM-DD')                                                          
+            END AS DEPLOY_DT                                                                                                                 
+          ,A.INST_ID                                                                                                                         
+          ,C.RS31_1                                                                                                                          
+          ,C.RS32_1                                                                                                                          
+          ,C.RS32_3                                                                                                                          
+          ,DECODE(A.INST_CCD, 'CTR', 'CTR기준금액', A.RULE_ID) AS RULE_ID                                                                        
+          ,B.RT30_1 AS RS20_1                                                                                                                
+      FROM NIC58B A                                                                                                                          
+          ,(                                                                                                                                 
+             SELECT '['||Y.MA01_6||'] '|| X.BIZ_NM AS RULE_GB                                                                                
+                   ,X.BIZ_DESC AS RULE_DESC                                                                                                  
+                   ,Y.MA01_6                                                                                                                 
+                   ,Y.RT30_1                                                                                                                 
+               FROM C_BIZ X                                                                                                                  
+                   ,MMA010TB Y                                                                                                               
+                   ,C_PKG_BIZ_MAP Z                                                                                                          
+              WHERE X.BIZ_ID = Y.RT30_1                                                                                                      
+                AND X.BIZ_ID = Z.BIZ_ID                                                                                                      
+                AND Z.PKG_ID = '6'                                                                                                           
+           ) B                                                                                                                               
+          ,(                                                                                                                                 
+             SELECT X.INST_ID, Z.ACT_NAME                                                                                                 
+               FROM WF_PROC_INSTANCE X                                                                                                    
+                   ,WF_WORKLIST Y                                                                                                         
+                   ,WF_ACT Z                                                                                                              
+              WHERE X.WORK_ID = Y.WORK_ID                                                                                                 
+                AND Y.ACT_ID = Z.ACT_ID                                                                                                   
+           ) F                                                                                                                              
+          ,BRS320TB C                                                                                                                        
+          ,BRS310TB D                                                                                                                        
+          ,BRS340TB E                                                                                                                        
+     WHERE A.RULE_ID = B.MA01_6(+)                                                                                                           
+       AND A.INST_ID = F.INST_ID                                                                                                            
+       AND (DECODE(A.INST_CCD, 'STR', '기준DATA_'||A.RULE_ID, 'CTR기준금액') = C.RS32_2  OR A.RULE_ID = TO_CHAR(C.RS31_1))                         
+       AND C.RS31_1 = D.RS31_1                                                                                                               
+       AND D.RS31_1 = E.RS31_1                                                                                                               
+       AND C.RS32_1 = A.RULE_UPD_MAJ_VER                                                                                                     
+       AND D.RS31_3 = A.RULE_UPD_MAJ_VER                                                                                                     
+       AND E.RS32_1 = A.RULE_UPD_MAJ_VER                                                                                                     
+       AND E.RS34_1 = A.RULE_UPD_MIN_VER                                                                                                     
+       <if test="INST_CCD != ''">                                                                                                            
+       AND A.INST_CCD = #{INST_CCD}                                                                                                          
+       </if>                                                                                                                                 
+       AND SUBSTR(A.SN_REQ_DY_TM,1,8) BETWEEN #{stDate} AND #{edDate}                                                                        
+       <if test="SN_PRGRS_CCD != ''">                                                                                                        
+       AND A.SN_PRGRS_CCD = #{SN_PRGRS_CCD}                                                                                                  
+        <if test='SN_PRGRS_CCD == "1" or SN_PRGRS_CCD == "2"'>                                                                               
+       AND F.INST_ID IS NOT NULL                                                                                                       
+        </if>                                                                                                                                
+       </if>                                                                                                                                 
+     ORDER BY A.INST_ID DESC                                                                                                                 
+        </when>                                                                                                                              
+        <otherwise>                                                                                                                          
+      SELECT TO_CHAR(TO_DATE(SUBSTR(A.SN_REQ_DY_TM,1,8),'YYYYMMDD'),'YYYY-MM-DD') AS SN_REQ_DY_TM                                            
+            ,A.INST_CCD                                                                                                                        
+            ,GET_CODE_NAME('S041', A.SN_PRGRS_CCD) AS ACT_NAME                                                                                 
+            ,DECODE(A.INST_CCD, 'CTR', '[CTR01]CTR대상추출', 'STR', B.RULE_GB) AS RULE_GB                                                          
+            ,DECODE(A.INST_CCD, 'CTR', 'CTR대상추출', 'STR', B.RULE_DESC) AS RULE_DESC                                                             
+            ,'조회' AS UPD_HIS                                                                                                                   
+            ,'조회' AS APP_HIS                                                                                                                   
+            ,CASE WHEN A.SN_END_DY_TM IS NOT NULL                                                                                              
+                  THEN TO_CHAR(TO_DATE(SUBSTR(A.SN_END_DY_TM,1,8),'YYYYMMDD'),'YYYY-MM-DD') 
+              END AS SN_END_DY_TM                                
+            ,CASE WHEN A.SN_PRGRS_CCD = '9'                                                                                                    
+                  THEN TO_CHAR(TO_DATE(SUBSTR(B.LST_APPL_DTTM,1,8),'YYYYMMDD'),'YYYY-MM-DD') 
+              END AS DEPLOY_DT                                  
+            ,A.INST_ID                                                                                                                         
+            ,DECODE(A.INST_CCD, 'CTR', 'CTR01', A.RULE_ID) AS RULE_ID                                                                          
+        FROM NIC58B A                                                                                                                          
+       INNER JOIN (                                                                                                                            
+                    SELECT X.SCNR_ID                                                                                                            
+                         , X.SCNR_NM AS RULE_DESC                                                                                               
+                         , '[' || X.SCNR_ID || ']' || X.SCNR_NM AS RULE_GB                                                                     
+                         , X.LST_APPL_DTTM                                                                                                      
+                      FROM TMS_APPL X                                                                                                           
+                     INNER JOIN TMS_BZDM_MNG Y                                                                                                   
+                        ON X.BIZ_CD = Y.BIZ_CD                                                                                                  
+                       AND Y.USE_YN = 'Y'                                                                                                        
+             ) B                                                                                                                               
+           ON A.RULE_ID = B.SCNR_ID                                                                                                            
+       INNER JOIN (                                                                                                                            
+                  SELECT X.INST_ID, Z.ACT_NAME                                                                                                 
+                    FROM WF_PROC_INSTANCE X                                                                                                    
+                       , WF_WORKLIST Y                                                                                                         
+                       , WF_ACT Z                                                                                                              
+                   WHERE X.WORK_ID = Y.WORK_ID                                                                                                 
+                     AND Y.ACT_ID = Z.ACT_ID                                                                                                   
+             ) C                                                                                                                              
+          ON A.INST_ID = C.INST_ID                                                                                                            
+       WHERE 1 = 1                                                                                                                             
+        </otherwise>                                                                                                                         
+    </choose>                                                                                                                                
+</select>
+
+<select id="AML_50_01_01_09_getWORK_ID" parameterType="hashMap" resultType="DataObj">
+    SELECT WORK_ID
+      FROM WF_WORKLIST
+     WHERE INST_ID = #{INST_ID}
+       AND WORK_STATUS_CD IN ('READY','ACTIVE')
+</select>
+
+<update  id="AML_50_01_01_09_insertNIC58B" parameterType="hashMap" >
+    INSERT INTO NIC58B
+           (
+              INST_ID
+             ,INST_CCD
+             ,RULE_ID
+             ,RULE_UPD_MAJ_VER
+             ,RULE_UPD_MIN_VER
+             ,RULE_LST_MAJ_VER
+             ,RULE_LST_MIN_VER
+             ,SN_PRGRS_CCD
+             ,SN_REQ_CMNT
+             ,SN_REQ_DY_TM
+             ,SN_REQ_P_ENO
+             ,SN_END_DY_TM
+           )
+           VALUES
+           (
+              #{INST_ID}
+             ,#{INST_CCD}
+             ,DECODE(#{INST_CCD}, 'CTR', '0000', 'KYC', #{RULE_NO}, #{RULE_ID})
+             ,#{UPD_MAJ_VER}
+             ,#{UPD_MIN_VER}
+             ,#{LST_MAJ_VER}
+             ,#{LST_MIN_VER}
+             ,#{SN_PRGRS_CCD}
+             ,#{SN_CMNT}
+             ,#{SN_REQ_DY_TM}
+             ,#{SN_REQ_P_ENO}
+             ,#{SN_END_DY_TM}
+           )
+</update>
+
+<update  id="AML_50_01_01_09_updateNIC58B" parameterType="hashMap" >
+    UPDATE NIC58B
+       SET SN_PRGRS_CCD = #{SN_PRGRS_CCD}
+          ,SN_END_DY_TM = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+     WHERE INST_ID = #{INST_ID}
+</update>
+
+<update  id="AML_50_01_01_09_updateNIC58B_DEL" parameterType="hashMap" >
+    UPDATE NIC58B
+       SET SN_PRGRS_CCD = #{SN_PRGRS_CCD}
+          ,SN_DEL_P_ENO = #{SN_DEL_P_ENO}
+          ,SN_DEL_DY_TM = #{SN_DEL_DY_TM}
+     WHERE INST_ID = #{INST_ID}
+</update>
+
+<select id="AML_50_01_01_09_getRuleRecentInfo" parameterType="hashMap" resultType="DataObj">
+    SELECT MAX(A.RULE_GB) AS RULE_GB
+          ,MAX(A.RULE_DESC) AS RULE_DESC
+          ,MAX(C.USER_NM) AS USER_NM
+          ,MAX(C.SN_REQ_DY_TM) AS SN_REQ_DY_TM
+          ,MAX(C.SN_REQ_CMNT) AS SN_REQ_CMNT
+          ,MAX(C.INST_ID) AS INST_ID
+          ,MAX(B.RS31_1) AS RS31_1
+          ,MAX(B.RT31_1) AS RT31_1
+          ,MAX(B.RT32_1) AS RT32_1
+          ,MAX(B.RS32_3) AS RS32_3
+          ,MAX(B.RS32_1) KEEP (DENSE_RANK FIRST ORDER BY B.RS34_1 DESC) AS MAJ_A
+          ,MAX(B.RS34_1) KEEP (DENSE_RANK FIRST ORDER BY B.RS34_1 DESC) AS MIN_A
+          ,MAX(B.RS32_1) KEEP (DENSE_RANK FIRST ORDER BY B.RS34_1) AS MAJ_B
+          ,MAX(B.RS34_1) KEEP (DENSE_RANK FIRST ORDER BY B.RS34_1) AS MIN_B
+      FROM (
+             SELECT DECODE(#{INST_CCD}, 'CTR', X.RULE_GB, 'KYC', X.RULE_GB, 'STR', NVL(Y.RULE_GB, X.RULE_GB)) AS RULE_GB          
+                   ,DECODE(#{INST_CCD}, 'CTR', X.RULE_DESC, 'KYC', X.RULE_DESC, 'STR', NVL(Y.RULE_DESC,X.RULE_DESC) ) AS RULE_DESC
+               FROM (                                                                                                             
+                      SELECT DECODE(#{INST_CCD}, 'CTR', 'CTR',  T.RS32_2) AS RULE_GB                                              
+                            ,DECODE(#{INST_CCD}, 'CTR', 'CTR 기준금액', T.RS32_2) AS RULE_DESC                                        
+                        FROM BRS320TB T                                                                                           
+                       WHERE T.RS31_1 = #{RS31_1}                                                                                 
+                         AND ROWNUM = 1                                                                                           
+                    ) X                                                                                                           
+               LEFT JOIN                                                                                                          
+                    (                                                                                                             
+                      SELECT '['||U.MA01_6||'] '|| T.BIZ_NM AS RULE_GB                                                            
+                            ,T.BIZ_DESC AS RULE_DESC                                                                              
+                        FROM C_BIZ T                                                                                              
+                            ,MMA010TB U                                                                                           
+                            ,C_PKG_BIZ_MAP V                                                                                      
+                       WHERE T.BIZ_ID = U.RT30_1                                                                                  
+                         AND T.BIZ_ID = V.BIZ_ID                                                                                  
+                         AND U.RT30_1 = #{RS20_1}  --PARAM(RS20_1)                                                                
+                         AND V.PKG_ID = '6'                                                                                       
+                     ) Y                                                                                                          
+                 ON 1=1                                                                                                           
+           ) A
+          ,(
+             SELECT Y.RS32_1
+                   ,Y.RS34_1
+                   ,Y.RS31_1
+                   ,Z.RT31_1
+                   ,Z.RT32_1
+                   ,W.RS32_3
+               FROM BRS310TB X
+                   ,BRS340TB Y
+                   ,BRT3B0TB Z
+                   ,BRS320TB W
+              WHERE Y.RS31_1 = #{RS31_1}
+                AND Y.RS31_1 = Z.RS31_1
+                AND X.RS31_1 = Z.RS31_1
+                AND Y.RS32_1 = Z.RS32_1
+                AND Y.RS31_1 = W.RS31_1
+           ) B
+          ,(
+             SELECT (SELECT USER_NM FROM C_USER WHERE USER_ID = X.SN_REQ_P_ENO) AS USER_NM
+                   ,TO_CHAR(TO_DATE(SN_REQ_DY_TM,'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS SN_REQ_DY_TM
+                   ,SN_REQ_CMNT
+                   ,INST_ID
+                   ,RULE_UPD_MAJ_VER
+                   ,RULE_UPD_MIN_VER
+                   ,RULE_LST_MAJ_VER
+                   ,RULE_LST_MIN_VER
+               FROM NIC58B X
+              WHERE RULE_ID = DECODE(#{INST_CCD}, 'CTR', '0000', #{RULE_ID})
+                AND INST_ID = #{INST_ID}
+           ) C
+     WHERE (B.RS32_1,B.RS34_1) IN (
+                                     (C.RULE_UPD_MAJ_VER, C.RULE_UPD_MIN_VER)
+                                    ,(C.RULE_LST_MAJ_VER, C.RULE_LST_MIN_VER)
+                                  )
+</select>
+
+<select id="AML_50_01_01_09_getRuleRecentInfoRA" parameterType="hashMap" resultType="DataObj">
+    SELECT A.APP_NO
+          ,A.GYLJ_LINE_G_C
+          ,A.NUM_SQ
+          ,(SUBSTR(A.APP_DT,1,4)||'-'|| SUBSTR(A.APP_DT,5,2)||'-'|| SUBSTR(A.APP_DT,7,2)) AS APP_DT_CH
+          ,A.APP_DT
+          ,A.WLR_SQ
+          ,A.REG_DT
+          ,A.SNO
+          ,A.SN_CCD
+          ,A.BRN_CD
+          ,A.APPR_ROLE_ID
+          ,A.TARGET_ROLE_ID
+          ,A.RSN_CNTNT
+          ,A.PRV_APP_NO
+          ,A.HNDL_DY_TM
+          ,(SELECT USER_NM FROM C_USER WHERE USER_ID = A.HNDL_P_ENO) AS USER_NM
+          ,#{CS_TYP_CD} AS CS_TYP_CD
+          ,#{NEW_OLD_GBN_CD} AS NEW_OLD_GBN_CD
+      FROM AML_APPR A
+     WHERE A.APP_NO = #{APP_NO}
+</select>
+
+<select id="AML_50_01_01_09_getRuleRecentInfoRA_DT" parameterType="hashMap" resultType="DataObj">
+    SELECT A.APP_NO
+          ,A.GYLJ_LINE_G_C
+          ,A.NUM_SQ
+          ,(SUBSTR(A.APP_DT,1,4)||'-'|| SUBSTR(A.APP_DT,5,2)||'-'|| SUBSTR(A.APP_DT,7,2)) AS APP_DT
+          ,A.WLR_SQ
+          ,A.REG_DT
+          ,A.SNO
+          ,A.SN_CCD
+          ,GET_CODE_NAME('A038', A.SN_CCD) AS SN_CCD_NM
+          ,A.BRN_CD
+          ,A.APPR_ROLE_ID
+          ,A.TARGET_ROLE_ID
+          ,(SELECT ROLE_NM FROM C_ROLE WHERE ROLE_ID = A.APPR_ROLE_ID) AS APPR_ROLE_NM
+          ,(SELECT ROLE_NM FROM C_ROLE WHERE ROLE_ID = A.TARGET_ROLE_ID) AS TARGET_ROLE_ID_NM
+          ,A.TARGET_ROLE_ID
+          ,A.RSN_CNTNT
+          ,A.HNDL_DY_TM
+          ,(SELECT USER_NM FROM C_USER WHERE USER_ID = A.HNDL_P_ENO) AS USER_NM
+      FROM AML_APPR_HIST A
+     WHERE A.APP_NO = #{APP_NO}
+</select>
+
+<select id="AML_50_01_01_09_getRuleInfo" parameterType="hashMap" resultType="DataObj">
+    SELECT A.RULE_GB                                                                                                                        
+          ,A.RULE_DESC                                                                                                                      
+          ,B.MAJ_VER                                                                                                                        
+          ,B.MIN_VER                                                                                                                        
+          ,B.LST_MAJ_VER                                                                                                                    
+          ,B.LST_MIN_VER                                                                                                                    
+      FROM (                                                                                                                                
+                SELECT DECODE(#{INST_CCD}, 'KYC', X.RULE_GB, 'CTR', X.RULE_GB, 'STR', NVL(Y.RULE_GB, X.RULE_GB)) AS RULE_GB                 
+                      ,DECODE(#{INST_CCD}, 'KYC', X.RULE_DESC, 'CTR', X.RULE_DESC, 'STR', NVL(Y.RULE_DESC,X.RULE_DESC)) AS RULE_DESC    
+                  FROM (                                                                                                                    
+                         SELECT DECODE(#{INST_CCD}, 'CTR', 'CTR', T.RS32_2) AS RULE_GB                                                   
+                               ,DECODE(#{INST_CCD}, 'CTR', 'CTR 기준금액', T.RS32_2) AS RULE_DESC                                        
+                           FROM BRS320TB T                                                                                               
+                          WHERE T.RS31_1 =  #{RS31_1}                                                                                     
+                            AND ROWNUM = 1                                                                                              
+                       ) X                                                                                                                  
+                  LEFT JOIN                                                                                                                 
+                       (                                                                                                                    
+                         SELECT '['||B.MA01_6||'] '|| A.BIZ_NM AS RULE_GB                                                                
+                               ,A.BIZ_DESC AS RULE_DESC                                                                                  
+                           FROM C_BIZ A                                                                                                  
+                               ,MMA010TB B                                                                                               
+                               ,C_PKG_BIZ_MAP C                                                                                          
+                          WHERE A.BIZ_ID = B.RT30_1                                                                                      
+                            AND A.BIZ_ID = C.BIZ_ID                                                                                      
+                            AND B.RT30_1 = #{RS20_1}  --PARAM(RS20_1)                                                                    
+                            AND C.PKG_ID = '6'                                                                                           
+                       ) Y                                                                                                                 
+                    ON 1=1                                                                                                                  
+           ) A                                                                                                                              
+         , (                                                                                                                                
+             SELECT X.*                                                                                                                  
+               FROM (                                                                                                                    
+                      SELECT T.RS32_1 AS MAJ_VER                                                                                      
+                            ,T.RS34_1 AS MIN_VER                                                                                      
+                            ,MAX(DECODE(T.RS34_U,2,T.RS32_1)) OVER () AS LST_MAJ_VER                                                  
+                            ,MAX(DECODE(T.RS34_U,2,T.RS34_1)) OVER () AS LST_MIN_VER                                                  
+                        FROM BRS340TB T                                                                                               
+                       WHERE T.RS31_1 = #{RS31_1}                                                                                     
+                       ORDER BY T.RS32_1 DESC, T.RS34_1 DESC                                                                          
+                    ) X                                                                                                                  
+              WHERE ROWNUM = 1                                                                                                           
+           ) B                                                                                                             
+</select>
+
+<select id="AML_50_01_01_03_getRule" parameterType="hashMap" resultType="DataObj">
+    SELECT B.MA01_6                                                                --룰ID
+          ,(SELECT BIZ_NM FROM C_BIZ WHERE BIZ_ID=C.PAR_BIZ_ID) AS RULE_LCM        --대분류(룰특성)
+          ,A.BIZ_NM                                                                --의심거래유형
+      FROM C_BIZ A
+          ,MMA010TB B
+          ,C_PKG_BIZ_MAP C
+     WHERE A.BIZ_ID = B.RT30_1
+       AND A.BIZ_ID = C.BIZ_ID
+       AND B.RT30_1 = #{RS20_1}                                                    --PARAM(RS20_1)
+       AND C.PKG_ID = '6'
+</select>
+
+<select id="AML_50_01_01_03_getGrid1" parameterType="hashMap" resultType="DataObj">
+    SELECT A.MA20_2 AS WORK_DT --추출기준일
+          ,MAX(CASE WHEN MA21_1 = '1' THEN MA21_3 ELSE '' END) AS FROM_DT
+          ,MAX(CASE WHEN MA21_1 = '2' THEN MA21_3 ELSE '' END) AS TO_DT
+          ,MAX(CASE WHEN MA21_1 = '3' THEN MA21_3 ELSE '' END) AS S_NM --시나리오명
+          ,MAX(CASE WHEN MA21_1 = '4' THEN GET_CODE_NAME('M006', MA21_3) ELSE '' END) AS INDV_CORP_NM --고객구분
+          ,MAX(CASE WHEN MA21_1 = '4' THEN MA21_3 ELSE '' END) AS INDV_CORP_CD        --고객구분
+          ,MAX(CASE WHEN MA21_1 = '5' THEN GET_CODE_NAME('A031', MA21_3) ELSE '' END) AS W_PRD --작업주기
+          ,MAX(CASE WHEN MA21_1 = '6' THEN MA21_3 ELSE '' END) AS CRIT_VAL1 --임계치
+          ,MAX(CASE WHEN MA21_1 = '7' THEN MA21_3 ELSE '' END) AS CRIT_VAL2
+      FROM MMA200TB A
+          ,MMA210TB B
+     WHERE A.MA20_1 = B.MA20_1
+       AND A.MA20_1 =#{MA01_6}
+       AND A.MA20_2 = B.MA20_2
+     GROUP BY A.MA20_1, A.MA20_2
+     ORDER BY A.MA20_2 DESC
+</select>
+
+<select id="AML_50_01_01_03_getGrid2" parameterType="hashMap" resultType="DataObj">
+    SELECT TO_DATE(MA22_1, 'YYYY-MM-DD') AS BASE_DT        -- 추출일자
+          ,MA22_3 AS EXCT_CNT
+      FROM MMA220TB
+     WHERE MA20_1  =  #{MA01_6}        --PARAM
+       AND MA20_2 = #{WORK_DT}
+       AND MA20_3 = #{INDV_CORP_CD}
+</select>
+
+<update  id="AML_50_01_01_09_updatePrev" parameterType="hashMap" >
+    UPDATE BRS340TB
+       SET RS34_2 = 0
+     WHERE RS31_1 = #{RULE_NO}
+       AND RS32_1 = #{MAJ_A}
+       AND RS34_1 = #{MIN_A}
+</update>
+
+<update  id="AML_50_01_01_09_updateLast" parameterType="hashMap" >
+    UPDATE BRS340TB
+       SET RS34_2 = 1
+     WHERE (RS31_1, RS32_1, RS34_1) IN (
+                                         SELECT A.RS43_1
+                                               ,A.RS43_C
+                                               ,B.RS44_1
+                                           FROM BRS430TB A
+                                               ,(
+                                                    SELECT RS43_1
+                                                          ,MAX(RS44_1) RS44_1 
+                                                      FROM BRS440TB
+                                                     WHERE RS43_1 = #{RULE_NO}
+                                                     GROUP BY RS43_1
+                                                ) B
+                                          WHERE A.RS43_1 = B.RS43_1
+                                       )
+</update>
+
+<select id="AML_50_01_01_09_getRA_WGHT_Master" parameterType="hashMap" resultType="DataObj">
+    SELECT A.APP_NO 
+          ,A.RA_ITEM_CD 
+          ,A.RA_ITEM_WGHT
+          ,B.RA_ITEM_NM
+      FROM RA_ITEM_WGHT_APPR_DTL A
+          ,RA_ITEM B
+     WHERE A.RA_ITEM_CD  = B.RA_ITEM_CD
+       AND A.APP_NO = #{APP_NO}
+</select>
+
+<select id="AML_50_01_01_09_getRA_WGHT_Detail" parameterType="hashMap" resultType="DataObj">
+    <![CDATA[
+    SELECT A.APP_NO 
+          ,A.RA_ITEM_CD 
+          ,A.RA_ITEM_WGHT
+          ,B.RA_ITEM_NM
+      FROM RA_ITEM_WGHT_APPR_DTL A
+          ,RA_ITEM B
+     WHERE A.RA_ITEM_CD  = B.RA_ITEM_CD
+       AND A.APP_NO IN (
+                         SELECT NVL(MAX(A.APP_NO), 0) AS BEFOR_APP_NO
+                           FROM RA_ITEM_WGHT_APPR A
+                          WHERE A.APP_NO < #{APP_NO}
+                            AND A.CS_TYP_CD = #{CS_TYP_CD}
+                            AND A.NEW_OLD_GBN_CD = #{NEW_OLD_GBN_CD}
+                       )
+    ]]>
+</select>
+
+<select id="AML_50_01_01_09_getRA_SCR_Change" parameterType="hashMap" resultType="DataObj">
+    <![CDATA[
+    SELECT A.APP_NO,
+          ,NVL(A.RA_ITEM_VAL,NULL) AS RA_ITEM_VAL
+          ,NVL(B.RA_ITEM_VAL,NULL) AS BEFOR_RA_ITEM_VAL
+          ,NVL(GET_CODE_NAME(#{REFF_COMN_CD}, A.RA_ITEM_VAL),B.RA_ITEM_VAL) AS RA_ITEM_VAL_NM
+          ,CASE WHEN A.RA_ITEM_SCR != B.RA_ITEM_SCR THEN '변경'
+                WHEN A.RA_ITEM_SCR = B.RA_ITEM_SCR THEN '유지'
+                WHEN A.RA_ITEM_SCR IS NOT NULL AND B.RA_ITEM_SCR IS NULL THEN '추가'
+                WHEN B.RA_ITEM_SCR IS NOT NULL AND A.RA_ITEM_SCR IS NULL THEN '삭제'
+                ELSE '' 
+            END GUBUN
+          ,NVL(A.RA_ITEM_SCR, NULL) AS RA_ITEM_SCR
+          ,NVL(B.RA_ITEM_SCR, NULL) AS BEFOR_RA_ITEM_SCR
+          ,A.ABS_HRSK_YN
+          ,NVL(B.ABS_HRSK_YN,'') AS BEFOR_ABS_HRSK_YN
+      FROM (
+             SELECT * 
+               FROM RA_ITEM_APPR_DTL 
+              WHERE APP_NO = #{APP_NO}
+           ) A
+      FULL OUTER JOIN (
+                        SELECT APP_NO
+                              ,RA_ITEM_VAL
+                              ,RA_ITEM_SCR
+                              ,ABS_HRSK_YN
+                          FROM RA_ITEM_APPR_DTL
+                         WHERE APP_NO IN (SELECT  NVL(MAX(A.APP_NO), 0) AS BEFOR_APP_NO
+                                            FROM RA_ITEM_APPR_DTL A
+                                            LEFT JOIN RA_ITEM_APPR B
+                                              ON A.APP_NO = B.APP_NO
+                                           WHERE A.APP_NO < #{APP_NO}
+                                             AND B.RA_ITEM_CD = #{RA_ITEM_CD})
+                      )B
+              ON A.RA_ITEM_VAL = B.RA_ITEM_VAL
+    ]]>
+</select>
+
+<select id="AML_50_01_01_09_getRA_ITEM" parameterType="hashMap" resultType="DataObj">
+    SELECT * 
+      FROM RA_ITEM 
+     WHERE RA_ITEM_CD = #{RA_ITEM_CD}
+</select>
+
+<select id="AML_50_01_01_09_getRA_GRD_Master" parameterType="hashMap" resultType="DataObj">
+    SELECT A.APP_NO 
+          ,A.RA_GRD_SCR_MAX 
+          ,A.RA_GRD_CD 
+          ,GET_CODE_NAME('A004', A.RA_GRD_CD) RA_GRD_CD_NM
+      FROM RA_GRD_STD_APPR_DTL A
+     WHERE A.APP_NO = #{APP_NO}
+</select>
+
+<select id="AML_50_01_01_09_getRA_GRD_Detail" parameterType="hashMap" resultType="DataObj">
+    <![CDATA[
+    SELECT A.APP_NO 
+          ,A.RA_GRD_SCR_MAX 
+          ,A.RA_GRD_CD 
+          ,GET_CODE_NAME('A004', A.RA_GRD_CD) RA_GRD_CD_NM
+      FROM RA_GRD_STD_APPR_DTL A
+     WHERE A.APP_NO IN (
+                         SELECT NVL(MAX(X.APP_NO), 0) AS BEFOR_APP_NO
+                           FROM RA_GRD_STD_APPR_DTL X
+                          WHERE X.APP_NO < #{APP_NO}
+                       )
+    ]]>
+</select>
+
+<select id="AML_50_01_01_09_getRA_ITEM_APPR" parameterType="hashMap" resultType="DataObj">
+   SELECT A.RA_ITEM_CD
+         ,A.REFF_COMN_CD
+         ,B.APP_NO
+         ,B.GYLJ_LINE_G_C
+         ,B.NUM_SQ
+         ,(SELECT USER_NM 
+             FROM C_USER 
+            WHERE USER_ID = B.HNDL_P_ENO) AS USER_NM
+         ,(SUBSTR(B.APP_DT,1,4)||'-'|| SUBSTR(B.APP_DT,5,2)||'-'|| SUBSTR(B.APP_DT,7,2)) AS APP_DT
+         ,B.WLR_SQ
+         ,B.SNO
+         ,B.SN_CCD
+         ,CASE WHEN B.SN_CCD IS NULL THEN  '미결재'
+               ELSE (GET_CODE_NAME('A038', B.SN_CCD)) 
+           END AS SN_CCD_NM
+         ,B.RSN_CNTNT
+         ,B.BRN_CD
+         ,B.APPR_ROLE_ID
+         ,B.TARGET_ROLE_ID
+     FROM RA_ITEM A
+     LEFT JOIN AML_APPR B
+       ON A.LST_APP_NO = B.APP_NO
+    WHERE B.APP_NO = #{APP_NO}
+</select>
+
+<select id="AML_50_09_01_01_getTMSApproval" parameterType="hashMap" resultType="DataObj">
+    SELECT A.APP_NO
+          ,TO_CHAR(TO_DATE(A.APP_DT, 'YYYYMMDD'), 'YYYY-MM-DD') AS APP_DT
+          ,B.SCNR_ID
+          ,B.SCNR_CCD
+          ,A.SN_CCD
+          ,'[' || B.SCNR_ID || ']' || B.SCNR_NM AS CATEGORY
+          ,'조회' AS CHANGE_HISTORY
+          ,'조회' AS APPROVAL_HISTORY
+          ,B.SCNR_NM
+          ,A.RSN_CNTNT
+      FROM AML_APPR A
+     INNER JOIN TMS_APPL B
+        ON A.APP_NO = B.LST_APP_NO
+     INNER JOIN TMS_REQ C
+        ON B.SCNR_ID = C.SCNR_ID
+     WHERE A.GYLJ_LINE_G_C IN ('TMS1', 'TMS2')
+     <if test="APPR_ROLE_ID != null and APPR_ROLE_ID != ''">
+       AND A.TARGET_ROLE_ID = #{APPR_ROLE_ID}
+     </if>
+       AND A.SN_CCD != 'E'
+       AND A.APP_DT BETWEEN #{stDate} 
+                        AND #{edDate}
+     ORDER BY A.APP_DT DESC
+</select>
+
+<select id="AML_50_09_01_04_getTMSApprovalDetail" parameterType="HashMap" resultType="DataObj">
+    SELECT A.APP_NO
+          ,B.SCNR_ID
+          ,B.SCNR_NM
+          ,A.HNDL_P_ENO AS USER_ID
+          ,D.USER_NM
+          ,TO_CHAR(A.HNDL_DY_TM, 'YYYY-MM-DD HH24:MI:SS') AS REQ_DTTM
+          ,A.RSN_CNTNT
+          ,B.SCNR_CCD
+      FROM AML_APPR A
+     INNER JOIN TMS_APPL B
+        ON A.APP_NO = B.LST_APP_NO
+     INNER JOIN TMS_REQ C
+        ON B.SCNR_ID = C.SCNR_ID
+     INNER JOIN C_USER D
+        ON A.HNDL_P_ENO = D.USER_ID
+     WHERE A.APP_NO = #{APP_NO}
+</select>
+
+<select id="AML_50_09_01_04_getApprovalInfo" parameterType="HashMap" resultType="DataObj">
+    SELECT *
+      FROM C_GYLJ_D
+     WHERE GYLJ_LINE_G_C = #{GYLJ_LINE_G_C}
+       AND GYLJ_ROLE_ID = #{ROLE_ID}
+</select>
+
+<update id="AML_50_09_01_04_updateAML_APPR" parameterType="HashMap">
+    UPDATE AML_APPR
+       SET APP_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+          ,NUM_SQ = #{NUM_SQ}
+          ,SNO = #{SNO}
+          ,SN_CCD = #{SN_CCD}
+          ,APPR_ROLE_ID = #{ROLE_ID}
+          ,TARGET_ROLE_ID = #{TARGET_ROLE_ID}
+          ,RSN_CNTNT = #{APP_CNTNT jdbcType=VARCHAR}
+          ,HNDL_DY_TM = SYSDATE
+          ,HNDL_P_ENO = #{USER_ID}
+     WHERE APP_NO = #{APP_NO}
+       AND GYLJ_LINE_G_C = #{GYLJ_LINE_G_C}
+</update>
+
+<insert id="AML_50_09_01_04_insertAML_APPR_HIST" parameterType="HashMap">
+    INSERT INTO AML_APPR_HIST
+    VALUES
+           (
+              #{APP_NO}
+             ,#{GYLJ_LINE_G_C}
+             ,#{NUM_SQ}
+             ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+             ,0
+             ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+             ,#{SNO}
+             ,#{SN_CCD}
+             ,#{BRN_CD}
+             ,#{ROLE_ID}
+             ,#{TARGET_ROLE_ID}
+             ,#{APP_CNTNT jdbcType=VARCHAR}
+             ,SYSDATE
+             ,#{USER_ID}
+           )
+</insert>
+
+<select id="AML_50_09_01_04_getTMS_SET_VAL_APP_DTL" parameterType="HashMap" resultType="DataObj">
+    SELECT *
+      FROM TMS_SET_VAL_APP_DTL
+     WHERE APP_NO = #{APP_NO}
+</select>
+
+<delete id="AML_50_09_01_04_deleteTMS_SET_VAL" parameterType="HashMap">
+    DELETE
+      FROM TMS_SET_VAL
+     WHERE SCNR_ID = #{SCNR_ID}
+</delete>
+
+<update id="AML_50_09_01_04_mergeTMS_SET_VAL" parameterType="HashMap">
+    MERGE
+     INTO TMS_SET_VAL A
+    USING DUAL
+       ON (A.SCNR_ID = #{SCNR_ID}
+      AND A.CS_CCD = #{CS_CCD}
+      AND A.SET_VAL_CD = #{SET_VAL_CD})
+     WHEN MATCHED THEN
+          UPDATE
+             SET A.SET_VAL = #{SET_VAL}
+                ,A.UPD_ID = #{USER_ID jdbcType=VARCHAR}
+                ,A.UPD_DTTM = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+     WHEN NOT MATCHED THEN
+          INSERT
+                 (
+                    A.SCNR_ID
+                   ,A.CS_CCD
+                   ,A.SET_VAL_CD
+                   ,A.SET_VAL
+                   ,A.REG_ID
+                   ,A.REG_DTTM
+                 )
+          VALUES
+                 (
+                    #{SCNR_ID}
+                   ,#{CS_CCD}
+                   ,#{SET_VAL_CD}
+                   ,#{SET_VAL}
+                   ,#{USER_ID jdbcType=VARCHAR}
+                   ,TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                 )
+</update>
+
+<select id="AML_50_09_01_04_getNUM_SQ" parameterType="HashMap" resultType="DataObj">
+    SELECT AML_APPR_HIST_SEQ.NEXTVAL AS NUM_SQ
+      FROM DUAL
+</select>
+
+<select id="AML_50_09_01_05_getAfterChangeData" parameterType="HashMap" resultType="DataObj">
+    SELECT A.SCNR_ID
+          ,C.SCNR_NM
+          ,B.APP_NO
+          ,B.CS_CCD
+          ,B.SET_VAL_CD
+          ,B.SET_VAL_NM
+          ,B.SET_VAL
+      FROM TMS_SET_VAL_APP A
+     INNER JOIN TMS_SET_VAL_APP_DTL B
+        ON A.APP_NO = B.APP_NO
+     INNER JOIN TMS_REQ C
+        ON A.SCNR_ID = C.SCNR_ID
+     WHERE A.APP_NO = #{APP_NO}
+       AND A.SCNR_ID = #{SCNR_ID}
+     ORDER BY B.CS_CCD ASC
+             ,B.SET_VAL_CD ASC
+</select>
+
+<select id="AML_50_09_01_05_getBeforeChangeData" parameterType="HashMap" resultType="DataObj">
+	WITH TMP AS ( SELECT APP_NO AS APP_NO2 
+	               FROM ( 
+						     SELECT APP_NO,  ROW_NUMBER() OVER (ORDER BY TO_NUMBER(APP_NO) DESC ) AS RN 
+						      FROM TMS_SET_VAL_APP
+						     WHERE SCNR_ID = #{SCNR_ID}
+			    ) WHERE RN =2 
+	     )
+	SELECT A.SCNR_ID
+	          ,C.SCNR_NM
+	          ,B.APP_NO
+	          ,B.CS_CCD
+	          ,B.SET_VAL_CD
+	          ,B.SET_VAL_NM
+	          ,B.SET_VAL
+	      FROM TMS_SET_VAL_APP A
+	     INNER JOIN TMS_SET_VAL_APP_DTL B
+	        ON A.APP_NO = B.APP_NO
+	     INNER JOIN TMS_REQ C
+	        ON A.SCNR_ID = C.SCNR_ID
+	     WHERE A.APP_NO = (select app_no2 from tmp )
+	       AND A.SCNR_ID = #{SCNR_ID}
+	     ORDER BY B.CS_CCD ASC
+	             ,B.SET_VAL_CD ASC
+</select>
+             
+<select id="AML_50_09_01_05_getBeforeChangeData_old" parameterType="HashMap" resultType="DataObj">
+    SELECT *
+      FROM TMS_SET_VAL
+     WHERE SCNR_ID = #{SCNR_ID}
+</select>
+
+<select id="AML_50_09_01_03_getApprovalHistory" parameterType="HashMap" resultType="DataObj">
+    SELECT ROW_NUMBER() OVER(ORDER BY A.NUM_SQ ASC) AS ROW_NUM
+          ,A.SNO
+          ,A.SN_CCD
+          ,A.APPR_ROLE_ID
+          ,RSN_CNTNT
+          ,TO_CHAR(A.HNDL_DY_TM, 'YYYY-MM-DD HH24:MI:SS') AS HNDL_DY_TM
+          ,A.HNDL_P_ENO
+          ,B.USER_NM
+      FROM AML_APPR_HIST A
+     INNER JOIN C_USER B
+        ON A.HNDL_P_ENO = B.USER_ID
+     WHERE A.APP_NO = #{APP_NO}
+     ORDER BY A.NUM_SQ DESC
+</select>
+
+<select id="AML_50_09_02_01_getTMSApproval" parameterType="hashMap" resultType="DataObj">
+    SELECT A.APP_NO
+          ,TO_CHAR(TO_DATE(A.APP_DT, 'YYYYMMDD'), 'YYYY-MM-DD') AS APP_DT
+          ,B.SCNR_ID
+          ,B.SCNR_CCD
+          ,A.SN_CCD
+          ,'[' || B.SCNR_ID || ']' || B.SCNR_NM AS CATEGORY
+          ,'조회' AS CHANGE_HISTORY
+          ,'조회' AS APPROVAL_HISTORY
+          ,B.SCNR_NM
+          ,A.RSN_CNTNT
+          ,CASE
+                WHEN A.SN_CCD = 'E'
+                THEN A.APP_DT
+            END AS SN_END_DY_TM
+      FROM AML_APPR A
+     INNER JOIN TMS_APPL B
+        ON A.APP_NO = B.LST_APP_NO
+     INNER JOIN TMS_REQ C
+        ON B.SCNR_ID = C.SCNR_ID
+     WHERE A.GYLJ_LINE_G_C IN ('TMS1', 'TMS2')
+       AND A.APP_DT BETWEEN #{stDate} AND #{edDate}
+     ORDER BY A.APP_DT DESC
+</select>
+</mapper>

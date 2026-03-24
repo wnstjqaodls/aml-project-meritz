@@ -1,0 +1,24 @@
+<!ELEMENT ejb-service (ejb-service-config*)>
+<!ELEMENT ejb-service-config (log-type, log-level, log-location, jndi-service-name,ejb-is-cache,description?)>
+<!ELEMENT log-type (#PCDATA)>
+<!ELEMENT log-level (#PCDATA)>
+<!ELEMENT log-location (#PCDATA)>
+<!ELEMENT jndi-service-name (#PCDATA)>
+<!ELEMENT ejb-is-cache (#PCDATA)>
+
+<!ELEMENT param-name (#PCDATA)>
+<!ELEMENT param-value (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+
+<!ATTLIST ejb-service
+	defaultElement CDATA #IMPLIED
+	verbose (true | false) 'false'>
+
+<!ATTLIST ejb-service-config
+	name CDATA #REQUIRED
+	deploy (true | false) 'false'
+	loadOnStartup CDATA #IMPLIED
+	verbose (true | false) 'false'
+	lastModified CDATA #IMPLIED
+	target CDATA #IMPLIED>
+		

@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<!-- UTF-8 ó�� -->
+
+<!DOCTYPE jndi-service SYSTEM "jndi-service.dtd">
+
+	<jndi-service verbose="true" defaultElement="default">
+
+		<jndi-service-config name="default" deploy="true" loadOnStartup="100" verbose="true" lastModified="1106654800235" target="all.all">
+			<log-type>ONLY_CONSOLE</log-type>
+			<log-level>DEBUG</log-level>
+			<log-location></log-location>
+			<env-param>
+				<param-name>jspeed.instance.key</param-name>
+				<param-value>default</param-value>
+			</env-param>
+		</jndi-service-config>
+
+		<available-environment-param>
+			<param-name>Context.INITIAL_CONTEXT_FACTORY</param-name>
+			<default-value>weblogic.jndi.WLInitialContextFactory</default-value>
+			<instance-map-name></instance-map-name>
+			<help-page>/help/base/jndi/environment/environmentHelp.html#java.naming.factory.initial</help-page>
+		</available-environment-param>
+
+		<available-environment-param>
+			<param-name>Context.PROVIDER_URL</param-name>
+			<default-value></default-value>
+			<instance-map-name>instance-address</instance-map-name>
+			<help-page>/help/base/jndi/environment/environmentHelp.html#java.naming.provider.url</help-page>
+		</available-environment-param>
+
+		<available-environment-param>
+			<param-name>URL.key</param-name>
+			<default-value>t3://</default-value>
+			<instance-map-name></instance-map-name>
+			<help-page>/help/base/jndi/environment/environmentHelp.html#java.naming.provider.url</help-page>
+		</available-environment-param>
+
+		<relation-service>
+			<service-name>default</service-name>
+			<relation-service-name>default EJB Service</relation-service-name>
+		</relation-service>
+
+	</jndi-service>

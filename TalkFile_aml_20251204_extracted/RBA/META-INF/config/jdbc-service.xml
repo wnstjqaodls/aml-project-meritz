@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="euc-kr"?>
+<!-- UTF-8 ó�� -->
+
+<!DOCTYPE jdbc-service SYSTEM "jdbc-service.dtd">
+
+	<jdbc-service verbose="true" defaultElement="ITPDataSource">
+
+		<jdbc-service-config name="ITPDataSource" deploy="true" loadOnStartup="100" verbose="true" lastModified="1235650047692" target="all.web">
+			<log-type>ONLY_CONSOLE</log-type>
+			<log-level>DEBUG</log-level>
+			<log-location></log-location>
+			<conn-handler>jspeed.base.jdbc.DataSourceConnectionHandler</conn-handler>
+			<limit-time>100</limit-time>
+			<limit-row>100</limit-row>
+			<conn-param>
+				<param-name>jndi-name</param-name>
+				<param-value>AMLDataSource</param-value>
+			</conn-param>
+			<!--
+			<conn-param>
+				<param-name>transaction-isolation</param-name>
+				<param-value>2</param-value>
+			</conn-param>
+		 	-->
+
+		</jdbc-service-config>
+	<jdbc-service-config name="AMLDS_ITP" deploy="true" loadOnStartup="100" verbose="true" lastModified="1235650047692" target="all.web">
+			<log-type>ONLY_CONSOLE</log-type>
+			<log-level>DEBUG</log-level>
+			<log-location></log-location>
+			<conn-handler>jspeed.base.jdbc.DataSourceConnectionHandler</conn-handler>
+			<limit-time>100</limit-time>
+			<limit-row>100</limit-row>
+			<conn-param>
+				<param-name>jndi-name</param-name>
+				<param-value>AMLDataSource</param-value>
+			</conn-param>
+			<!--
+			<conn-param>
+				<param-name>transaction-isolation</param-name>
+				<param-value>2</param-value>
+			</conn-param>
+		 	-->
+
+		</jdbc-service-config>
+
+		<!-- <jdbc-service-config name="AMLDS_WF" deploy="true" loadOnStartup="100" verbose="true" lastModified="1235650047692" target="all.web">
+			<log-type>ONLY_CONSOLE</log-type>
+			<log-level>DEBUG</log-level>
+			<log-location></log-location>
+			<conn-handler>jspeed.base.jdbc.DataSourceConnectionHandler</conn-handler>
+			<limit-time>100</limit-time>
+			<limit-row>100</limit-row>
+			<conn-param>
+				<param-name>jndi-name</param-name>
+				<param-value>AMLDS_WF</param-value>
+			</conn-param>
+
+			<conn-param>
+				<param-name>transaction-isolation</param-name>
+				<param-value>2</param-value>
+			</conn-param>
+
+
+		</jdbc-service-config> -->
+
+		<jdbc-service-config name="jSpeedDataSource" deploy="true" loadOnStartup="100" verbose="true" monitor="true" lastModified="1235650061692" target="all.web">
+			<log-type>ONLY_CONSOLE</log-type>
+			<log-level>DEBUG</log-level>
+			<log-location></log-location>
+			<conn-handler>jspeed.base.jdbc.DataSourceConnectionHandler</conn-handler>
+			<limit-time>100</limit-time>
+			<limit-row>100</limit-row>
+			<conn-param>
+				<param-name>jndi-name</param-name>
+				<param-value>AMLDataSource</param-value>
+			</conn-param>
+			<!--
+			<conn-param>
+				<param-name>transaction-isolation</param-name>
+				<param-value>2</param-value>
+			</conn-param>
+			-->
+			<description>DataSource Connection</description>
+		</jdbc-service-config>
+
+	</jdbc-service>

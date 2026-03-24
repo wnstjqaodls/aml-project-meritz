@@ -1,0 +1,465 @@
+package com.gtone.aml.server.AML_10.AML_10_25.AML_10_25_01;
+
+import java.math.BigDecimal;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+
+import com.gtone.aml.admin.AMLException;
+import com.gtone.aml.basic.common.data.DataObj;
+import com.gtone.aml.basic.common.log.Log;
+import com.gtone.aml.common.Common;
+import com.gtone.aml.common.action.GetResultObject;
+import com.gtone.aml.dao.common.MDaoUtil;
+import com.gtone.aml.dao.common.MDaoUtilSingle;
+import com.gtone.aml.user.SessionAML;
+import com.gtone.express.server.helper.MessageHelper;
+import com.itplus.common.server.user.SessionHelper;
+
+import jspeed.base.util.DateHelper;
+import jspeed.base.util.StringHelper;
+import kr.co.itplus.jwizard.dataformat.DataSet;
+
+/**
+*<pre>
+* 신상품 관리
+*</pre>
+*@author  
+*@version 1.0
+*@history 1.0 2025-05-02
+*/
+public class AML_10_25_01_02 extends GetResultObject {
+
+	private static AML_10_25_01_02 instance = null;
+
+	/**
+	 * getInstance
+	 * @return AML_10_24_01_01
+	 */
+	public static AML_10_25_01_02 getInstance() {
+		if ( instance == null ) {
+			instance = new AML_10_25_01_02();
+		}
+		return instance;
+	}
+
+	/**
+	 * <pre>
+	 * 상품 정보 조회
+	 */
+	public DataObj getSearch(DataObj input) {
+		
+		DataObj output = new DataObj();
+		DataSet gdRes = null;
+
+		String WINMSG = "";
+		String ERRMSG = "";
+
+		try {
+
+			output = MDaoUtilSingle.getData("AML_10_25_01_02_getSearch", input);
+
+			if ( output.getCount("GDS_DIT_CD") > 0 ) {
+
+				gdRes = Common.setGridData(output);
+
+			}else {
+
+				ERRMSG = MessageHelper.getInstance().getMessage("0001", input.getText("LANG_CD"), "조회된 정보가 없습니다.");
+				WINMSG = MessageHelper.getInstance().getMessage("0001", input.getText("LANG_CD"), "조회된 정보가 없습니다.");
+			}
+
+			output.put("ERRCODE", "00000");
+			output.put("ERRMSG", ERRMSG);
+			output.put("WINMSG", WINMSG);
+			output.put("gdRes", gdRes);
+
+		} catch (AMLException e) {
+
+			Log.logAML(1, this, "getSearch(AMLException)", e.getMessage());
+			output = new DataObj();
+			output.put("ERRCODE", "00001");
+			output.put("WINMSG", MessageHelper.getInstance().getMessage("0005", input.getText("LANG_CD"), "처리중 오류가 발생하였습니다."));
+		}
+
+		return output;
+	}
+	
+	public DataObj doSave(DataObj input) {
+
+		DataObj output = new DataObj();
+		DataSet gdRes = null;
+		String PRD_gubun = null;
+		MDaoUtil db = null;
+
+		try {
+
+			List gdReq = (List)input.get("gdReq");
+			int totcount = gdReq.size();
+			int count = 0;
+
+			db = new MDaoUtil();
+			db.begin();
+
+			if(totcount > 0 ) {
+
+				for( int i = 0;  i < totcount ; i++  ) {
+
+					HashMap inputRow = (HashMap)gdReq.get(i);
+					PRD_gubun = StringHelper.evl( inputRow.get("PRD_gubun"), "" );
+
+					inputRow.put("HNDL_P_ENO", ((SessionHelper)input.get("SessionHelper")).getUserId() );
+					
+					if( "P1".equals(PRD_gubun) ) {
+						
+						count = db.setData("AML_10_25_01_02_PRD_Update", inputRow);
+						db.commit();
+						count = db.setData("AML_10_25_01_02_PRD_SCORE_Update", inputRow);
+								
+					}else if( "A1".equals(PRD_gubun) ) {
+						
+						count = db.setData("AML_10_25_01_02_AML_Update", inputRow);
+						
+					}else if( "P2".equals(PRD_gubun) ) {
+						
+						count = db.setData("AML_10_25_01_02_PRD2_Update", inputRow);
+						db.commit();
+						count = db.setData("AML_10_25_01_02_PRD2_SCORE_Update", inputRow);
+								
+					}else if( "A2".equals(PRD_gubun) ) {
+						
+						count = db.setData("AML_10_25_01_02_PRD2_Update", inputRow);
+						count = db.setData("AML_10_25_01_02_PRD2_SCORE_Update", inputRow);
+					}
+					
+					db.commit();
+				}
+			}
+			
+			if( count > 0 ) {
+
+				gdRes = Common.setGridData(output);
+				output.put("ERRMSG", MessageHelper.getInstance().getMessage("0002", input.getText("LANG_CD"), "정상처리 되었습니다."));
+				output.put("WINMSG", MessageHelper.getInstance().getMessage("0002", input.getText("LANG_CD"), "정상처리 되었습니다."));
+
+			}else{
+				
+				output.put("ERRMSG", MessageHelper.getInstance().getMessage("0003", input.getText("LANG_CD"), "처리할 데이터가 없습니다."));
+				output.put("WINMSG", MessageHelper.getInstance().getMessage("0003", input.getText("LANG_CD"), "처리할 데이터가 없습니다."));
+			}
+
+			output.put("ERRCODE", "00000");
+			output.put("gdRes", gdRes);
+
+		}catch(AMLException e) {
+
+			if( db != null ) {
+				db.close();
+			}
+			
+			Log.logAML(1, this, "doSave(AMLException)", e.getMessage());
+			output = new DataObj();
+			output.put("ERRCODE", "00001");
+			output.put("WINMSG", MessageHelper.getInstance().getMessage("0005", input.getText("LANG_CD"), "처리중 오류가 발생하였습니다."));
+		}
+		
+		return output; 
+	}
+	
+	
+	
+	// 위험평가 상품 체크리스트 ( 최초 결재요청 )
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	public DataObj firstAppRequest(DataObj input) throws AMLException {
+		
+		DataObj output = new DataObj();
+		DataObj output2 = new DataObj();
+		DataObj output3 = new DataObj();
+		DataObj makeParamDobj = new DataObj();
+		
+		String ERRCODE = "";
+		String ERRMSG = "";
+		String WINMSG = "";
+		String APP_NO = "";
+		String SNCCD = "";
+		String CUR_APP_NO = "";
+		
+		int count = 0;
+		int totcount = 0;
+		MDaoUtil db = null;
+		
+		try {
+
+			db = new MDaoUtil();
+			db.begin();
+
+			List gdReq = (List)input.get("gdReq");
+			totcount = gdReq.size();
+
+			if( totcount > 0 ) {
+
+				for( int i = 0 ; i < gdReq.size() ; i++) {
+
+					HashMap inputMap = (HashMap)gdReq.get(i);
+					DataObj paramDobj = new DataObj();
+
+					paramDobj.put("GYLJ_LINE_G_C", "PRD");
+					paramDobj.put("WSR_SQ", 0); 
+					paramDobj.put("APPR_ROLE_ID", ((SessionAML)input.get("SessionAML")).getsAML_ROLE_ID() );
+					paramDobj.put("BRN_CD", ((SessionAML)input.get("SessionAML")).getsAML_BDPT_CD() );
+					paramDobj.put("HNDL_P_ENO", ((SessionHelper)input.get("SessionHelper")).getUserId() );
+					paramDobj.put("SN_CCD", StringHelper.evl(inputMap.get("SN_CCD"), "") );
+					paramDobj.put("FIRST_SNO", StringHelper.evl(inputMap.get("FIRST_SNO"), "") );
+
+					SNCCD = StringHelper.evl(inputMap.get("PRE_SN_CCD"), "").toString();
+					CUR_APP_NO = StringHelper.evl(inputMap.get("APP_NO"), "").toString();
+
+					if( "R".equals(SNCCD) ){
+
+						paramDobj.put( "APP_NO",  CUR_APP_NO );
+
+					}else if( "E".equals( StringHelper.evl( output2.get("PRE_SN_CCD"), "").toString() ) ) {
+
+						output3 = MDaoUtilSingle.getData("get_APP_NO", paramDobj );
+						paramDobj.put( "APP_NO", StringHelper.evl(output3.get("APP_NO"), "") );
+						paramDobj.put( "PRV_APP_NO", inputMap.get("PRV_APP_NO").toString() );
+					}else {
+						output3 = MDaoUtilSingle.getData("get_APP_NO", paramDobj );
+						paramDobj.put( "APP_NO", StringHelper.evl(output3.get("APP_NO"), "") );
+					}
+
+					makeParamDobj = MDaoUtilSingle.getData("get_APP_MAKE_PARAM", paramDobj);
+					
+					// 테이블 : NIC24B 변경 시 사용됨 
+					makeParamDobj.put("GDS_DIT_CD",  StringHelper.evl(inputMap.get("GDS_DIT_CD"), ""));
+					makeParamDobj.put("CRT_DT",  StringHelper.evl(inputMap.get("CRT_DT"), ""));
+
+					count = db.setData("AML_10_17_01_01_AmlAppr_Merge", makeParamDobj);  // AML_APPR : 결재
+					db.setData("AML_10_17_01_01_AmlApprHist_Insert", makeParamDobj);	//AML_APPR_HIST : 결재이력
+					
+					db.setData("AML_10_25_01_02_Nic24b_update_PrdAppNo", makeParamDobj);
+					db.commit();
+				}
+				
+				if( count > 0 ) {
+					
+					ERRCODE =  "00000";
+					ERRMSG = MessageHelper.getInstance().getMessage("0002", input.getText("LANG_CD"), "정상처리 되었습니다.");
+					WINMSG = MessageHelper.getInstance().getMessage("0002", input.getText("LANG_CD"), "정상처리 되었습니다.");
+				}
+				
+			}else {
+			
+				ERRCODE =  "00099";
+				ERRMSG = MessageHelper.getInstance().getMessage("0003", input.getText("LANG_CD"), "처리할 데이터가 없습니다.");
+				WINMSG = MessageHelper.getInstance().getMessage("0003", input.getText("LANG_CD"), "처리할 데이터가 없습니다.");
+			}
+
+		}catch (AMLException e) {
+
+			if( db != null ) {
+				db.rollback();
+			}
+			
+			Log.logAML(Log.ERROR, this, "firstAppRequest(AMLException)", e.getMessage());
+			ERRCODE =  "00001";
+			ERRMSG = MessageHelper.getInstance().getMessage("0003", input.getText("LANG_CD"), "알수 없는 오류입니다.");
+			WINMSG = MessageHelper.getInstance().getMessage("0003", input.getText("LANG_CD"), "알수 없는 오류입니다.");
+			
+		}finally {
+			
+			try {
+				
+				if( db != null ) {
+					db.close();
+				}
+				
+			}catch(Exception e) {}
+		}
+		
+		output.put("ERRCODE", ERRCODE);
+		output.put("ERRMSG", ERRMSG);
+		output.put("WINMSG", WINMSG);
+		
+		return output;
+	}
+	
+	
+	// 위험평가 상품 체크리스트 ( 결재  )
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	public DataObj doAppr(DataObj input) {
+
+		DataObj output = new DataObj();
+		DataObj makeParamDobj = new DataObj();
+
+		DataSet gdRes = null;
+		
+		String ERRCODE = "";
+		String ERRMSG = "";
+		String WINMSG = "";
+		
+		int count = 0;
+		int totcount = 0;
+		int applcount = 0;
+		
+		MDaoUtil db = null;
+
+		try {
+
+			db = new MDaoUtil();
+			db.begin();
+
+			List gdReq = (List)input.get("gdReq");
+			totcount = gdReq.size();
+
+			if( totcount > 0 ) {
+
+				String t_WL_REG_DT = "";
+				String s_WLR_SQ = "";
+				String strLapAppNo = "";
+				String snccdgubun = "";
+				DataObj saveApp = null;
+				DataObj amlStatUpdate = new DataObj();
+				DataObj map = new DataObj();
+				String strProcDtm = DateHelper.format(new Date(), "yyyyMMddHHmmss");
+				BigDecimal userID = ((SessionHelper)input.get("SessionHelper")).getUserId();
+				
+				for( int i = 0 ; i < totcount ; i++) {
+
+					HashMap inputMap = (HashMap)gdReq.get(i);
+					
+					snccdgubun = StringHelper.evl(inputMap.get("SN_CCD"), "").toString();
+					saveApp = setObj();
+					
+					saveApp.put("GYLJ_LINE_G_C", StringHelper.evl(inputMap.get("GYLJ_LINE_G_C"), "") );
+					saveApp.put("APP_DT", StringHelper.evl(inputMap.get("APP_DT"), "") );
+					
+					s_WLR_SQ = StringHelper.evl(inputMap.get("WLR_SQ"), "").toString();
+					
+					if( s_WLR_SQ == null || "".equals(s_WLR_SQ) ) {
+						
+						saveApp.put("WLR_SQ", 0);
+						
+					}else {
+						
+						saveApp.put("WLR_SQ", s_WLR_SQ);
+					}
+					
+					strLapAppNo = StringHelper.evl(inputMap.get("APP_NO"), "").toString();
+					
+					if( strLapAppNo == null || "".equals(strLapAppNo) ) {
+
+						saveApp.put("APP_NO", 0);
+
+					}else {
+
+						saveApp.put("APP_NO", strLapAppNo);
+					}
+
+					saveApp.put("SNO", StringHelper.evl(inputMap.get("SNO"), ""));
+					
+					saveApp.put("APPR_ROLE_ID", ((SessionAML)input.get("SessionAML")).getsAML_ROLE_ID() );
+					saveApp.put("SN_CCD", StringHelper.evl(inputMap.get("SN_CCD"), "") );
+					saveApp.put("BRN_CD", ((SessionAML)input.get("SessionAML")).getsAML_BDPT_CD() );
+					saveApp.put("HNDL_P_ENO", userID );
+					saveApp.put("PRV_APP_NO", inputMap.get("PRV_APP_NO") );
+					saveApp.put("RSN_CNTNT", inputMap.get("RSN_CNTNT") );
+					
+					makeParamDobj = MDaoUtilSingle.getData("get_APP_MAKE_PARAM", saveApp);
+					count = db.setData("AML_10_17_01_01_AmlAppr_Merge", makeParamDobj);  // AML_APPR : 결재
+					count = db.setData("AML_10_17_01_01_AmlApprHist_Insert", makeParamDobj);	//AML_APPR_HIST : 결재이력
+
+					// 테이블 : NIC24B 변경 시 사용됨 
+					makeParamDobj.put("GDS_DIT_CD",  StringHelper.evl(inputMap.get("GDS_DIT_CD"), ""));
+					makeParamDobj.put("CRT_DT",  StringHelper.evl(inputMap.get("CRT_DT"), ""));
+					
+					
+					if( "S".equals(snccdgubun) ){
+
+						count = db.setData("AML_10_25_01_02_S_APPR", makeParamDobj);
+
+					}else if( "R".equals(snccdgubun) ){
+
+						count = db.setData("AML_10_25_01_02_R_APPR", makeParamDobj);
+						
+					}
+				}
+				
+				map.put("CNTNT", ((HashMap)gdReq.get(0)).get("CNTNT") );
+				map.put("CD_NM", ((HashMap)gdReq.get(0)).get("CD_NM") );
+				map.put("USE_F", ((HashMap)gdReq.get(0)).get("USE_F") );
+				map.put("HNDL_P_ENO", userID );
+				map.put("RA_ITEM_SCR", ((HashMap)gdReq.get(0)).get("RA_ITEM_SCR") );
+				
+				db.setData("AML_10_25_01_03_insertCode_Body", map);
+				db.setData("AML_10_25_01_03_doInsert", map);
+
+				if( count > 0 ) {
+					
+					db.commit();
+
+					ERRCODE =  "00000";
+					ERRMSG = MessageHelper.getInstance().getMessage("0002", input.getText("LANG_CD"), "정상처리 되었습니다.");
+					WINMSG = MessageHelper.getInstance().getMessage("0002", input.getText("LANG_CD"), "정상처리 되었습니다.");
+				}
+
+			}else {
+
+				ERRCODE =  "00099";
+				ERRMSG = MessageHelper.getInstance().getMessage("0003", input.getText("LANG_CD"), "처리할 데이터가 없습니다.");
+				WINMSG = MessageHelper.getInstance().getMessage("0003", input.getText("LANG_CD"), "처리할 데이터가 없습니다.");
+			}
+			
+			output.put("ERRCODE", ERRCODE);
+			output.put("ERRMSG", ERRMSG);
+			output.put("WINMSG", WINMSG);
+			output.put("gdRes", gdRes);
+
+		}catch (AMLException e) {
+
+			if( db != null ) {
+				try {
+					db.rollback();
+				} catch (AMLException ee) {
+				}
+			}
+
+			Log.logAML(Log.ERROR, this, "insertCode_Body(AMLException)", e.getMessage());
+			output.put("ERRCODE", "00001");
+			output.put("ERRMSG", MessageHelper.getInstance().getMessage("0003", input.getText("LANG_CD"), "알수 없는 오류입니다."));
+			output.put("WINMSG", MessageHelper.getInstance().getMessage("0003", input.getText("LANG_CD"), "알수 없는 오류입니다."));
+			output.put("gdRes", null);
+			
+		}catch (Exception e) {
+			
+			if( db != null ) {
+				try {
+					db.rollback();
+				} catch (AMLException ee) {
+				}
+			}
+			
+			Log.logAML(Log.ERROR, this, "insertCode_Body(AMLException)", e.getMessage());
+			output.put("ERRCODE", "00001");
+			output.put("ERRMSG", MessageHelper.getInstance().getMessage("0003", input.getText("LANG_CD"), "알수 없는 오류입니다."));
+			output.put("WINMSG", MessageHelper.getInstance().getMessage("0003", input.getText("LANG_CD"), "알수 없는 오류입니다."));
+			output.put("gdRes", null);
+
+		}finally {
+
+			try {
+
+				if( db != null ) {
+					db.close();
+				}
+
+			}catch(Exception e) {}
+		}
+		
+		return output;
+	}
+	
+	public DataObj setObj() {
+		return new DataObj();
+	}
+}

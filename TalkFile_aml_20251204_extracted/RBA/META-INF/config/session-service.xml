@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="euc-kr"?>
+<!-- UTF-8 처리 -->
+
+<!DOCTYPE session-service SYSTEM "session-service.dtd">
+
+	<session-service verbose="true" defaultElement="default">
+
+		<session-service-config name="default" deploy="true" loadOnStartup="100" verbose="true" lastModified="1150350868953" target="all.web">
+			<log-type>ONLY_CONSOLE</log-type>
+			<log-level>DEBUG</log-level>
+			<log-location></log-location>
+			<session-attribute-modification>false</session-attribute-modification>
+			<session-location>default</session-location>
+			<session-replication>false</session-replication>
+			<session-element-param>
+				<param-name>password</param-name>
+				<param-type>java.lang.String</param-type>
+			</session-element-param>
+			<session-element-param>
+				<param-name>name</param-name>
+				<param-type>java.lang.String</param-type>
+			</session-element-param>
+			<session-element-param>
+				<param-name>userId</param-name>
+				<param-type>java.lang.String</param-type>
+			</session-element-param>
+		</session-service-config>
+
+
+		<session-service-config name="exam_session" deploy="true" loadOnStartup="100" verbose="true" lastModified="1216180885140" target="all.web">
+			<log-type>NOT_LOGGING</log-type>
+			<log-level>ERROR</log-level>
+			<log-location></log-location>
+			<session-attribute-modification>true</session-attribute-modification>
+			<session-location>exam_session</session-location>
+			<session-replication>false</session-replication>
+			<session-element-param>
+				<param-name>name</param-name>
+				<param-type>java.lang.String</param-type>
+			</session-element-param>
+			<session-element-param>
+				<param-name>count</param-name>
+				<param-type>java.lang.String</param-type>
+			</session-element-param>
+		</session-service-config>
+
+
+	</session-service>

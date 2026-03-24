@@ -1,0 +1,22 @@
+SUP=\
+	SUP,\
+	Supervisor,\
+	1,\
+	Supervisor Role,\
+	,\
+	,\
+	jspeed,\
+	20050208173637,\
+	N
+
+DEV=\
+	DEV,\
+	11,\
+	1,\
+	111,\
+	jspeed,\
+	20060912201443,\
+	jspeed,\
+	20060912201443,\
+	N
+

@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="AML_70" >
+
+<!-- factiva관련 고객상세정보 팝업 -->
+<select id="AML_70_01_01_03_getSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT CASE WHEN ACTIVE_STATUS ='Y'
+                THEN 'Active'
+                ELSE 'Inactive'
+            END AS ACTION
+          ,NM_TYPE AS TYPE
+          ,CASE WHEN INDV_CORP_CCD =2
+                THEN ENTITY_NM
+                ELSE NVL(FIRST_NM, '') ||' '|| NVL(MIDDLE_NM, '') ||' '|| NVL(SUR_NM, '')
+            END AS CS_NM
+          ,FIRST_NM AS CS_NM_FIRST
+          ,MIDDLE_NM AS CS_NM_MIDDLE
+          ,SUR_NM AS CS_NM_LAST
+          ,FAC_REG_DT AS REG_DT
+      FROM WAL_NM
+     WHERE DJ_UID = #{WC_UID}
+     ORDER BY SEQ
+</select>
+
+<select id="AML_70_01_01_03_getSearch2" parameterType="hashMap" resultType="DataObj">
+    SELECT A.DJ_UID
+          ,A.PLACE_OF_BIRTH AS BIRTHPLACE
+          ,B.ADDR_LINE
+          ,B.ADDR_CITY AS RESIDENCE
+          ,B.ADDR_COUNTRY AS NATIONALITY
+          ,C.EU_DATE_FORM AS BIRTHDATE
+          ,D.PLACE_NM
+          ,PROFILE AS FURTHER_INFORMATION1
+      FROM WAL_BAS A
+      LEFT OUTER JOIN WAL_ADDR B
+        ON (A.DJ_UID = B.DJ_UID)
+      LEFT OUTER JOIN WAL_DT C
+        ON (A.DJ_UID = C.DJ_UID)
+      LEFT OUTER JOIN WAL_POB D
+        ON (A.DJ_UID = D.DJ_UID)
+     WHERE A.DJ_UID = #{WC_UID}
+       AND C.DATE_TYPE = 'Date of Birth'
+</select>
+
+<select id="AML_70_01_01_03_getSearch3" parameterType="hashMap" resultType="DataObj">
+    SELECT CASE WHEN A.ACTIVE_STATUS ='Y'
+                THEN 'Active'
+                ELSE 'Inactive'
+            END AS ACTION
+          ,A.ROLE_TYPE AS TYPE
+          ,A.OCC_TITLE AS JOB_NM
+          ,A.FAC_REG_DT AS REG_DT
+      FROM WAL_ROLE A
+     WHERE 1 = 1
+       AND M.DJ_UID = #{WC_UID}
+</select>
+
+<select id="AML_70_01_01_03_getSearch4" parameterType="hashMap" resultType="DataObj">
+    SELECT A.ASSOCIATE_ID AS FAM_UID
+          ,(SELECT X.CNTNT_NM
+              FROM WAL_CD_BODY X
+             WHERE X.CNTNT = A.ASSOCIATE_CD
+               AND X.CD = 'W003') AS TYPE
+          ,A.FAC_REG_DT AS REG_DT
+          ,A.CS_NM AS FAM_NM
+      FROM WAL_RELATION A
+      LEFT OUTER JOIN (SELECT MAX(SQ) AS SQ
+                             ,MAX(CS_NM) AS CS_NM
+                             ,WC_UID <!-- MNG_SNO => WC_UID  -->
+                         FROM NIC19B_FACTIVA
+                        GROUP BY WC_UID) B <!-- MNG_SNO => WC_UID  -->
+        ON (B.WC_UID = A.ASSOCIATE_ID) <!-- MNG_SNO => WC_UID  -->
+     WHERE A.DJ_UID = #{WC_UID}
+     ORDER BY A.SEQ
+</select>
+
+<select id="AML_70_01_01_03_getSearch7" parameterType="hashMap" resultType="DataObj">
+    SELECT DISTINCT B.CD_NM AS CATEGORY
+          ,'WPEP01' AS WC_LIST_CCD_NM
+          ,A.WC_UID AS WC_UID
+      FROM NIC19B_FACTIVA A
+     INNER JOIN NIC92B B
+        ON (
+                 B.CD = 'A003'
+             AND B.CNTNT = A.WC_LIST_CCD
+           )
+     WHERE A.WC_UID = #{WC_UID}
+</select>
+
+<select id="AML_70_01_01_03_getSearch8" parameterType="hashMap" resultType="DataObj">
+    SELECT ROW_NUMBER() OVER(ORDER BY DATE_TYPE, SEQ) AS FIELD_SEQ
+          ,DATE_TYPE AS FIELD_DESC
+          ,EU_DATE_FORM AS FIELD_VALUE
+      FROM WAL_DT
+     WHERE DJ_UID = #{WC_UID}
+       AND DATE_TYPE NOT IN ('Date of Birth')
+     ORDER BY DATE_TYPE
+          ,SEQ
+</select>
+
+<select id="AML_70_01_01_03_getSearch9" parameterType="hashMap" resultType="DataObj">
+    SELECT ROW_NUMBER() OVER(ORDER BY NTN_TYPE, SEQ) AS FIELD_SEQ
+          ,NTN_TYPE AS FIELD_DESC
+          ,NTN_CODE AS FIELD_VALUE
+      FROM WAL_NATION
+     WHERE DJ_UID = #{WC_UID}
+       AND NTN_TYPE NOT IN ('Citizenship', 'Resident of', 'BirthPlace')
+     ORDER BY NTN_TYPE
+          ,SEQ
+</select>
+
+</mapper>

@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<!-- UTF-8 ó�� -->
+
+<!DOCTYPE log-service SYSTEM "log-service.dtd">
+
+	<log-service verbose="true" defaultElement="out">
+<!-- Debug Error Info -->
+		<log-service-config name="aml.monitoring.log" deploy="true" loadOnStartup="100" verbose="true" lastModified="1254285236109" target="all.web">
+			<log-location>ONLY_CONSOLE</log-location>
+			<log-level>Debug</log-level>
+			 <log-directory>D:/log</log-directory>
+			<max-log-size>1024</max-log-size>
+			<show-prefix>true</show-prefix>
+			<check-param>false</check-param>
+			<!-- <log-param>
+				<param-name>transaction-isolation</param-name>
+				<param-value>2</param-value>
+			</log-param> -->
+		</log-service-config>
+
+		<log-service-config name="out" deploy="true" loadOnStartup="100" verbose="true" lastModified="1254285222843" target="all.web">
+			<log-location>ONLY_CONSOLE</log-location>
+			<log-level>Debug</log-level>
+			<log-directory>D:/log</log-directory>
+			<max-log-size>1024</max-log-size>
+			<show-prefix>true</show-prefix>
+			<check-param>false</check-param>
+			<!-- <log-param>
+				<param-name>transaction-isolation</param-name>
+				<param-value>2</param-value>
+			</log-param> -->
+		</log-service-config>
+
+		<log-service-config name="workflow.engine.log" deploy="true" loadOnStartup="100" verbose="true" lastModified="1254285222843" target="all.web">
+			<log-location>ONLY_CONSOLE</log-location>
+			<log-level>Error</log-level>
+			<log-directory>D:/log</log-directory>
+			<max-log-size>1024</max-log-size>
+			<show-prefix>true</show-prefix>
+			<check-param>false</check-param>
+			<!-- <log-param>
+				<param-name>transaction-isolation</param-name>
+				<param-value>2</param-value>
+			</log-param> -->
+		</log-service-config>
+        
+        <log-service-config name="aml.kyc.log" deploy="true" loadOnStartup="100" verbose="true" lastModified="1511850926636" target="all.web">
+            <log-location>ONLY_CONSOLE</log-location>
+            <log-level>Debug</log-level>
+            <log-directory>D:/log</log-directory>
+            <max-log-size>1024</max-log-size>
+            <show-prefix>true</show-prefix>
+            <check-param>false</check-param>
+            <log-param>
+				<param-name>transaction-isolation</param-name>
+				<param-value>2</param-value>
+			</log-param>
+        </log-service-config>
+        
+        <log-service-config name="aml.debug.log" deploy="true" loadOnStartup="100" verbose="true" lastModified="1511850943541" target="all.web">
+            <log-location>ONLY_CONSOLE</log-location>
+            <log-level>Debug</log-level>
+            <log-directory>D:/log</log-directory>
+            <max-log-size>1024</max-log-size>
+            <show-prefix>true</show-prefix>
+            <check-param>false</check-param>
+          <!--   <log-param>
+				<param-name>transaction-isolation</param-name>
+				<param-value>2</param-value>
+			</log-param> -->
+        </log-service-config>
+        
+        <log-service-config name="common.admin.log" deploy="true" loadOnStartup="100" verbose="true" lastModified="1511851220760" target="all.web">
+            <log-location>ONLY_CONSOLE</log-location>
+            <log-level>Debug</log-level>
+            <log-directory>D:/log</log-directory>
+            <max-log-size>1024</max-log-size>
+            <show-prefix>true</show-prefix>
+            <check-param>false</check-param>
+           <!--  <log-param>
+				<param-name>transaction-isolation</param-name>
+				<param-value>2</param-value>
+			</log-param> -->
+        </log-service-config>
+        
+	</log-service>

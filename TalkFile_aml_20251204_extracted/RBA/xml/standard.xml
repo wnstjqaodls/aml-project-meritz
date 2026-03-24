@@ -1,0 +1,1835 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="standard">
+
+	<!-- 20210115 alter_session  -->
+	<insert id="alter_session" parameterType="standardVO" >
+	ALTER SESSION ENABLE PARALLEL DML
+	</insert>
+	
+	
+	<update id="RBA_50_01_01_01_DELETE_SRBA_CNTL_ELMN_M" parameterType="standardVO">
+	DELETE SRBA_CNTL_ELMN_M
+	WHERE BAS_YYMM = #{COPY_YYMM, jdbcType=VARCHAR}
+	</update>
+	
+	
+	<update  id="RBA_50_01_01_01_docopy_SRBA_RISK_ELMT_M" parameterType="standardVO" >
+	INSERT INTO SRBA_RISK_ELMT_M
+		(	  BAS_YYMM
+			, RSK_CATG1_C
+			, RSK_CATG2_C
+			, RSK_ELMT_C
+			, RSK_ELMT_DTL_CTNT
+			, RSK_CTNT
+			, RSK_VALT_ITEM
+			, RSK_VALT_CAL_STD
+			, EDD_YN
+			, RSK_PNT
+			, INDV_YN
+			, CORP_YN
+			, I_MODEL_YN
+			, B_MODEL_YN
+			, USE_YN
+			, RA_CHG_DT
+			, COMMENT_CTNT
+			, DR_DT
+			, DR_TIME
+			, DR_OP_JKW_NO
+			, CHG_DT
+			, CHG_TIME
+			, CHG_OP_JKW_NO
+		)
+		SELECT
+		     #{COPY_YYMM, jdbcType=VARCHAR} --PARAM
+		    , RSK_CATG1_C
+			, RSK_CATG2_C
+			, RSK_ELMT_C
+			, RSK_ELMT_DTL_CTNT
+			, RSK_CTNT
+			, RSK_VALT_ITEM
+			, RSK_VALT_CAL_STD
+			, EDD_YN
+			, RSK_PNT
+			, INDV_YN
+			, CORP_YN
+			, I_MODEL_YN
+			, B_MODEL_YN
+			, USE_YN
+			, RA_CHG_DT
+			, COMMENT_CTNT
+			, TO_CHAR(SYSDATE,'YYMMMMDD')
+			, TO_CHAR(SYSDATE,'HH24MISS')
+		    , #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+			, TO_CHAR(SYSDATE,'YYMMMMDD')
+			, TO_CHAR(SYSDATE,'HH24MISS')
+		    , #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+		  FROM SRBA_RISK_ELMT_M
+		 WHERE 1=1
+		<if test="BAS_YYMM != null and BAS_YYMM != '' ">
+			AND BAS_YYMM = #{BAS_YYMM, jdbcType=VARCHAR} --PARAM
+		</if>
+		<if test="BAS_YYMM == null and BAS_YYMM == '' ">
+		    AND BAS_YYMM      = '999912'
+		</if>
+	</update>
+
+
+	
+	<!-- 평가회차별 국가관리 삭제 -->
+	<delete id="deleteNatI" parameterType="kriVO">
+		DELETE FROM SRBA_NAT_I
+		WHERE BAS_YYMM = #{basYymm}
+	</delete>
+	
+	
+	<!-- 평가회차별 국가관리 등록 -->
+	<insert id="insertNatI" parameterType="kriVO" >
+		INSERT INTO SRBA_NAT_I (BAS_YYMM,RSK_CATG2_C,RSK_ELMT_C,NTN_CD,NAT_NM,NAT_B_NM,DR_DT,DR_TIME)
+		SELECT
+		  #{basYymm} BAS_YYMM ,
+		  RSK_CATG2_C
+          ,RSK_ELMT_C
+          ,NTN_CD
+          , ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = RSK_CATG2_C AND GRP_C =  'S002' ) AS NAT_B_NM
+          ,NAT_NM
+		  ,TO_CHAR(SYSDATE,'YYYYMMDD')
+		  ,TO_CHAR(SYSDATE,'HH24MISS')
+		FROM
+		(
+            SELECT --R10101	FATF Black list
+               'R101' RSK_CATG2_C
+             , 'R10101' RSK_ELMT_C
+             ,  A.RA_ITEM_NTN_CD AS NTN_CD
+             ,  A.RA_ITEM_NM AS NAT_NM
+            FROM RA_ITEM_NTN A
+            WHERE TRIM(A.FATF_BLACK_LIST_YN) = 'Y'
+            AND   A.RA_ITEM_NTN_CD != '-'  --국가코드 없는 케이스는 제외
+		           
+	      UNION ALL
+          
+		     SELECT --R10102	FATF Grey list
+               'R101' RSK_CATG2_C
+             , 'R10102' RSK_ELMT_C
+             ,  A.RA_ITEM_NTN_CD AS NTN_CD
+             ,  A.RA_ITEM_NM AS NAT_NM
+            FROM RA_ITEM_NTN A
+            WHERE TRIM(A.FATF_GREY_LIST_YN) = 'Y'
+            AND   A.RA_ITEM_NTN_CD != '-'  --국가코드 없는 케이스는 제외
+            
+          UNION ALL
+          
+		     SELECT --R10201	FinCEN 조치국가
+               'R102' RSK_CATG2_C
+             , 'R10201' RSK_ELMT_C
+             ,  A.RA_ITEM_NTN_CD AS NTN_CD
+             ,  A.RA_ITEM_NM AS NAT_NM
+            FROM RA_ITEM_NTN A
+            WHERE TRIM(A.FINCEN_LIST_YN) = 'Y'
+            AND   A.RA_ITEM_NTN_CD != '-'  --국가코드 없는 케이스는 제외
+		  
+          UNION ALL
+          
+		     SELECT --R10301	UN 제재국가
+               'R103' RSK_CATG2_C
+             , 'R10301' RSK_ELMT_C
+             ,  A.RA_ITEM_NTN_CD AS NTN_CD
+             ,  A.RA_ITEM_NM AS NAT_NM
+            FROM RA_ITEM_NTN A
+            WHERE TRIM(A.UN_SANTIONS_YN) = 'Y'
+            AND   A.RA_ITEM_NTN_CD != '-'  --국가코드 없는 케이스는 제외
+            
+          UNION ALL
+          
+		     SELECT --R10401	OFAC 제재국가
+               'R104' RSK_CATG2_C
+             , 'R10401' RSK_ELMT_C
+             ,  A.RA_ITEM_NTN_CD AS NTN_CD
+             ,  A.RA_ITEM_NM AS NAT_NM
+            FROM RA_ITEM_NTN A
+            WHERE TRIM(A.OFAC_SANTIONS_YN) = 'Y'
+            AND   A.RA_ITEM_NTN_CD != '-'  --국가코드 없는 케이스는 제외
+            
+          UNION ALL
+          
+		     SELECT --R10501	OECD EOIR 등급이 미준수 또는 일부 준수인 국가
+               'R105' RSK_CATG2_C
+             , 'R10501' RSK_ELMT_C
+             ,  A.RA_ITEM_NTN_CD AS NTN_CD
+             ,  A.RA_ITEM_NM AS NAT_NM
+            FROM RA_ITEM_NTN A
+            WHERE TRIM(A.OECD_YN) = 'Y'
+            AND   A.RA_ITEM_NTN_CD != '-'  --국가코드 없는 케이스는 제외
+            
+          UNION ALL
+          	 SELECT --R10601	TI 부패인식지수
+               'R106' RSK_CATG2_C
+             , 'R10601' RSK_ELMT_C
+             ,  A.RA_ITEM_NTN_CD AS NTN_CD
+             ,  A.RA_ITEM_NM AS NAT_NM
+            FROM RA_ITEM_NTN A
+            WHERE A.TICPI_CPI_IDX  > 6.67
+            AND   A.RA_ITEM_NTN_CD != '-'  --국가코드 없는 케이스는 제외
+                        
+         UNION ALL  
+            
+            SELECT --R10701	INCSR 마약생산유통국가
+               'R107' RSK_CATG2_C
+             , 'R10701' RSK_ELMT_C
+             ,  A.RA_ITEM_NTN_CD AS NTN_CD
+             ,  A.RA_ITEM_NM AS NAT_NM
+            FROM RA_ITEM_NTN A
+            WHERE TRIM(A.INCRS_PROD_YN) = 'Y'
+            AND   A.RA_ITEM_NTN_CD != '-'  --국가코드 없는 케이스는 제외
+
+         UNION ALL
+         
+            SELECT --R10702	INCSR 마약 밀매 수익금 거래 국가
+               'R107' RSK_CATG2_C
+             , 'R10702' RSK_ELMT_C
+             ,  A.RA_ITEM_NTN_CD AS NTN_CD
+             ,  A.RA_ITEM_NM AS NAT_NM
+            FROM RA_ITEM_NTN A
+            WHERE TRIM(A.INCRS_CHEM_YN) = 'Y'
+            AND   A.RA_ITEM_NTN_CD != '-'  --국가코드 없는 케이스는 제외
+            
+          UNION ALL
+          
+		     SELECT --R10801	EU 제재국가
+               'R108' RSK_CATG2_C
+             , 'R10801' RSK_ELMT_C
+             ,  A.RA_ITEM_NTN_CD AS NTN_CD
+             ,  A.RA_ITEM_NM AS NAT_NM
+            FROM RA_ITEM_NTN A
+            WHERE TRIM(A.EU_SANTIONS_YN) = 'Y' 
+            AND   A.RA_ITEM_NTN_CD != '-'  --국가코드 없는 케이스는 제외
+            
+          
+          UNION ALL
+          
+		     SELECT --R10802	EU 고위험 제3국
+               'R108' RSK_CATG2_C
+             , 'R10802' RSK_ELMT_C
+             ,  A.RA_ITEM_NTN_CD AS NTN_CD
+             ,  A.RA_ITEM_NM AS NAT_NM
+            FROM RA_ITEM_NTN A
+            WHERE TRIM(A.EU_HRT_YN) = 'Y'
+            AND   A.RA_ITEM_NTN_CD != '-'  --국가코드 없는 케이스는 제외
+          
+          UNION ALL
+          
+          	SELECT --R10901	Basel 자금세탁위험점수
+               'R109' RSK_CATG2_C
+             , 'R10901' RSK_ELMT_C
+             ,  A.RA_ITEM_NTN_CD AS NTN_CD
+             ,  A.RA_ITEM_NM AS NAT_NM
+            FROM RA_ITEM_NTN A
+            WHERE A.BASEL_RIK_IDX > 6.67
+            AND   A.RA_ITEM_NTN_CD != '-'  --국가코드 없는 케이스는 제외
+          
+		 ) M
+	
+	</insert>
+	
+	<delete id="deleteJobI" parameterType="kriVO" >
+		DELETE FROM SRBA_JOB_I
+		WHERE BAS_YYMM = #{basYymm}
+	</delete>
+	
+	
+	<!-- 평가회차별 직업업종관리 -->
+	<insert id="insertJobI" parameterType="kriVO" >
+		INSERT INTO SRBA_JOB_I (BAS_YYMM,RSK_CATG2_C,RSK_ELMT_C,JOB_C,INDV_YN,CORP_YN,JOB_B_NM,JOB_NM,DR_DT,DR_TIME)
+		SELECT
+		  #{basYymm} BAS_YYMM ,
+		    RSK_CATG2_C
+          , RSK_ELMT_C
+          , JOB_C
+          , INDV_YN
+          , CORP_YN
+          , JOB_B_NM
+          , JOB_NM
+		  , TO_CHAR(SYSDATE,'YYYYMMDD')
+		  , TO_CHAR(SYSDATE,'HH24MISS')
+		FROM
+		(
+            SELECT --R20101	가상자산사업 의심업종
+                   'R201' RSK_CATG2_C
+                 , 'R20101' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 , ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R201' AND GRP_C =  'S002' ) AS JOB_B_NM
+		         , A.RA_ITEM_NM AS JOB_NM
+		       FROM RA_ITEM_CORJOB A
+		       WHERE A.RA_CORJOB_YN8 = 'Y'
+		           
+	      UNION ALL
+          
+		     SELECT --R20201	가상자산사업자
+                   'R202' RSK_CATG2_C
+                 , 'R20201' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '1' AS INDV_YN
+                 , '0' AS CORP_YN
+                 ,  A.RA_ITEM_IDJOB_NM1 AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_IDJOB A
+             WHERE A.RA_IDJOB_YN7 = 'Y' --가상자산사업 의심
+               
+            
+          UNION ALL
+          
+		     SELECT --R20601	의료, 제약 관련 산업/직종
+                   'R206' RSK_CATG2_C
+                 , 'R20601' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '1' AS INDV_YN
+                 , '0' AS CORP_YN
+                 ,  A.RA_ITEM_IDJOB_NM1 AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_IDJOB A
+             WHERE A.RA_IDJOB_STA_YN2 = 'Y'
+           UNION ALL
+		     SELECT --R20601	의료, 제약 관련 산업/직종
+                   'R206' RSK_CATG2_C
+                 , 'R20601' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R206' AND GRP_C =  'S002' ) AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_CORJOB A
+             WHERE A.RA_CORJOB_STA_YN2 = 'Y'    
+            
+          UNION ALL
+          
+		     SELECT --R20602	건설 산업
+                   'R206' RSK_CATG2_C
+                 , 'R20602' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R206' AND GRP_C =  'S002' ) AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_CORJOB A
+             WHERE A.RA_CORJOB_STA_YN3 = 'Y'
+             
+           UNION ALL
+           
+             SELECT --R20603	무기, 방위산업
+                   'R206' RSK_CATG2_C
+                 , 'R20603' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '1' AS INDV_YN
+                 , '0' AS CORP_YN
+                 ,  A.RA_ITEM_IDJOB_NM1 AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_IDJOB A
+             WHERE A.RA_IDJOB_STA_YN4 = 'Y'
+           UNION ALL
+		     SELECT --R20603	무기, 방위산업
+                   'R206' RSK_CATG2_C
+                 , 'R20603' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R206' AND GRP_C =  'S002' ) AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_CORJOB A
+             WHERE A.RA_CORJOB_STA_YN4 = 'Y'
+             
+           UNION ALL
+           
+             SELECT --R20604	채광, 금속, 고물상
+                   'R206' RSK_CATG2_C
+                 , 'R20604' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '1' AS INDV_YN
+                 , '0' AS CORP_YN
+                 ,  A.RA_ITEM_IDJOB_NM1 AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_IDJOB A
+             WHERE A.RA_IDJOB_STA_YN5 = 'Y'
+           UNION ALL
+		     SELECT --R20604	채광, 금속, 고물상
+                   'R206' RSK_CATG2_C
+                 , 'R20604' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R206' AND GRP_C =  'S002' ) AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_CORJOB A
+             WHERE A.RA_CORJOB_STA_YN5 = 'Y'
+             
+             
+           UNION ALL
+           
+             SELECT --R20701	법률, 회계, 세무 관련 산업/직종
+                   'R207' RSK_CATG2_C
+                 , 'R20701' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '1' AS INDV_YN
+                 , '0' AS CORP_YN
+                 ,  A.RA_ITEM_IDJOB_NM1 AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_IDJOB A
+             WHERE A.RA_IDJOB_YN1 = 'Y'
+           UNION ALL
+		     SELECT --R20701	법률, 회계, 세무 관련 산업/직종
+                   'R207' RSK_CATG2_C
+                 , 'R20701' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R207' AND GRP_C =  'S002' ) AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_CORJOB A
+             WHERE A.RA_CORJOB_YN1 = 'Y'
+             
+           UNION ALL
+           
+             SELECT --R20702	투자자문 관련 산업/직종
+                   'R207' RSK_CATG2_C
+                 , 'R20702' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '1' AS INDV_YN
+                 , '0' AS CORP_YN
+                 ,  A.RA_ITEM_IDJOB_NM1 AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_IDJOB A
+             WHERE A.RA_IDJOB_YN2 = 'Y'
+           UNION ALL
+		     SELECT --R20702	투자자문 관련 산업/직종
+                   'R207' RSK_CATG2_C
+                 , 'R20702' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R207' AND GRP_C =  'S002' ) AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_CORJOB A
+             WHERE A.RA_CORJOB_YN2 = 'Y'
+             
+           UNION ALL
+           
+		     SELECT --R20703	부동산 관련 산업/직종
+                   'R207' RSK_CATG2_C
+                 , 'R20703' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R207' AND GRP_C =  'S002' ) AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_CORJOB A
+             WHERE A.RA_CORJOB_YN3 = 'Y'
+               
+
+
+           UNION ALL
+           
+             SELECT --R21001	무직자
+                   'R210' RSK_CATG2_C
+                 , 'R21001' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '1' AS INDV_YN
+                 , '0' AS CORP_YN
+                 ,  A.RA_ITEM_IDJOB_NM1 AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_IDJOB A
+             WHERE A.RA_IDJOB_STA_YN6 = 'Y'
+             
+
+
+           UNION ALL
+           
+             SELECT --R21401	오락, 도박, 스포츠 관련 산업/직종
+                   'R214' RSK_CATG2_C
+                 , 'R21401' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '1' AS INDV_YN
+                 , '0' AS CORP_YN
+                 ,  A.RA_ITEM_IDJOB_NM1 AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_IDJOB A
+             WHERE A.RA_IDJOB_YN4 = 'Y'
+           UNION ALL
+		     SELECT --R21401	오락, 도박, 스포츠 관련 산업/직종
+                   'R214' RSK_CATG2_C
+                 , 'R21401' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R214' AND GRP_C =  'S002' ) AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_CORJOB A
+             WHERE A.RA_CORJOB_YN4 = 'Y'
+             
+            UNION ALL
+            
+		     SELECT --R21402	카지노
+                   'R214' RSK_CATG2_C
+                 , 'R21402' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R214' AND GRP_C =  'S002' ) AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_CORJOB A
+             WHERE A.RA_CORJOB_YN5 = 'Y'
+             
+           UNION ALL
+           
+             SELECT --R21403	대부업자, 환전상, 소액해외송급업자
+                   'R214' RSK_CATG2_C
+                 , 'R21403' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '1' AS INDV_YN
+                 , '0' AS CORP_YN
+                 ,  A.RA_ITEM_IDJOB_NM1 AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_IDJOB A
+             WHERE A.RA_IDJOB_YN5 = 'Y'
+           UNION ALL
+		     SELECT --R21403	대부업자, 환전상, 소액해외송급업자
+                   'R214' RSK_CATG2_C
+                 , 'R21403' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R214' AND GRP_C =  'S002' ) AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_CORJOB A
+             WHERE A.RA_CORJOB_YN6 = 'Y'
+
+          UNION ALL
+           
+             SELECT --R21404	귀금속, 예술품, 골동품 판매상
+                   'R214' RSK_CATG2_C
+                 , 'R21404' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '1' AS INDV_YN
+                 , '0' AS CORP_YN
+                 ,  A.RA_ITEM_IDJOB_NM1 AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_IDJOB A
+             WHERE A.RA_IDJOB_YN6 = 'Y'
+           UNION ALL
+		     SELECT --R21404	귀금속, 예술품, 골동품 판매상
+                   'R214' RSK_CATG2_C
+                 , 'R21404' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R214' AND GRP_C =  'S002' ) AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_CORJOB A
+             WHERE A.RA_CORJOB_YN7 = 'Y'
+
+           UNION ALL
+           
+             SELECT --R21405	주류 도소매업, 유흥주점업
+                   'R214' RSK_CATG2_C
+                 , 'R21405' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '1' AS INDV_YN
+                 , '0' AS CORP_YN
+                 ,  A.RA_ITEM_IDJOB_NM1 AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_IDJOB A
+             WHERE A.RA_IDJOB_STA_YN1 = 'Y'
+           UNION ALL
+		     SELECT --R21405	주류 도소매업, 유흥주점업
+                   'R214' RSK_CATG2_C
+                 , 'R21405' RSK_ELMT_C
+                 ,  A.RA_ITEM_CODE AS JOB_C
+                 , '0' AS INDV_YN
+                 , '1' AS CORP_YN
+                 ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = 'R214' AND GRP_C =  'S002' ) AS JOB_B_NM
+                 ,  A.RA_ITEM_NM AS JOB_NM
+              FROM RA_ITEM_CORJOB A
+             WHERE A.RA_CORJOB_STA_YN1 = 'Y'
+
+
+
+
+          
+		 ) M
+	</insert>
+	
+	
+	<!-- 평가회차별 거래 구간별 관리 -->
+	<delete id="deleteEtcI" parameterType="kriVO" >
+		DELETE FROM SRBA_ETC_I
+		WHERE BAS_YYMM = #{basYymm}
+	</delete>
+	
+	<!-- 평가회차별 거래 구간별 관리 -->
+	<insert id="insertEtcI" parameterType="kriVO" >
+		INSERT INTO SRBA_ETC_I (BAS_YYMM , RSK_ELMT_C, RA_ITEM_CODE, RA_ITEM_NM, RSK_VALT_ITEM, RA_ITEM_CD, RA_ST_INTV_VAL, RA_ET_INTV_VAL, RA_ITEM_SCR, ABS_HRSK_YN, DR_DT, DR_TIME)
+		 SELECT
+			  #{basYymm} BAS_YYMM
+	        , RSK_ELMT_C
+	        , RA_ITEM_CODE
+	        , RA_ITEM_NM
+	        , RSK_VALT_ITEM
+	        , RA_ITEM_CD
+	        , RA_ST_INTV_VAL
+	        , RA_ET_INTV_VAL
+	        , RA_ITEM_SCR
+	        , ABS_HRSK_YN
+	        , TO_CHAR(SYSDATE,'YYYYMMDD')
+			, TO_CHAR(SYSDATE,'HH24MISS')
+			FROM
+			(               
+              SELECT 
+                  A.RA_ITEM_CD 
+                , A.RA_ITEM_CODE
+                , B.RSK_ELMT_C_NM AS RA_ITEM_NM
+                , A.ABS_HRSK_YN
+                , A.RA_ITEM_SCR
+                , A.RA_ST_INTV_VAL
+                , A.RA_ET_INTV_VAL
+                , B.RSK_CATG2_C
+                , B.RSK_ELMT_C
+                , B.RSK_VALT_ITEM
+               FROM RA_ITEM_COMMON A
+                  , ( SELECT  
+                          RSK_CATG2_C, RSK_ELMT_C
+                        , ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = RSK_ELMT_C AND GRP_C =  'S003' ) AS RSK_ELMT_C_NM
+                        ,  RSK_VALT_ITEM
+                        ,  ( SELECT DTL_C_NM FROM SRBA_DTL_C  WHERE DTL_C = RSK_VALT_ITEM AND GRP_C =  'R342' ) AS RSK_VALT_ITEM_NM
+                        , CASE WHEN RSK_VALT_ITEM = 'R34219' THEN 'B001'
+                                WHEN RSK_VALT_ITEM = 'R34220' THEN 'B002'
+                                WHEN RSK_VALT_ITEM = 'R34221' THEN 'B003'
+                                WHEN RSK_VALT_ITEM = 'R34222' THEN 'B004'
+                                WHEN RSK_VALT_ITEM = 'R34223' THEN 'B005'
+                                WHEN RSK_VALT_ITEM = 'R34224' THEN 'B006'
+                                WHEN RSK_VALT_ITEM = 'R34225' THEN 'B007'
+                                WHEN RSK_VALT_ITEM = 'R34226' THEN 'B008'
+                                WHEN RSK_VALT_ITEM = 'R34227' THEN 'B009'
+                                WHEN RSK_VALT_ITEM = 'R34228' THEN 'B010'
+                                WHEN RSK_VALT_ITEM = 'R34229' THEN 'B011'
+                                WHEN RSK_VALT_ITEM = 'R34230' THEN 'B012'
+                                WHEN RSK_VALT_ITEM = 'R34231' THEN 'B013'
+                                WHEN RSK_VALT_ITEM = 'R34232' THEN 'B014'
+                                WHEN RSK_VALT_ITEM = 'R34233' THEN 'B015'
+                                WHEN RSK_VALT_ITEM = 'R34234' THEN 'B016'
+                                WHEN RSK_VALT_ITEM = 'R34235' THEN 'B017'
+                                WHEN RSK_VALT_ITEM = 'R34236' THEN 'B018'
+                                WHEN RSK_VALT_ITEM = 'R34237' THEN 'B019'
+                                ELSE '' END AS RA_ITEM_CD
+                        FROM SRBA_RISK_ELMT_M
+                        WHERE RSK_CATG1_C = 'R5'  --거래
+                        AND BAS_YYMM = (SELECT MAX(BAS_YYMM) AS BAS_YYMM FROM SRBA_RISK_ELMT_M )
+                   ) B
+               WHERE A.RA_ITEM_CD = B.RA_ITEM_CD
+           )
+	</insert>
+	
+	
+	<!-- 평가회차별 거래 구간별 관리 -->
+	<insert id="insertEtcI_GOOD" parameterType="mltfVO" >
+		INSERT INTO SRBA_ETC_I (BAS_YYMM , RSK_ELMT_C, RA_ITEM_CODE, RA_ITEM_NM, RSK_VALT_ITEM, RA_ITEM_CD, RA_ST_INTV_VAL, RA_ET_INTV_VAL, RA_ITEM_SCR, ABS_HRSK_YN, DR_DT, DR_TIME)
+		 SELECT
+			  #{basYymm} BAS_YYMM
+	        , RSK_ELMT_C
+	        , RA_ITEM_CODE
+	        , RA_ITEM_NM
+	        , RSK_VALT_ITEM
+	        , RA_ITEM_CD
+	        , RA_ST_INTV_VAL
+	        , RA_ET_INTV_VAL
+	        , RA_ITEM_SCR
+	        , ABS_HRSK_YN
+	        , TO_CHAR(SYSDATE,'YYYYMMDD')
+			, TO_CHAR(SYSDATE,'HH24MISS')
+			FROM
+			(               
+              SELECT 
+                  'R30111' AS RSK_ELMT_C
+                , A.RA_ITEM_CODE
+                , A.RA_ITEM_NM
+                , 'R34217' AS RSK_VALT_ITEM
+                , 'I020' AS RA_ITEM_CD
+                , 0 AS RA_ST_INTV_VAL
+                , 0 AS RA_ET_INTV_VAL
+                , A.RA_ITEM_SCR
+                , A.ABS_HRSK_YN
+               FROM RA_ITEM_COMMON A
+				WHERE 1 = 1
+				AND  A.RA_ITEM_CD = 'B020'
+				AND  A.ABS_HRSK_YN = 'Y'
+		      
+		      UNION ALL
+		      
+		      SELECT 
+                 'R30113' AS RSK_ELMT_C
+                , A.RA_ITEM_CODE
+                , A.RA_ITEM_NM
+                , 'R34217' AS RSK_VALT_ITEM
+                , 'I020' AS RA_ITEM_CD
+                , 0 AS RA_ST_INTV_VAL
+                , 0 AS RA_ET_INTV_VAL
+                , A.RA_ITEM_SCR
+                , A.ABS_HRSK_YN
+               FROM RA_ITEM_COMMON A
+				WHERE 1 = 1
+				AND  A.RA_ITEM_CD = 'B020'
+				AND  A.RA_ITEM_SCR >= 6.67
+				AND  A.ABS_HRSK_YN = 'N'
+           )
+	</insert>
+	
+	
+	
+	
+	<delete id="deleteCustI" parameterType="kriVO" >
+		DELETE FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+	</delete>
+	
+	
+	<!-- 고객원장 -->
+	<insert id="insertCustI" parameterType="kriVO">
+		    
+		    INSERT INTO SRBA_CUST_I
+				(
+					BAS_YYMM  
+			      , RNMCNO 
+                  , CS_NM 
+			      , NTN_CD ,INDV_CORP_CCD
+			      , INDST_RSK_DVD_CD ,AML_JOB_GUBN
+			      , LG_AMT_ASTS_F ,PEP_YN
+			      , AGE_UNDER_YN , AGE_OLD_YN 
+                  , NEW_ESTB_CORP_YN
+			      , NPRFT_GROUP_YN 
+                  , NFR_DIT_YN
+                  , IN3YEAR_ESTB_YN
+                  , FNDTN_DT
+			      , DR_DT ,DR_TIME
+				)
+		    SELECT
+		         #{basYymm} BAS_YYMM
+		        , RNMCNO
+			    , CS_NM
+			    , NTN_CD	--국가코드
+			    , INDV_CORP_CCD --개인법인구분코드 1:개인 2;법인
+			    , INDST_RSK_DVD_CD --법인일경우 업종코드 
+			    , AML_JOB_GUBN --직업코드
+			    , LG_AMT_ASTS_F --고액자산가여부   --R20301	고액자산가 : insertCustI		     
+			    , PEP_YN
+			    , CASE WHEN AGE &lt; 19 THEN 'Y'
+			           ELSE 'N' END AS AGE_UNDER_YN   --미성년자  --R21002	미성년자 : insertCustI
+                , CASE WHEN AGE >= 65 THEN 'Y'
+			          ELSE 'N' END AS AGE_OLD_YN      --65세 이상 고령자  --R21003	65세 이상 고령자 : insertCustI
+			    ,(CASE WHEN TRIM(FNDTN_DT) IS NULL THEN 'N'
+			    	   WHEN SSQ.FN_DATECHK(TRIM(FNDTN_DT)) = 'N' THEN 'N'
+			    	   WHEN  (SYSDATE - TO_DATE(FNDTN_DT,'YYYYMMDD')) / 365 &lt;=1 THEN 'Y'
+			    	   ELSE 'N' END ) NEW_ESTB_CORP_YN
+	        	,NPRFT_GROUP_F --비영리단체구분코드 Y:비영리, N:영리
+	        	,NFR_DIT_CD --외국인여부 외국인 Y
+                ,(CASE WHEN TRIM(FNDTN_DT) IS NULL THEN 'N'
+			    	   WHEN SSQ.FN_DATECHK(TRIM(FNDTN_DT)) = 'N' THEN 'N'
+			    	   WHEN  (SYSDATE - TO_DATE(FNDTN_DT,'YYYYMMDD')) / (365*3) &lt;=1 THEN 'Y'
+			    	   ELSE 'N' END ) IN3YEAR_ESTB_YN  --최근 3년 이내 설립 법인  --R21202	최근 3년 이내 설립 법인
+                ,FNDTN_DT
+			    ,TO_CHAR(SYSDATE,'YYYYMMDD')
+	        	,TO_CHAR(SYSDATE,'HH24MISS')  
+			FROM
+			(           
+	          SELECT
+	              M.RNMCNO
+	              ,CS_NM
+	              ,NTN_CD	--국가코드
+	              ,RSDNC_F  --거주여부
+	              ,INDV_CORP_CCD --개인법인구분코드 1:개인 2;법인
+	              ,INDST_RSK_DVD_CD --법인일경우 업종코드 
+	              ,AML_JOB_GUBN--직업코드
+	              ,(SELECT DECODE(COUNT(1),0,'N','Y') AS LG_AMT_ASTS_F FROM NIC40B WHERE RNMCNO = M.RNMCNO AND BAS_YYMM = #{basYymm}) LG_AMT_ASTS_F --고액자산가여부
+	              ,(CASE WHEN NTV_FGNR_CCD = 'A' THEN 'N' WHEN NTV_FGNR_CCD = 'B' THEN 'Y' ELSE 'N' END) NFR_DIT_CD --내외국인 AS-IS A:내국인, B:외국인
+	              ,A.PEP_YN --정치적주요인물
+	              ,A.NPRFT_GROUP_F --비영리단체구분코드 Y:비영리, N:영리
+	              ,(SELECT FNDTN_DT FROM NIC03B WHERE RNMCNO = M.RNMCNO) FNDTN_DT --설립일자	            
+	              , (CASE WHEN SSQ.FN_DATECHK(BRTDY) = 'Y' THEN FN_GET_AGE( BRTDY ) ELSE 20 END) AGE  
+			      FROM
+			      (  
+			      		SELECT
+				            DISTINCT RNMCNO                 
+				        FROM
+				        (		
+			                    /*계약자*/ 
+			                    SELECT /*+ FULL(A) PARALLEL(4) */
+			                      DISTINCT RNMCNO
+			                    FROM KRBA_TRN_I A
+			                    WHERE 1=1
+			                    AND DL_DT >= #{tgtTrnSdt}
+						        AND DL_DT &lt; #{tgtTrnEdt}		 
+		                  	UNION ALL
+		                       /*대리인*/		                      
+		                      SELECT /*+ FULL(M) PARALLEL(4) */ DISTINCT C.PRXY_RNMCNO 
+		                      FROM KRBA_TRN_I M, NIC17B A, NIC18B C
+		                      WHERE 1=1
+		                      AND M.GNL_AC_NO = A.GNL_AC_NO                           
+		                      AND M.DL_DT >= #{tgtTrnSdt}
+		                      AND M.DL_DT &lt; #{tgtTrnEdt}     
+		                      AND A.GNL_AC_NO = C.GNL_AC_NO 
+			        	)	
+			      ) M ,NIC01B A
+			      WHERE 1=1
+			      AND M.RNMCNO = A.RNMCNO
+		    ) M        
+		    
+		    
+	</insert>
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+	<delete id="deleteNatT" parameterType="kriVO" >
+		DELETE FROM SRBA_NAT_T
+		WHERE BAS_YYMM = #{basYymm}
+	</delete>
+	
+	
+	<!-- 위험EVENT별 국가정보  -->
+	<insert id="insertNatT" parameterType="kriVO" >
+		INSERT INTO SRBA_NAT_T(BAS_YYMM,RSK_ELMT_C,RNMCNO)
+		
+		SELECT
+		   BAS_YYMM
+		  ,'R10101' AS RSK_ELMT_C
+		  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		AND NTN_CD IN (
+		  SELECT NTN_CD
+		  FROM SRBA_NAT_I
+		  WHERE 1=1
+		  AND BAS_YYMM = #{basYymm}
+		  AND RSK_ELMT_C = 'R10101'   --R10101	FATF Black list
+		)  
+		
+		UNION ALL
+		
+		SELECT
+		   BAS_YYMM
+		  ,'R10102' AS RSK_ELMT_C
+		  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		AND NTN_CD IN (
+		  SELECT NTN_CD
+		  FROM SRBA_NAT_I
+		  WHERE 1=1
+		  AND BAS_YYMM = #{basYymm}
+		  AND RSK_ELMT_C = 'R10102'   --R10102	FATF Grey list
+		)  
+		
+		UNION ALL
+		
+		SELECT
+		   BAS_YYMM
+		  ,'R10201' AS RSK_ELMT_C
+		  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		AND NTN_CD IN (
+		  SELECT NTN_CD
+		  FROM SRBA_NAT_I
+		  WHERE 1=1
+		  AND BAS_YYMM = #{basYymm}
+		  AND RSK_ELMT_C = 'R10201'   --R10201	FinCEN 조치국가
+		)  
+		
+		
+		UNION ALL
+		
+		SELECT
+		   BAS_YYMM
+		  ,'R10301' AS RSK_ELMT_C
+		  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		AND NTN_CD IN (
+		  SELECT NTN_CD
+		  FROM SRBA_NAT_I
+		  WHERE 1=1
+		  AND BAS_YYMM = #{basYymm}
+		  AND RSK_ELMT_C = 'R10301'   --R10301	UN 제재국가
+		)  
+		
+		UNION ALL
+		
+		SELECT
+		   BAS_YYMM
+		  ,'R10401' AS RSK_ELMT_C
+		  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		AND NTN_CD IN (
+		  SELECT NTN_CD
+		  FROM SRBA_NAT_I
+		  WHERE 1=1
+		  AND BAS_YYMM = #{basYymm}
+		  AND RSK_ELMT_C = 'R10401'   --R10401	OFAC 제재국가
+		)  
+		
+		UNION ALL
+		
+		SELECT
+		   BAS_YYMM
+		  ,'R10501' AS RSK_ELMT_C
+		  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		AND NTN_CD IN (
+		  SELECT NTN_CD
+		  FROM SRBA_NAT_I
+		  WHERE 1=1
+		  AND BAS_YYMM = #{basYymm}
+		  AND RSK_ELMT_C = 'R10501'   --R10501	OECD EOIR 등급이 미준수 또는 일부 준수인 국가
+		)  
+		
+		UNION ALL
+		
+		SELECT
+		   BAS_YYMM
+		  ,'R10601' AS RSK_ELMT_C
+		  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		AND NTN_CD IN (
+		  SELECT NTN_CD
+		  FROM SRBA_NAT_I
+		  WHERE 1=1
+		  AND BAS_YYMM = #{basYymm}
+		  AND RSK_ELMT_C = 'R10601'   --R10601	TI 부패인식지수
+		)  
+		
+		UNION ALL
+		
+		SELECT
+		   BAS_YYMM
+		  ,'R10701' AS RSK_ELMT_C
+		  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		AND NTN_CD IN (
+		  SELECT NTN_CD
+		  FROM SRBA_NAT_I
+		  WHERE 1=1
+		  AND BAS_YYMM = #{basYymm}
+		  AND RSK_ELMT_C = 'R10701'   --R10701	INCSR 마약생산유통국가
+		)  
+		
+		UNION ALL
+		
+		SELECT
+		   BAS_YYMM
+		  ,'R10702' AS RSK_ELMT_C
+		  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		AND NTN_CD IN (
+		  SELECT NTN_CD
+		  FROM SRBA_NAT_I
+		  WHERE 1=1
+		  AND BAS_YYMM = #{basYymm}
+		  AND RSK_ELMT_C = 'R10702'   --R10702	INCSR 마약 밀매 수익금 거래 국가
+		)  
+		
+		UNION ALL
+		
+		SELECT
+		   BAS_YYMM
+		  ,'R10801' AS RSK_ELMT_C
+		  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		AND NTN_CD IN (
+		  SELECT NTN_CD
+		  FROM SRBA_NAT_I
+		  WHERE 1=1
+		  AND BAS_YYMM = #{basYymm}
+		  AND RSK_ELMT_C = 'R10801'   --R10801	EU 제재국가
+		)  
+		
+		UNION ALL
+		
+		SELECT
+		   BAS_YYMM
+		  ,'R10802' AS RSK_ELMT_C
+		  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		AND NTN_CD IN (
+		  SELECT NTN_CD
+		  FROM SRBA_NAT_I
+		  WHERE 1=1
+		  AND BAS_YYMM = #{basYymm}
+		  AND RSK_ELMT_C = 'R10802'   --R10802	EU 고위험 제3국
+		)  
+		
+		UNION ALL
+		
+		SELECT
+		   BAS_YYMM
+		  ,'R10901' AS RSK_ELMT_C
+		  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		AND NTN_CD IN (
+		  SELECT NTN_CD
+		  FROM SRBA_NAT_I
+		  WHERE 1=1
+		  AND BAS_YYMM = #{basYymm}
+		  AND RSK_ELMT_C = 'R10901'   --R10901	Basel 자금세탁위험점수
+		)  
+		
+	</insert>
+	
+	
+	<delete id="deleteCustT" parameterType="kriVO" >
+		DELETE FROM SRBA_CUST_T
+		WHERE BAS_YYMM = #{basYymm}
+	</delete>
+	
+	<!-- 위험EVENT별 고객정보  -->
+	<insert id="insertCustT" parameterType="kriVO" >
+		INSERT INTO SRBA_CUST_T(BAS_YYMM,RSK_ELMT_C,RNMCNO)			
+		--R20101	가상자산사업 의심업종
+		SELECT 
+			   BAS_YYMM
+			  ,'R20101' AS RSK_ELMT_C
+			  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20101' )
+		
+		UNION ALL
+		
+		--R20201	가상자산사업자
+		SELECT 
+			   BAS_YYMM
+			  ,'R20201' AS RSK_ELMT_C
+			  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND AML_JOB_GUBN IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20201' )
+		
+		UNION ALL
+		
+		--R20301	고액자산가
+		SELECT 
+			   BAS_YYMM
+			  ,'R20301' AS RSK_ELMT_C
+			  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND LG_AMT_ASTS_F = 'Y'
+		
+		
+		UNION ALL
+		
+		--R20601	의료, 제약 관련 산업/직종
+		SELECT 
+			    BAS_YYMM
+			  ,'R20601' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND ( AML_JOB_GUBN IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20601' AND INDV_YN = '1') OR
+		        INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20601' AND CORP_YN = '1') )
+		
+		UNION ALL
+		--R20602	건설 산업
+		SELECT 
+			   BAS_YYMM
+			  ,'R20602' AS RSK_ELMT_C
+			  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20602' )
+		
+		UNION ALL
+		--R20603	무기, 방위산업
+		SELECT 
+			    BAS_YYMM
+			  ,'R20603' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND ( AML_JOB_GUBN IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20603' AND INDV_YN = '1') OR
+		        INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20603' AND CORP_YN = '1'  ) )
+		
+		UNION ALL
+		--R20604	채광, 금속, 고물상
+		SELECT 
+			    BAS_YYMM
+			  ,'R20604' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND ( AML_JOB_GUBN IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20604' AND INDV_YN = '1') OR
+		        INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20604' AND CORP_YN = '1'  ) )
+		
+		UNION ALL
+		--R20701	법률, 회계, 세무 관련 산업/직종
+		SELECT 
+			    BAS_YYMM
+			  ,'R20701' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND ( AML_JOB_GUBN IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20701' AND INDV_YN = '1') OR
+		        INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20701' AND CORP_YN = '1'  ) )
+		
+		UNION ALL
+		--R20702	투자자문 관련 산업/직종
+		SELECT 
+			    BAS_YYMM
+			  ,'R20702' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND ( AML_JOB_GUBN IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20702' AND INDV_YN = '1') OR
+		        INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20702' AND CORP_YN = '1'  ) )
+		
+		UNION ALL
+		--R20703	부동산 관련 산업/직종
+		SELECT 
+			    BAS_YYMM
+			  ,'R20703' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND ( AML_JOB_GUBN IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20703' AND INDV_YN = '1') OR
+		        INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R20703' AND CORP_YN = '1'  ) )
+		
+		UNION ALL
+		--R20801	비거주자
+		SELECT #{basYymm} AS BAS_YYMM
+			  ,'R20801' AS RSK_ELMT_C
+		      , TO_CHAR(RNMCNO,'9999999999') AS RNMCNO
+		FROM (
+	      SELECT DISTINCT A.CDD_TAGT_ENTY_ID AS RNMCNO
+		  FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A
+		     , SID.IDO_A_MAC_CLNT_ADDN_IFMN C
+		     , SID.IDO_A_MAC_CLNT_RGSN_DTLS D
+		 WHERE 1 = 1
+		   AND A.CDD_TAGT_ENTY_ID = C.CLNT_ENTY_ID
+		   AND A.CDD_TAGT_ENTY_ID = D.CLNT_ENTY_ID 
+		   
+		   AND EXISTS (SELECT 1 
+		                 FROM SID.IDO_A_UUA_ACNT B
+		                WHERE 1 = 1
+		                  AND (B.ACNT_STAS_TYPE_CODE IN ('AC', 'IN') -- 정상/통합계좌만
+		                   OR (B.ACNT_STAS_TYPE_CODE  = 'CL' AND B.CLSG_DATE > #{tgtTrnSdt}))
+		                  AND B.ACNT_TYPE_CODE       IN ('GNAC', 'FPAC', 'FOAC', 'SVAC') -- 리테일계좌만
+		                  
+		                  AND A.CDD_TAGT_ENTY_ID = B.ACNT_OWNR_ID
+		               )                   
+		   AND NOT EXISTS (SELECT 1
+		                     FROM SID.IDO_A_MAH_CDD_FLFL_DTLD B
+		                    WHERE B.CDD_TAGT_ENTY_ID    = A.CDD_TAGT_ENTY_ID
+		                      AND B.RGBR_CODE           = '21220'               /* 연금전략팀 */
+		                      AND B.CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')    /* 요주의필터링결과코드 */
+		                  )               
+		   AND D.PRCE_DATE            &lt;= #{tgtTrnEdt}  -- 고객등록일자
+		   AND A.CLNT_RISK_RTNG_CODE  IN ('H', 'M', 'L')
+		   AND A.RSDT_CNTY_ID         &lt;>  1000000001 -- 거주국가ID : 대한민국이 아니고
+		   AND A.RSDT_CNTY_ID          > 0   
+		   AND A.CDD_CLNT_SECT_CODE    = '1'         -- CDD고객구분코드(1.개인, 2.영리법인, 3.비영리법인)
+		)
+		
+		UNION ALL
+		--R20501	H.Net #10067 등록 고객
+		SELECT #{basYymm} AS BAS_YYMM
+			  ,'R20501' AS RSK_ELMT_C
+              , TO_CHAR(CLNT_ENTY_ID, '9999999999' ) AS RNMCNO																						
+         FROM 
+         ( SELECT DISTINCT CLNT_ENTY_ID
+           FROM SID.IDO_A_MAH_BLLS_PRS_IFMN
+           WHERE DEL_YN != 'Y'   --삭제여부
+         )
+		
+		UNION ALL
+		--R20901	요주의 인물 동일인
+		SELECT #{basYymm} AS BAS_YYMM
+			  ,'R20901' AS RSK_ELMT_C
+              , TO_CHAR(RNMCNO, '9999999999' ) AS RNMCNO																						
+         FROM 
+         ( 
+            SELECT DISTINCT RNMCNO
+            FROM (
+	         	SELECT  A.CDD_TAGT_ENTY_ID AS RNMCNO																		
+	             FROM SID.IDO_A_MAH_CRFL_FLTG_FLFL_DT   A    /* 요주의필터링수행내역 */
+				     , SID.IDO_A_MAH_CRFL_FLTG_APRV_DT   B    /* 요주의필터링결재내역 */
+				 WHERE A.APRV_RGSN_DATE    = B.APRV_RGSN_DATE
+				   AND A.APRV_RGSN_SQNO    = B.APRV_RGSN_SQNO
+				   AND A.FLFL_EMPY_NO     != 'AMLBAT'              -- 수행사원번호
+				   AND B.CRFL_FLTG_APRV_STAS_CODE = '21'           -- 요주의필터링결재상태코드 (21:준법감시인 승인)
+				   AND A.APRV_RGSN_DATE BETWEEN #{tgtTrnSdt} AND #{tgtTrnEdt}							
+	            
+	            UNION ALL																											
+	            
+	             SELECT  A.CDD_TAGT_ENTY_ID AS RNMCNO
+	             FROM SID.IDO_A_MAH_CRFL_FLTG_FLFL_DT   A    /* 요주의필터링수행내역 */
+				     , SID.IDO_A_MAH_CRFL_FLTG_APRV_DT   B    /* 요주의필터링결재내역 */
+				 WHERE A.APRV_RGSN_DATE    = B.APRV_RGSN_DATE
+				   AND A.APRV_RGSN_SQNO    = B.APRV_RGSN_SQNO
+				   AND A.FLFL_EMPY_NO      = 'AMLBAT'              -- 수행사원번호
+				   AND B.CRFL_FLTG_APRV_STAS_CODE = '21'           -- 요주의필터링결재상태코드 (21:준법감시인 승인)
+				   AND A.APRV_RGSN_DATE BETWEEN #{tgtTrnSdt} AND #{tgtTrnEdt}
+			 )	
+         ) 
+          
+		UNION ALL
+		--R21001	무직자
+		SELECT 
+			   BAS_YYMM
+			  ,'R21001' AS RSK_ELMT_C
+			  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND AML_JOB_GUBN IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R21001' )
+		
+		UNION ALL
+		--R21002	미성년자
+		SELECT 
+			   BAS_YYMM
+			  ,'R21002' AS RSK_ELMT_C
+			  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND AGE_UNDER_YN = 'Y'
+		
+		UNION ALL
+		--R21003	65세 이상 고령자
+		SELECT 
+			   BAS_YYMM
+			  ,'R21003' AS RSK_ELMT_C
+			  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND AGE_OLD_YN = 'Y'
+		
+		
+		
+		UNION ALL
+		--R21101	CDD 등록사유 = 98(자금세탁우려)
+		SELECT #{basYymm} AS BAS_YYMM
+			  ,'R21101' AS RSK_ELMT_C
+              , RNMCNO 
+        FROM NIC35B
+        WHERE CDD_RGSN_RESN_CODE = '98'
+		
+		UNION ALL
+		--R21201	비상장기업
+		SELECT 
+			   #{basYymm} AS BAS_YYMM
+			  ,'R21201' AS RSK_ELMT_C
+			  ,RNMCNO
+		FROM NIC03B    --법인고객정보_NIC03B
+		WHERE LSTNG_F = 'N'   --상장여부
+		
+		UNION ALL
+		--R21202	최근 3년 이내 설립 법인
+		SELECT 
+			   BAS_YYMM
+			  ,'R21202' AS RSK_ELMT_C
+			  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND IN3YEAR_ESTB_YN = 'Y'
+		
+		UNION ALL
+		--R21203	비영리법인(단체)
+		SELECT 
+			   BAS_YYMM
+			  ,'R21203' AS RSK_ELMT_C
+			  ,RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND NPRFT_GROUP_YN = 'Y'
+		
+		
+		UNION ALL
+		--R21401	오락, 도박, 스포츠 관련 산업/직종
+		SELECT 
+			    BAS_YYMM
+			  ,'R21401' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND ( AML_JOB_GUBN IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R21401' AND INDV_YN = '1') OR
+		        INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R21401' AND CORP_YN = '1'  ) )
+		
+		UNION ALL
+		--R21402	카지노
+		SELECT 
+			    BAS_YYMM
+			  ,'R21402' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R21402' AND CORP_YN = '1'  ) 
+		
+		UNION ALL
+		--R21403	대부업자, 환전상, 소액해외송급업자
+		SELECT 
+			    BAS_YYMM
+			  ,'R21403' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND ( AML_JOB_GUBN IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R21403' AND INDV_YN = '1') OR
+		        INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R21403' AND CORP_YN = '1'  ) )
+		
+		UNION ALL
+		--R21404	귀금속, 예술품, 골동품 판매상
+		SELECT 
+			    BAS_YYMM
+			  ,'R21404' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND ( AML_JOB_GUBN IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R21404' AND INDV_YN = '1') OR
+		        INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R21404' AND CORP_YN = '1'  ) )
+		
+		UNION ALL
+		--R21405	주류 도소매업, 유흥주점업
+		SELECT 
+			   BAS_YYMM
+			  ,'R21405' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM SRBA_CUST_I
+		WHERE BAS_YYMM = #{basYymm}
+		  AND ( AML_JOB_GUBN IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R21405' AND INDV_YN = '1') OR
+		        INDST_RSK_DVD_CD IN ( SELECT JOB_C FROM SRBA_JOB_I WHERE RSK_ELMT_C = 'R21405' AND CORP_YN = '1'  ) )
+		
+		UNION ALL
+		
+		--R21501	최근 1년 이내에 당사자 또는 관련인으로 3회 이상 STR 보고된 고객
+		SELECT #{basYymm} AS BAS_YYMM
+			  ,'R21501' AS RSK_ELMT_C
+              , RNMCNO 
+        FROM         
+             ( 
+               SELECT SUBSTR(DL_P_RNMCNO,1,10) AS RNMCNO
+               FROM SSQ.NIC66B
+               WHERE 1 = 1
+                AND SSPS_DL_CRT_DT >= #{tgtTrnSdt}
+				AND SSPS_DL_CRT_DT &lt; #{tgtTrnEdt}
+                AND RPR_PRGRS_CCD = '99' 
+           		AND SSPS_DL_CRT_CCD IN ('STR','KYC')
+               
+               UNION ALL
+               
+               SELECT AFPR_RNMCNO AS RNMCNO
+               FROM SSQ.NIC102B
+               WHERE 1 = 1
+                AND SSPS_DL_CRT_DT >= #{tgtTrnSdt}
+				AND SSPS_DL_CRT_DT &lt; #{tgtTrnEdt}
+           		AND SSPS_DL_CRT_CCD IN ('STR','KYC')
+             ) GROUP BY RNMCNO HAVING COUNT(1) >= 3
+		
+		
+		UNION ALL
+		
+		--R20401	전기통신금융사기사고 등록 고객 
+		SELECT 
+			    #{basYymm} AS BAS_YYMM
+			  ,'R20401' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM ( 
+			SELECT DISTINCT RNMCNO
+			FROM (
+				SELECT TO_CHAR(CLNT_ENTY_ID, '9999999999' ) AS RNMCNO
+				FROM SID.IDO_A_MAH_DBT_NOMN_PRCE
+				WHERE PRCE_DATE >= #{tgtTrnSdt}
+				 AND  PRCE_DATE &lt; #{tgtTrnEdt}
+				 
+				UNION ALL
+				
+				SELECT TO_CHAR(B.ENTY_ID, '9999999999' ) AS RNMCNO
+				FROM SID.IDO_A_MAH_DBT_NOMN A
+				, SID.IDO_A_UUE_CLIENT_ENTY_ALIAS B 
+				WHERE TRIM(A.CLNT_NO_CRYP) = TRIM(B.ENTY_ALIS_CRYP)
+				AND A.PRCE_DATE >= #{tgtTrnSdt}
+				AND A.PRCE_DATE &lt; #{tgtTrnEdt}
+			   )
+		)
+		
+		UNION ALL
+		
+		--R21004	[자금력 의심 고객] 채무불이행 고객 
+		SELECT 
+			    #{basYymm} AS BAS_YYMM
+			  ,'R21004' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM ( 
+			SELECT DISTINCT RNMCNO
+			FROM (
+				SELECT TO_CHAR(CLNT_ENTY_ID, '9999999999' ) AS RNMCNO
+				FROM SID.IDO_A_MAH_CLNT_CRDT_DTLS
+				 WHERE DELY_SECT_CODE &lt;> '1'
+				  AND CRDT_IFMN_CNCL_SECT_CODE = '00'
+				  AND CNCL_DATE = '00000000'
+				  AND IFMN_RECV_DATE  >= #{tgtTrnSdt}
+				  AND IFMN_RECV_DATE &lt; #{tgtTrnEdt}
+			   )
+		)
+		
+		UNION ALL
+		
+		--R21301	[차명 의심 고객] 고위험 대리인 거래 고객 
+		SELECT 
+			    #{basYymm} AS BAS_YYMM
+			  ,'R21301' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM ( 
+			SELECT DISTINCT RNMCNO
+			FROM (
+				SELECT TO_CHAR(CDD_TAGT_ENTY_ID, '9999999999' ) AS RNMCNO 
+				FROM SID.IDO_A_MAH_CDD_FLFL_DTLD
+				WHERE CDD_TAGT_SECT_CODE = '02'
+				AND CLNT_RISK_RTNG_CODE = 'H' 
+				AND CDD_FLFL_DATE >= #{tgtTrnSdt}
+				AND CDD_FLFL_DATE &lt; #{tgtTrnEdt}
+				 
+				UNION ALL
+				
+				SELECT TO_CHAR(A.CDD_TAGT_ENTY_ID, '9999999999' ) AS RNMCNO
+				FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A 
+				,    SID.IDO_A_MAH_CDD_AGNT_IFMN B 
+				WHERE A.CDD_TAGT_CLNT_NO_CRYP = B.AGNT_CLNT_RNNO_CRYP 
+				 AND  A.CLNT_RISK_RTNG_CODE = 'H' 
+				 AND  A.CDD_FLFL_DATE >= #{tgtTrnSdt}
+				 AND  A.CDD_FLFL_DATE &lt; #{tgtTrnEdt}
+			   )
+		)
+		
+		UNION ALL
+		
+		
+		--R21302	[차명 의심 고객] 가족, 직원 외 대리인 거래 고객 
+		SELECT 
+			    #{basYymm} AS BAS_YYMM
+			  ,'R21302' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM ( 
+			SELECT DISTINCT RNMCNO
+			FROM (
+				SELECT TO_CHAR(CDD_TAGT_ENTY_ID, '9999999999' ) AS RNMCNO 
+				FROM SID.IDO_A_MAH_CDD_FLFL_DTLD
+				WHERE (CDD_AGNT_RLTP_SECT_CODE IN ('99', '07') OR CDD_AGNT_ENTS_DOC_CODE = '99')
+				AND CDD_FLFL_DATE >= #{tgtTrnSdt}
+				AND CDD_FLFL_DATE &lt; #{tgtTrnEdt}
+				 
+				UNION ALL
+				
+				SELECT TO_CHAR(A.CDD_TAGT_ENTY_ID, '9999999999' ) AS RNMCNO
+				FROM SID.IDO_A_MAH_CDD_FLFL_DTLD A 
+				,    SID.IDO_A_MAH_CDD_AGNT_IFMN B 
+				WHERE A.CDD_TAGT_CLNT_NO_CRYP = B.AGNT_CLNT_RNNO_CRYP 
+				 AND  ( A.CDD_AGNT_RLTP_SECT_CODE IN ('99', '07') OR A.CDD_AGNT_ENTS_DOC_CODE = '99')
+				 AND  A.CDD_FLFL_DATE >= #{tgtTrnSdt}
+				 AND  A.CDD_FLFL_DATE &lt; #{tgtTrnEdt}
+			   )
+		)
+		
+        
+        
+	</insert>
+	
+	
+	<!-- 위험EVENT별 상품정보  -->
+	<insert id="insertCustT_GOOD" parameterType="kriVO" >
+		INSERT INTO SRBA_CUST_T(BAS_YYMM,RSK_ELMT_C,RNMCNO)			
+		--R30111   상품_업무규정 정의 당연고위험 대상 상품
+		SELECT 
+			   #{basYymm} AS BAS_YYMM
+			  ,'R30111' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM ( 
+			SELECT /*+ MATERIALIZE PARALLEL(TRN 4) FULL(TRN) USE_HASH(TRN) */ 
+			    DISTINCT TRN.RNMCNO      
+			FROM KRBA_TRN_I  TRN                                                                
+			   , SRBA_ETC_I  E                                                               
+			WHERE 1 = 1                                                                               
+			AND TRN.BAS_YYMM BETWEEN SUBSTR(#{tgtTrnSdt},1,6) AND SUBSTR(#{tgtTrnEdt},1,6)  
+			AND E.BAS_YYMM =  #{basYymm}                    
+			AND E.RA_ITEM_CODE = SUBSTR(TRN.GDS_NO, 1, 3)   
+			AND E.RSK_ELMT_C = 'R30111'
+        )
+		
+		UNION ALL
+		
+		--R30113   상품_고위험 대상 상품 ( 당연고위험 아니고 6.67위험점수 이상 대상)
+		SELECT 
+			    #{basYymm} AS BAS_YYMM
+			  , 'R30113' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM ( 
+			SELECT /*+ MATERIALIZE PARALLEL(TRN 4) FULL(TRN) USE_HASH(TRN) */  
+			    DISTINCT TRN.RNMCNO
+			FROM KRBA_TRN_I  TRN                                                                
+			   , SRBA_ETC_I  E                                                               
+			WHERE 1 = 1                                                                               
+			AND TRN.BAS_YYMM BETWEEN SUBSTR(#{tgtTrnSdt},1,6) AND SUBSTR(#{tgtTrnEdt},1,6)	                     
+			AND E.BAS_YYMM =  #{basYymm} 
+			AND E.RA_ITEM_CODE = SUBSTR(TRN.GDS_NO, 1, 3)   
+			AND E.RSK_ELMT_C = 'R30113'
+			AND E.ABS_HRSK_YN = 'N'
+        )
+        
+	</insert>
+	
+	
+	<!-- 위험EVENT별 고객정보  -->
+	<insert id="insertCustT_Channel" parameterType="kriVO" >
+		INSERT INTO SRBA_CUST_T(BAS_YYMM,RSK_ELMT_C,RNMCNO)			
+		--R40102   대면_은행연계
+		SELECT 
+			   #{basYymm} AS BAS_YYMM
+			  ,'R40102' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM ( SELECT
+			            DISTINCT RNMCNO                 
+			        FROM SID.IDO_A_MAH_CDD_FLFL_DTLD C
+			          ,  NIC01B CUS
+			        WHERE 1=1	
+			        AND C.PRCE_CHNL_SECT_CODE like 'C%'
+			        AND ( C.CDD_CMPL_YN = 'Y' OR C.EDD_TAGT_YN = 'Y' )   --CDD완료여부, EDD대상여부
+			        AND C.CDD_FLFL_DATE BETWEEN #{tgtTrnSdt} AND #{tgtTrnEdt}				
+			        AND C.CDD_TAGT_ENTY_ID = CUS.RNMCNO		        
+		      ) 
+		
+		UNION ALL
+		
+		--R40103   대면_Pop-Note
+		SELECT 
+			   #{basYymm} AS BAS_YYMM
+			  ,'R40103' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM ( SELECT
+			            DISTINCT RNMCNO                 
+			        FROM SID.IDO_A_MAH_CDD_FLFL_DTLD C
+			          ,  NIC01B CUS
+			        WHERE 1=1	
+			        AND C.PRCE_CHNL_SECT_CODE = 'A16'
+			        AND ( C.CDD_CMPL_YN = 'Y' OR C.EDD_TAGT_YN = 'Y' )   --CDD완료여부, EDD대상여부
+			        AND C.CDD_FLFL_DATE BETWEEN #{tgtTrnSdt} AND #{tgtTrnEdt}	
+			        AND C.CDD_TAGT_ENTY_ID = CUS.RNMCNO					        
+		      ) 
+		      
+		UNION ALL
+		
+		--R40101   비대면 건 수
+		SELECT 
+			   #{basYymm} AS BAS_YYMM
+			  ,'R40101' AS RSK_ELMT_C
+			  , RNMCNO
+		FROM ( SELECT
+			            DISTINCT RNMCNO                 
+			        FROM SID.IDO_A_MAH_CDD_FLFL_DTLD C
+			          ,  NIC01B CUS
+			        WHERE 1=1	
+			        AND ( C.PRCE_CHNL_SECT_CODE like 'G%' or C.PRCE_CHNL_SECT_CODE like 'H%' or C.PRCE_CHNL_SECT_CODE like 'I%')
+			        AND ( C.CDD_CMPL_YN = 'Y' OR C.EDD_TAGT_YN = 'Y' )   --CDD완료여부, EDD대상여부
+			        AND C.CDD_FLFL_DATE BETWEEN #{tgtTrnSdt} AND #{tgtTrnEdt}
+			        AND C.CDD_TAGT_ENTY_ID = CUS.RNMCNO						        
+		      ) 		
+	</insert>
+	
+	
+	
+	<!-- 위험EVENT별 고객정보  -->
+	<insert id="insertCustT_KOFIU" parameterType="kriVO" >
+		INSERT INTO SRBA_CUST_T(BAS_YYMM,RSK_ELMT_C,RNMCNO)			
+		--K20401   개인 고객 규모 (I.1.03.01) 개인 고객 규모[명]
+		SELECT 
+			   #{basYymm} AS BAS_YYMM
+			  ,'K20401' AS RSK_ELMT_C
+			  ,TO_CHAR(RNMCNO,'9999999999') AS RNMCNO
+		FROM 
+		( SELECT  /*+ FULL(A) PARALLEL(4) */
+                DISTINCT A.CDD_TAGT_ENTY_ID AS RNMCNO
+           FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A
+              , SID.IDO_A_MAC_CLNT_ADDN_IFMN C
+              , SID.IDO_A_MAC_CLNT_RGSN_DTLS D
+          WHERE 1 = 1
+            AND A.CDD_TAGT_ENTY_ID = C.CLNT_ENTY_ID
+            AND A.CDD_TAGT_ENTY_ID = D.CLNT_ENTY_ID 
+            
+            AND EXISTS (SELECT 1 
+                          FROM SID.IDO_A_UUA_ACNT B
+                         WHERE 1 = 1
+                           AND (B.ACNT_STAS_TYPE_CODE IN ('AC', 'IN') -- 정상/통합계좌만
+                            OR (B.ACNT_STAS_TYPE_CODE  = 'CL' AND B.CLSG_DATE &gt; #{tgtTrnSdt}))
+                           AND B.ACNT_TYPE_CODE       IN ('GNAC', 'FPAC', 'FOAC', 'SVAC') -- 리테일계좌만
+                           AND A.CDD_TAGT_ENTY_ID = B.ACNT_OWNR_ID
+                        )   
+            AND NOT EXISTS (SELECT 1
+                              FROM SID.IDO_A_MAH_CDD_FLFL_DTLD B
+                             WHERE B.CDD_TAGT_ENTY_ID    = A.CDD_TAGT_ENTY_ID
+                               AND B.RGBR_CODE           = '21220'               /* 연금전략팀 */
+                               AND B.CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')    /* 요주의필터링결과코드 */
+                           )                         
+            AND D.PRCE_DATE   &lt;= #{tgtTrnEdt}        -- 고객등록일자
+            AND A.CLNT_RISK_RTNG_CODE  IN ('H', 'M', 'L')    -- 등급 존재
+            AND A.CDD_CLNT_SECT_CODE   = '1'              -- CDD고객구분코드(1.개인, 2.영리법인, 3.비영리법인)
+        )
+		  
+		
+		UNION ALL
+		
+		--K20402   개인사업자 고객 규모   (I.1.03.02) 개인사업자 고객 규모[명]
+		SELECT 
+			   #{basYymm} AS BAS_YYMM
+			  ,'K20402' AS RSK_ELMT_C
+			  ,TO_CHAR(RNMCNO,'9999999999') AS RNMCNO
+		FROM 
+        ( SELECT /*+ FULL(A) PARALLEL(4) */
+                 DISTINCT A.CDD_TAGT_ENTY_ID AS RNMCNO
+            FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A
+               , SID.IDO_A_MAC_CLNT_ADDN_IFMN C
+               , SID.IDO_A_MAC_CLNT_RGSN_DTLS D
+           WHERE 1 = 1
+             AND A.CDD_TAGT_ENTY_ID = C.CLNT_ENTY_ID
+             AND A.CDD_TAGT_ENTY_ID = D.CLNT_ENTY_ID 
+             
+             AND EXISTS (SELECT 1 
+                           FROM SID.IDO_A_UUA_ACNT B
+                          WHERE 1 = 1
+                            AND (B.ACNT_STAS_TYPE_CODE IN ('AC', 'IN') -- 정상/통합계좌만
+                             OR (B.ACNT_STAS_TYPE_CODE  = 'CL' AND B.CLSG_DATE &gt; #{tgtTrnSdt}))
+                            AND B.ACNT_TYPE_CODE       IN ('GNAC', 'FPAC', 'FOAC', 'SVAC') -- 리테일계좌만
+                            AND A.CDD_TAGT_ENTY_ID = B.ACNT_OWNR_ID
+                         )   
+             AND NOT EXISTS (SELECT 1
+                               FROM SID.IDO_A_MAH_CDD_FLFL_DTLD B
+                              WHERE B.CDD_TAGT_ENTY_ID    = A.CDD_TAGT_ENTY_ID
+                                AND B.RGBR_CODE           = '21220'               /* 연금전략팀 */
+                                AND B.CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')    /* 요주의필터링결과코드 */
+                            )               
+                         
+             AND D.PRCE_DATE            &lt;= #{tgtTrnEdt}         -- 고객등록일자
+             AND A.CLNT_RISK_RTNG_CODE  IN ('H', 'M', 'L')    -- 등급 존재
+             AND A.CDD_CLNT_SECT_CODE    = '1'                -- CDD고객구분코드(1.개인, 2.영리법인, 3.비영리법인)
+             AND EXISTS (SELECT 1 
+                           FROM SID.IDO_A_UUA_ACNT               AA
+                          INNER JOIN SID.IDO_A_UUA_ACNT_FUNCTION AF
+                             ON AA.ACNT_ID             = AF.ACNT_ID
+                            AND AF.ACNT_FNCN_TYPE_CODE = 'PRBS' -- 개인사업용계좌
+                            AND AF.ALWD_YN             = 'Y'
+                          WHERE AA.ACNT_OWNR_ID        = C.CLNT_ENTY_ID
+                            AND AA.ACNT_STAS_TYPE_CODE IN ('AC', 'IN') -- 정상/통합계좌만
+                        )
+        )
+		
+		UNION ALL
+		
+		--K20403   법인 고객 규모   (I.1.03.03) 법인 고객 규모[개수]
+		SELECT 
+			   #{basYymm} AS BAS_YYMM
+			  ,'K20403' AS RSK_ELMT_C
+			  ,TO_CHAR(RNMCNO,'9999999999') AS RNMCNO
+		FROM 
+		(  
+		   SELECT /*+ FULL(A) PARALLEL(4) */
+                 DISTINCT A.CDD_TAGT_ENTY_ID AS RNMCNO
+            FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A
+               , SID.IDO_A_MAC_CLNT_ADDN_IFMN C
+               , SID.IDO_A_MAC_CLNT_RGSN_DTLS D
+           WHERE 1 = 1
+             AND A.CDD_TAGT_ENTY_ID = C.CLNT_ENTY_ID
+             AND A.CDD_TAGT_ENTY_ID = D.CLNT_ENTY_ID 
+             
+             AND EXISTS (SELECT 1 
+                           FROM SID.IDO_A_UUA_ACNT B
+                          WHERE 1 = 1
+                            AND (B.ACNT_STAS_TYPE_CODE IN ('AC', 'IN') -- 정상/통합계좌만
+                             OR (B.ACNT_STAS_TYPE_CODE  = 'CL' AND B.CLSG_DATE &gt; #{tgtTrnSdt}))
+                            AND B.ACNT_TYPE_CODE       IN ('GNAC', 'FPAC', 'FOAC', 'SVAC') -- 리테일계좌만
+                            AND A.CDD_TAGT_ENTY_ID = B.ACNT_OWNR_ID
+                         )   
+             AND NOT EXISTS (SELECT 1
+                               FROM SID.IDO_A_MAH_CDD_FLFL_DTLD B
+                              WHERE B.CDD_TAGT_ENTY_ID    = A.CDD_TAGT_ENTY_ID
+                                AND B.RGBR_CODE           = '21220'               /* 연금전략팀 */
+                                AND B.CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')    /* 요주의필터링결과코드 */
+                            )               
+                         
+             AND D.PRCE_DATE            &lt;= #{tgtTrnEdt}        -- 고객등록일자
+             AND A.CLNT_RISK_RTNG_CODE  IN ('H', 'M', 'L')    -- 등급 존재
+             AND A.CDD_CLNT_SECT_CODE   IN ('2', '3')         -- CDD고객구분코드(1.개인, 2.영리법인, 3.비영리법인)
+		)
+		
+		  
+	    UNION ALL
+		
+		--K20404   외국인 규모   (I.1.03.04) 외국인 규모[명]
+		SELECT 
+			   #{basYymm} AS BAS_YYMM
+			  ,'K20404' AS RSK_ELMT_C
+			  ,TO_CHAR(RNMCNO,'9999999999') AS RNMCNO
+		FROM 
+        (   
+        	SELECT /*+ FULL(A) PARALLEL(4) */
+                  DISTINCT A.CDD_TAGT_ENTY_ID AS RNMCNO
+             FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A
+                , SID.IDO_A_MAC_CLNT_ADDN_IFMN C
+                , SID.IDO_A_MAC_CLNT_RGSN_DTLS D
+            WHERE 1 = 1
+              AND A.CDD_TAGT_ENTY_ID = C.CLNT_ENTY_ID
+              AND A.CDD_TAGT_ENTY_ID = D.CLNT_ENTY_ID 
+              
+              AND EXISTS (SELECT 1 
+                            FROM SID.IDO_A_UUA_ACNT B
+                           WHERE 1 = 1
+                             AND (B.ACNT_STAS_TYPE_CODE IN ('AC', 'IN') -- 정상/통합계좌만
+                              OR (B.ACNT_STAS_TYPE_CODE  = 'CL' AND B.CLSG_DATE &gt; #{tgtTrnSdt}))
+                             AND B.ACNT_TYPE_CODE       IN ('GNAC', 'FPAC', 'FOAC', 'SVAC') -- 리테일계좌만
+                             
+                             AND A.CDD_TAGT_ENTY_ID = B.ACNT_OWNR_ID
+                          )   
+              AND NOT EXISTS (SELECT 1
+                                FROM SID.IDO_A_MAH_CDD_FLFL_DTLD B
+                               WHERE B.CDD_TAGT_ENTY_ID    = A.CDD_TAGT_ENTY_ID
+                                 AND B.RGBR_CODE           = '21220'               /* 연금전략팀 */
+                                 AND B.CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')    /* 요주의필터링결과코드 */
+                             )                     
+              AND D.PRCE_DATE            &lt;= #{tgtTrnEdt} -- 고객등록일자
+              AND A.CLNT_RISK_RTNG_CODE  IN ('H', 'M', 'L')
+              
+              AND A.NTNY_ID         &lt;&gt;  1000000001     -- 소속국가ID : 대한민국이 아니고
+              AND A.NTNY_ID          &gt; 0  
+        )
+        
+		  
+	   UNION ALL
+		
+		--K20101   CTR고객 규모   (I.1.06.01) CTR고객 규모[명]
+		SELECT 
+			   #{basYymm} AS BAS_YYMM
+			  ,'K20101' AS RSK_ELMT_C
+			  , TO_CHAR(DL_P_RNMCNO, '9999999999') AS RNMCNO
+        FROM ( /*+ FULL(A) PARALLEL(4) */
+	        SELECT DISTINCT A.DL_P_RNMCNO
+		    FROM SSQ.NIC66B A
+			     , SSQ.NIC71B B
+			     , SSQ.NIC75B C     
+			WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+			  AND A.SSPS_DL_ID = B.SSPS_DL_ID
+			  AND B.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT
+			  AND B.SSPS_DL_ID = C.SSPS_DL_ID
+			  AND B.GNL_AC_NO = C.GNL_AC_NO
+			  AND A.SSPS_DL_CRT_CCD IN ('CTR','CAC')
+			  AND DECODE(A.RPR_PRGRS_CCD,'99',1,0) = 1 -- 1:보고완료
+			  AND C.DL_DT      BETWEEN #{tgtTrnSdt} AND #{tgtTrnEdt} -- 거래일자		
+		)
+		
+	  UNION ALL
+		
+		--K40201 (채널) 익명거래 용이성 : 전자금융 서비스 이용자 규모  [I.4.01.02  전자금융서비스 가입자 규모]
+		SELECT 
+			    #{basYymm} AS BAS_YYMM
+			  , 'K40201' AS RSK_ELMT_C
+			  , TO_CHAR( ZZ.ENTY_ID , '9999999999') AS RNMCNO
+        FROM (
+              SELECT /*+ FULL(A) PARALLEL(4) */ 
+                     DISTINCT A.CDD_TAGT_ENTY_ID  AS ENTY_ID
+                FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A
+                   , SID.IDO_A_MAC_CLNT_ADDN_IFMN C
+                   , SID.IDO_A_MAC_CLNT_RGSN_DTLS D
+               WHERE 1 = 1
+                 AND A.CDD_TAGT_ENTY_ID = C.CLNT_ENTY_ID
+                 AND A.CDD_TAGT_ENTY_ID = D.CLNT_ENTY_ID 
+                 
+                 AND EXISTS (SELECT 1 
+                               FROM SID.IDO_A_UUA_ACNT B
+                              WHERE 1 = 1
+                                AND (B.ACNT_STAS_TYPE_CODE IN ('AC', 'IN') -- 정상/통합계좌만
+                                 OR (B.ACNT_STAS_TYPE_CODE  = 'CL' AND B.CLSG_DATE &gt; #{tgtTrnEdt}))
+                                AND B.ACNT_TYPE_CODE       IN ('GNAC', 'FPAC', 'FOAC', 'SVAC') -- 리테일계좌만
+                                AND A.CDD_TAGT_ENTY_ID = B.ACNT_OWNR_ID
+                             )   
+                 AND NOT EXISTS (SELECT 1
+                                   FROM SID.IDO_A_MAH_CDD_FLFL_DTLD B
+                                  WHERE B.CDD_TAGT_ENTY_ID    = A.CDD_TAGT_ENTY_ID
+                                    AND B.RGBR_CODE           = '21220'               /* 연금전략팀 */
+                                    AND B.CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')    /* 요주의필터링결과코드 */
+                                )                    
+                 AND D.PRCE_DATE            &lt;= #{tgtTrnEdt}         -- 고객등록일자
+                 AND A.CLNT_RISK_RTNG_CODE  IN ('H', 'M', 'L')    -- 등급 존재
+                 
+                 AND EXISTS (SELECT 1 -- HTS약정
+                              FROM SID.IDO_A_MAG_HTS_SVC H
+                             WHERE H.HTS_ID_CLNT_ENTY_ID = C.CLNT_ENTY_ID
+                               AND H.RGSN_DATE &lt;= #{tgtTrnEdt}
+                            )
+              
+               UNION 
+       
+              SELECT  /*+ FULL(A) PARALLEL(4) */
+                     DISTINCT A.CDD_TAGT_ENTY_ID  AS ENTY_ID
+                FROM SID.IDO_A_MAH_CDD_FLFL_DTLD  A
+                   , SID.IDO_A_MAC_CLNT_ADDN_IFMN C
+                   , SID.IDO_A_MAC_CLNT_RGSN_DTLS D
+               WHERE 1 = 1
+                 AND A.CDD_TAGT_ENTY_ID = C.CLNT_ENTY_ID
+                 AND A.CDD_TAGT_ENTY_ID = D.CLNT_ENTY_ID 
+                 
+                 AND EXISTS (SELECT 1 
+                               FROM SID.IDO_A_UUA_ACNT B
+                              WHERE 1 = 1
+                                AND (B.ACNT_STAS_TYPE_CODE IN ('AC', 'IN') -- 정상/통합계좌만
+                                 OR (B.ACNT_STAS_TYPE_CODE  = 'CL' AND B.CLSG_DATE &gt; #{tgtTrnEdt}))
+                                AND B.ACNT_TYPE_CODE       IN ('GNAC', 'FPAC', 'FOAC', 'SVAC') -- 리테일계좌만
+                                AND A.CDD_TAGT_ENTY_ID = B.ACNT_OWNR_ID
+                             )   
+                 AND NOT EXISTS (SELECT 1
+                                   FROM SID.IDO_A_MAH_CDD_FLFL_DTLD B
+                                  WHERE B.CDD_TAGT_ENTY_ID    = A.CDD_TAGT_ENTY_ID
+                                    AND B.RGBR_CODE           = '21220'               /* 연금전략팀 */
+                                    AND B.CRFL_FLTG_RSLT_CODE NOT IN ('1','2','3')    /* 요주의필터링결과코드 */
+                                )                    
+                             
+                 AND D.PRCE_DATE            &lt;= #{tgtTrnEdt}         -- 고객등록일자
+                 AND A.CLNT_RISK_RTNG_CODE  IN ('H', 'M', 'L')    -- 등급 존재
+                 AND EXISTS (SELECT 1
+                                FROM SID.IDO_A_MAG_ACNT_ADDN_SVC X
+                                   , SID.IDO_A_UUA_ACNT          Y
+                               WHERE X.ACNT_ADSR_SECT_CODE     = '02' -- ARS약정                   
+                                 AND X.ACNT_ID                 = Y.ACNT_ID
+                                 AND Y.ACNT_OWNR_ID            =  C.CLNT_ENTY_ID
+                                 AND ((X.ACNT_SVC_RGSN_STAS_CODE = '1' -- 등록
+                                 AND   X.RGSN_DATE              &lt;= #{tgtTrnEdt})
+                                  OR  (X.ACNT_SVC_RGSN_STAS_CODE = '2' -- 해지
+                                 AND   X.CNCN_DATE              &gt;  #{tgtTrnEdt}))
+                             )
+              ) ZZ		
+		
+		
+    </insert>
+    
+    
+    
+    
+	
+	
+
+</mapper>

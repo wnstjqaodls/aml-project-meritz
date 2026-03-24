@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<comments xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><authors><author>User</author></authors><commentList><comment ref="A1" authorId="0"><text><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>select NM1
+, NVL(case when NM1 = NM2 then NM3 else NM2 end,NM4) as NM2
+, case when NM1 = NM2 then '' else NM3 end as NM3
+, NM4
+, MENU_ACT_ID, case when ROLE_7 = '' then '</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="돋움"/><family val="3"/><charset val="129"/></rPr><t>외부</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>' else  case when CONCAT(ROLE_4,ROLE_5,ROLE_12) = 'RRR' then '</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="돋움"/><family val="3"/><charset val="129"/></rPr><t>내부</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>' else case when CONCAT(ROLE_4,ROLE_5,ROLE_12) = '' then '</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="돋움"/><family val="3"/><charset val="129"/></rPr><t>내부</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>' else '</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="돋움"/><family val="3"/><charset val="129"/></rPr><t>전체</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>' end end end as TYPE_NM
+     ,replace(ROLE_7,'CRUD','</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="돋움"/><family val="3"/><charset val="129"/></rPr><t>●</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>') as ROLE_7
+     ,replace(ROLE_4,'CRUD','</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="돋움"/><family val="3"/><charset val="129"/></rPr><t>●</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>') as ROLE_4
+     ,replace(ROLE_5,'CRUD','</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="돋움"/><family val="3"/><charset val="129"/></rPr><t>●</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t>') as ROLE_5
+     ,replace(ROLE_12,'CRUD','</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="돋움"/><family val="3"/><charset val="129"/></rPr><t>●</t></r><r><rPr><b/><sz val="9"/><color indexed="81"/><rFont val="Tahoma"/><family val="2"/></rPr><t xml:space="preserve">') as ROLE_12
+from (
+select NM1, NM2, NM3, NM4, MENU_ACT_ID
+     ,CONCAT(REPLACE(REPLACE(SUBSTR(ROLE_7,1,1),'Y','C'),'N',''),REPLACE(REPLACE(SUBSTR(ROLE_7,2,1),'Y','R'),'N',''),REPLACE(REPLACE(SUBSTR(ROLE_7,3,1),'Y','U'),'N',''),REPLACE(REPLACE(SUBSTR(ROLE_7,4,1),'Y','D'),'N','')) as ROLE_7 
+     ,CONCAT(REPLACE(REPLACE(SUBSTR(ROLE_4,1,1),'Y','C'),'N',''),REPLACE(REPLACE(SUBSTR(ROLE_4,2,1),'Y','R'),'N',''),REPLACE(REPLACE(SUBSTR(ROLE_4,3,1),'Y','U'),'N',''),REPLACE(REPLACE(SUBSTR(ROLE_4,4,1),'Y','D'),'N','')) as ROLE_4 
+     ,CONCAT(REPLACE(REPLACE(SUBSTR(ROLE_5,1,1),'Y','C'),'N',''),REPLACE(REPLACE(SUBSTR(ROLE_5,2,1),'Y','R'),'N',''),REPLACE(REPLACE(SUBSTR(ROLE_5,3,1),'Y','U'),'N',''),REPLACE(REPLACE(SUBSTR(ROLE_5,4,1),'Y','D'),'N','')) as ROLE_5 
+     ,CONCAT(REPLACE(REPLACE(SUBSTR(ROLE_12,1,1),'Y','C'),'N',''),REPLACE(REPLACE(SUBSTR(ROLE_12,2,1),'Y','R'),'N',''),REPLACE(REPLACE(SUBSTR(ROLE_12,3,1),'Y','U'),'N',''),REPLACE(REPLACE(SUBSTR(ROLE_12,4,1),'Y','D'),'N','')) as ROLE_12 
+from (
+select  (select DISPLAY_NM from C_MENU_DISPLAY X where X.lang_cd = 'ko-KR' and X.MENU_ACT_ID = SUBSTR(A.MENU_ACT_ID,1,6) )  as NM1
+      , (select DISPLAY_NM from C_MENU_DISPLAY X where X.lang_cd = 'ko-KR' and X.MENU_ACT_ID = PAR_MENU_ACT_ID )  as NM2
+      , (select DISPLAY_NM from C_MENU_DISPLAY X where X.lang_cd = 'ko-KR' and X.MENU_ACT_ID = SUBSTR(A.MENU_ACT_ID,1,12) )  as NM3
+      , MENU_NM  as NM4
+      , MENU_ACT_ID
+      , max(case when ROLE_ID = 7 then CONCAT(C,R,U,D) else '' end) as ROLE_7 
+      , max(case when ROLE_ID = 4 then CONCAT(C,R,U,D) else '' end) as ROLE_4 
+      , max(case when ROLE_ID = 5 then CONCAT(C,R,U,D) else '' end) as ROLE_5 
+      , max(case when ROLE_ID = 12 then CONCAT(C,R,U,D) else '' end) as ROLE_12 
+from 
+(
+ select a.*
+  , D.DISPLAY_NM
+ , b.WINDOW_ACT_ID
+ , c.GROUP_ID, c.ROLE_ID, c.USE_YN, c.C, c.R, c.U, c.D
+ , ROW_NUMBER() over ( partition by A.MENU_ACT_ID, C.ROLE_ID order by b.WINDOW_ACT_ID) as RNO
+ from (
+ SELECT
+  B.PKG_ID,B.PKG_NAME, CASE WHEN A.MENU_ACT_ID= B.PAR_MENU_ACT_ID THEN '0' ELSE B.PAR_MENU_ACT_ID END AS PAR_MENU_ACT_ID,
+  CASE WHEN A.MENU_ACT_ID= B.PAR_MENU_ACT_ID THEN '' ELSE B.PAR_MENU_DISPLAY_NM END PAR_MENU_DISPLAY_NM,B.DISPLAY_ORDER,
+  A.DISPLAY_NM AS  MENU_NM ,A.MENU_ACT_ID
+FROM 
+  (
+  SELECT 
+    B.DISPLAY_NM,
+       A.MENU_ACT_ID, A.MENU_ACTION_YN, A.BIZ_AUTH_YN, A.SCREEN_TYPE_CD,A.SCREEN_ID,A.MENU_FORM_URL,
+       A.MENU_LOCATION_CD,A.MENU_ITEM_YN,A.POPUP_YN
+  FROM C_MENU_ACT A, C_MENU_DISPLAY B
+  WHERE A.MENU_ACT_ID= B.MENU_ACT_ID
+  AND B.LANG_CD ='ko-KR'
+  ) A LEFT JOIN
+ (
+  SELECT C.PKG_ID,D.PKG_NAME,C.PAR_MENU_ACT_ID, E.DISPLAY_NM AS PAR_MENU_DISPLAY_NM,C.MENU_ACT_ID,C.DISPLAY_ORDER
+  FROM C_PKG_MENU_MAP C, C_PKG D, C_MENU_DISPLAY E
+  WHERE C.PKG_ID = D.PKG_ID
+  AND C.PAR_MENU_ACT_ID = E.MENU_ACT_ID
+  AND E.LANG_CD ='ko-KR'
+ ) B ON(A.MENU_ACT_ID = B.MENU_ACT_ID)
+ WHERE  1=1 AND B.PKG_ID = 6
+ and A.MENU_ACT_ID like 'AML%' 
+ ) a, C_MENU_WINDOW_MAP b, C_AUTH_WINDOW_MAP c, C_WINDOW_DISPLAY D
+where a.MENU_ACT_ID = b.MENU_ACT_ID
+and  b.WINDOW_ACT_ID = c.WINDOW_ACT_ID    
+and c.WINDOW_ACT_ID = D.WINDOW_ACT_ID 
+and D.lang_cd = 'ko-KR'  
+and c.USE_YN = 'Y'
+and C.ROLE_ID in ( select ROLE_ID from c_role)
+and WINDOW_DEFAULT_YN = 'Y' ) A
+where RNO = 1
+group by MENU_ACT_ID
+) A ) A order by MENU_ACT_ID
+</t></r></text></comment></commentList></comments>

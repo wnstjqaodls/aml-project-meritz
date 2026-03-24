@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE property-service SYSTEM "property-service.dtd">
+
+    <property-service defaultElement="default.property">
+
+        <property-service-config name="aml.config" deploy="true" loadOnStartup="100" verbose="true" lastModified="1220234224671" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">aml_config.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>aml_config.properties</param-value>
+            </property-param>
+            <property-param>
+                <param-name>encoding</param-name>
+                <param-value>euc-kr</param-value>
+            </property-param>
+            <description>amlExpress 시스템 환경값</description>
+        </property-service-config>
+
+        <property-service-config name="aml.user.auth" deploy="true" loadOnStartup="100" verbose="true" lastModified="1226982543968" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">aml_user_auth.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>aml_user_auth.properties</param-value>
+            </property-param>
+            <property-param>
+                <param-name>encoding</param-name>
+                <param-value>euc-kr</param-value>
+            </property-param>
+            <description>aml 사용자 로그인 및 권한 설정을 위한 기준값 목록</description>
+        </property-service-config>
+
+        <property-service-config name="aml.user.auth.HLD_OFC" deploy="true" loadOnStartup="100" verbose="true" lastModified="1227572222390" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">aml_user_auth_HLD_OFC.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>aml_user_auth_HLD_OFC.properties</param-value>
+            </property-param>
+            <property-param>
+                <param-name>encoding</param-name>
+                <param-value>euc-kr</param-value>
+            </property-param>
+            <description>재직 상태 코드 목록 정보</description>
+        </property-service-config>
+
+        <property-service-config name="aml.user.auth.info" deploy="true" loadOnStartup="100" verbose="true" lastModified="1227601721984" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">aml_user_auth_info.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>aml_user_auth_info.properties</param-value>
+            </property-param>
+            <property-param>
+                <param-name>encoding</param-name>
+                <param-value>euc-kr</param-value>
+            </property-param>
+            <description>사용자 권한 관련 기준 정보</description>
+        </property-service-config>
+        
+        <property-service-config name="common.config" deploy="true" loadOnStartup="100" verbose="true" lastModified="1177388616029" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">common_config.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>common_config.properties</param-value>
+            </property-param>
+            <property-param>
+                <param-name>encoding</param-name>
+                <param-value>euc-kr</param-value>
+            </property-param>
+        </property-service-config>
+
+        <property-service-config name="jspeed.properties" deploy="true" loadOnStartup="100" verbose="true" lastModified="1111382092899" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">jspeed.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>jspeed.properties</param-value>
+            </property-param>
+        </property-service-config>
+
+        <property-service-config name="mm.adapter.AdapterClassName" deploy="true" loadOnStartup="100" verbose="true" lastModified="1157117546319" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">adapterClassName.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>adapterClassName.properties</param-value>
+            </property-param>
+        </property-service-config>
+
+        <property-service-config name="mm.adapter.except.Schema" deploy="true" loadOnStartup="100" verbose="true" lastModified="1156513502725" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">exceptSchema.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>exceptSchema.properties</param-value>
+            </property-param>
+        </property-service-config>
+
+        <property-service-config name="mm.adapter.except.Table" deploy="true" loadOnStartup="100" verbose="true" lastModified="1156870531549" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">except_Table.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>except_Table.properties</param-value>
+            </property-param>
+        </property-service-config>
+
+        <property-service-config name="mm.className" deploy="true" loadOnStartup="100" verbose="true" lastModified="1157107209574" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">mm_className.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>mm_className.properties</param-value>
+            </property-param>
+        </property-service-config>
+
+        <property-service-config name="mm.config" deploy="true" loadOnStartup="100" verbose="true" lastModified="1157389886462" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">mm_config.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>mm_config.properties</param-value>
+            </property-param>
+        </property-service-config>
+
+        <property-service-config name="mm.dateField" deploy="true" loadOnStartup="100" verbose="true" lastModified="1188866094468" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">dateField.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>dateField.properties</param-value>
+            </property-param>
+            <property-param>
+                <param-name>encoding</param-name>
+                <param-value>euc-kr</param-value>
+            </property-param>
+        </property-service-config>
+
+        <property-service-config name="mm.db.DriverClassName" deploy="true" loadOnStartup="100" verbose="true" lastModified="1157106511207" target="all.web">
+            <log-type>NOT_LOGGING</log-type>
+            <log-level>ERROR</log-level>
+            <log-location></log-location>
+            <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+            <backup-filename isBackup="true">DB_DriverClassName.properties</backup-filename>
+            <property-param>
+                <param-name>filename</param-name>
+                <param-value>DB_DriverClassName.properties</param-value>
+            </property-param>
+            <description>db driver class name</description>
+        </property-service-config>
+
+        <property-service-config name="cipher_decode.properties" deploy="true" loadOnStartup="100" verbose="true" lastModified="1372147767610" target="all.web">
+           <log-type>NOT_LOGGING</log-type>
+           <log-level>ERROR</log-level>
+           <log-location></log-location>
+           <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+           <backup-filename isBackup="true">cipher_decode.properties</backup-filename>
+           <property-param>
+            <param-name>filename</param-name>
+            <param-value>cipher_decode.properties</param-value>
+           </property-param>
+           <property-param>
+            <param-name>encoding</param-name>
+            <param-value>euc-kr</param-value>
+           </property-param>
+         </property-service-config>
+
+          <property-service-config name="cipher_encode.properties" deploy="true" loadOnStartup="100" verbose="true" lastModified="1372147683740" target="all.web">
+           <log-type>NOT_LOGGING</log-type>
+           <log-level>ERROR</log-level>
+           <log-location></log-location>
+           <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+           <backup-filename isBackup="true">cipher_encode.properties</backup-filename>
+           <property-param>
+            <param-name>filename</param-name>
+            <param-value>cipher_encode.properties</param-value>
+           </property-param>
+           <property-param>
+            <param-name>encoding</param-name>
+            <param-value>euc-kr</param-value>
+           </property-param>
+          </property-service-config>
+          
+          <property-service-config name="workflow" deploy="true" loadOnStartup="100" verbose="true" lastModified="1175835004912" target="WF.web">
+             <log-type>NOT_LOGGING</log-type>
+             <log-level>ERROR</log-level>
+             <log-location></log-location>
+             <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+             <backup-filename isBackup="true">workflow.properties</backup-filename>
+             <property-param>
+                <param-name>filename</param-name>
+                <param-value>workflow.properties</param-value>
+             </property-param>
+             <property-param>
+                <param-name>encoding</param-name>
+                <param-value>euc-kr</param-value>
+             </property-param>
+             <description>ss</description>
+          </property-service-config>
+          
+          <property-service-config name="maskField.properties" deploy="true" loadOnStartup="100" verbose="true" lastModified="1510545230027" target="all.web">
+           <log-type>NOT_LOGGING</log-type>
+           <log-level>ERROR</log-level>
+           <log-location></log-location>
+           <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+           <backup-filename isBackup="true">maskField.properties</backup-filename>
+           <property-param>
+            <param-name>filename</param-name>
+            <param-value>maskField.properties</param-value>
+           </property-param>
+           <property-param>
+            <param-name>encoding</param-name>
+            <param-value>euc-kr</param-value>
+           </property-param>
+          </property-service-config>
+          
+           <property-service-config name="bre.config" deploy="true" loadOnStartup="100" verbose="true" lastModified="1253868948635" target="all.web">
+         <log-type>NOT_LOGGING</log-type>
+         <log-level>ERROR</log-level>
+         <log-location></log-location>
+         <repository-class>jspeed.base.repository.map.FileStringRepository</repository-class>
+         <backup-filename isBackup="true">bre_config.properties</backup-filename>
+         <property-param>
+            <param-name>filename</param-name>
+            <param-value>bre_config.properties</param-value>
+         </property-param>
+         <property-param>
+            <param-name>encoding</param-name>
+            <param-value>euc-kr</param-value>
+         </property-param>
+      </property-service-config>
+      
+    </property-service>

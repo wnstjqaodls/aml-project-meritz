@@ -1,0 +1,27 @@
+<!ELEMENT code-service (code-service-config*,available-environment-param*)>
+
+<!ELEMENT code-service-config (repository-class, backup-filename?, pre-load?, listener-class?, memory-auto-commit?, code-param*, description?)>
+<!ELEMENT repository-class (#PCDATA)> <!-- jspeed.base.repository.Repository interface -->
+<!ELEMENT backup-filename (#PCDATA)>
+<!ELEMENT pre-load (#PCDATA)> <!-- true | false, default=false -->
+<!ELEMENT listener-class (#PCDATA)> <!-- jspeed.base.repository.RepositoryListener interface -->
+<!ELEMENT memory-auto-commit (#PCDATA)> <!-- true | false, default=true -->
+<!ELEMENT code-param (param-name, param-value)>
+<!ELEMENT available-environment-param (param-name, param-value)>
+<!ELEMENT param-name (#PCDATA)>
+<!ELEMENT param-value (#PCDATA)>
+<!ELEMENT description (#PCDATA)>
+
+<!ATTLIST code-service
+	defaultElement CDATA #IMPLIED
+	verbose (true | false) 'false'>
+	
+<!ATTLIST code-service-config
+	name CDATA #REQUIRED
+	deploy (true | false) 'false'
+	loadOnStartup CDATA #IMPLIED
+	verbose (true | false) 'false'
+	lastModified CDATA #IMPLIED
+	target CDATA #IMPLIED>
+	
+		

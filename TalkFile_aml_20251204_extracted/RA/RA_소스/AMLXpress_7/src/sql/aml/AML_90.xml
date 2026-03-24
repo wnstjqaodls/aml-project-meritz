@@ -1,0 +1,2940 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+
+<mapper namespace="AML_90">
+
+    <!--[ 사용자별 특정 권한 ]*******************************************************************************************************************-->
+
+     <!-- 사용자별 특정 사항(권한 등...) 여부 반환: NIC97B 사용 -->
+    <select id="AML_90_08_01_01_checkUserAuth" parameterType="hashMap" resultType="DataObj">
+        SELECT A.USER_ID
+              ,A.AUTH_YN
+              ,A.AUTH_TYPE
+              ,B.USER_NM
+          FROM NIC97B A
+              ,C_USER B
+         WHERE A.USER_ID = B.USER_ID
+           AND A.PKG_ID = #{PKG_ID}
+           AND A.AUTH_TYPE = #{AUTH_TYPE}
+        <if test="USER_ID != null and USER_ID != '' ">
+           AND A.USER_ID = #{USER_ID}
+        </if>
+        <if test="LOGIN_ID !=null and LOGIN_ID != '' ">
+           AND B.LOGIN_ID = #{LOGIN_ID}
+        </if>
+    </select>
+
+    <insert id="AML_90_01_02_02_doSave_C_QA" parameterType="hashMap">
+        INSERT INTO C_QA (
+               SEQ
+              ,KIND
+              ,TITLE
+              ,CONTENT
+              ,REG_ID
+              ,REG_NAME
+              ,STATE
+              ,REG_DT
+              ,PKG_NAME
+        ) VALUES (
+               #{SEQ, jdbcType=INTEGER}
+              ,#{KIND, jdbcType=VARCHAR}
+              ,#{TITLE, jdbcType=VARCHAR}
+              ,#{CONTENT, jdbcType=VARCHAR}
+              ,#{REG_ID, jdbcType=VARCHAR}
+              ,#{REG_NAME, jdbcType=VARCHAR}
+              ,#{STATE, jdbcType=VARCHAR}
+              ,#{REG_DT, jdbcType=VARCHAR}
+              ,#{PKG_NAME, jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <select id="AML_90_01_02_02_doSearchMaxSeq" parameterType="hashMap" resultType="DataObj">
+        SELECT C_QA_SEQ.nextval AS SEQ
+          FROM DUAL
+    </select>
+
+    <insert id="AML_90_01_01_02_doDelete_NIC90B_2" parameterType="hashMap">
+        DELETE FROM NIC90B_2
+         WHERE BOARD_ID  = #{BOARD_ID}
+           AND BOARD_SEQ = #{BOARD_SEQ}
+    </insert>
+
+    <insert id="AML_90_01_02_03_doAnswer_C_QA_ANSWER" parameterType="hashMap">
+           INSERT INTO C_QA_ANSWER (
+               ANSWER_SEQ
+              ,SEQ
+              ,CONTENT
+              ,ANSWER_DT
+              ,LOGIN_ID
+              ,USER_ID
+              ,ROLE_ID
+              ,ROLE_NM
+              ,USER_NM
+        ) VALUES(
+              C_QA_ANSWER_SEQ.nextval
+              ,#{SEQ}
+              ,#{ANSWER}
+              ,SYSDATE
+              ,#{LOGIN_ID}
+              ,#{USER_ID}
+              ,#{ROLE_ID}
+              ,#{ROLE_NM}
+              ,#{USER_NM}
+        )
+    </insert>
+
+    <select id="AML_90_01_02_03_doSearch_C_QA_ANSWER_SEQ" parameterType="hashMap" resultType="DataObj">
+        SELECT C_QA_ANSWER_SEQ.CURRVAL AS ANSWER_SEQ
+              ,TO_CHAR(ANSWER_DT, 'YYYY-MM-DD HH24:MI:SS') AS ANSWER_DT
+          FROM C_QA_ANSWER
+    </select>
+
+    <select id="AML_90_01_02_03_doSearch_C_QA_ANSWER" parameterType="hashMap" resultType="DataObj">
+    SELECT ANSWER_SEQ
+          ,SEQ
+          ,CONTENT
+          ,TO_CHAR(ANSWER_DT, 'YYYY-MM-DD HH24:MI:SS') AS ANSWER_DT
+          ,LOGIN_ID AS SESS_LOGIN_ID
+          ,ROLE_ID AS SESS_ROLE_ID
+          ,ROLE_NM AS SESS_ROLE_NM
+          ,USER_ID AS SESS_USER_ID
+          ,USER_NM AS SESS_USER_NM
+      FROM C_QA_ANSWER
+     WHERE SEQ = #{SEQ}
+     ORDER BY ANSWER_DT
+    </select>
+
+    <select id="AML_90_01_02_03_getREGID_C_QA_ANSWER" parameterType="hashMap" resultType="DataObj">
+        SELECT ANSWER_SEQ
+              ,SEQ
+              ,LOGIN_ID AS SESS_LOGIN_ID
+              ,ROLE_ID AS SESS_ROLE_ID
+              ,ROLE_NM AS SESS_ROLE_NM
+              ,USER_ID AS SESS_USER_ID
+              ,USER_NM AS SESS_USER_NM
+          FROM C_QA_ANSWER
+         WHERE SEQ = #{SEQ}
+           AND ANSWER_SEQ = #{ANSWER_SEQ}
+    </select>
+
+    <delete id="AML_90_01_02_03_doDelete_C_QA" parameterType="hashMap">
+        DELETE FROM C_QA
+         WHERE SEQ = #{SEQ}
+    </delete>
+
+    <update  id="AML_90_01_02_03_doDelete_C_QA_ANSWER" parameterType="hashMap" >
+        DELETE FROM C_QA_ANSWER
+         WHERE ANSWER_SEQ = #{ANSWER_SEQ}
+           AND SEQ = #{SEQ}
+    </update>
+
+    <select id="AML_90_01_02_03_getREGID_C_QA" parameterType="hashMap" resultType="DataObj">
+        SELECT SEQ
+              ,TITLE
+              ,REG_ID
+          FROM C_QA
+         WHERE SEQ = #{SEQ}
+    </select>
+
+    <select id="AML_90_01_02_03_doDetail_C_QA" parameterType="hashMap" resultType="DataObj">
+        SELECT SEQ
+              ,KIND
+              ,GET_CCD_NAME(KIND, #{LANG_CD}) AS KIND_NAME
+              ,TITLE
+              ,CONTENT
+              ,ANSWER
+              ,REG_ID
+              ,REG_NAME
+              ,STATE
+              ,GET_CCD_NAME(STATE, #{LANG_CD}) AS STATE_NAME
+              ,REG_DT
+              ,END_DT
+              ,ANS_ID
+              ,ANS_NAME
+          FROM C_QA
+         WHERE SEQ = #{SEQ}
+    </select>
+
+    <update  id="AML_90_01_02_03_doUpdate_C_QA_ANSWER" parameterType="hashMap" >
+        UPDATE C_QA_ANSWER
+           SET CONTENT = #{CONTENT}
+              ,ANSWER_DT = SYSDATE
+         WHERE ANSWER_SEQ = #{ANSWER_SEQ}
+           AND SEQ = #{SEQ}
+    </update>
+
+    <!-- 20190321 - 로그관리대장 신규 추가 쿼리 -->
+    <select id="AML_90_12_01_01_getSearch" parameterType="hashMap" resultType="DataObj">
+        SELECT *
+          FROM (
+                SELECT COUNT(*) OVER() AS TOTALCOUNT
+                      ,ROWNUM AS RN
+                      ,V.*
+                  FROM (
+                        SELECT A.SEQ
+                              ,A.LOGIN_ID
+                              ,TO_DATE(A.CNNT_TRY_DTTI, 'YYYY-MM-DD HH24:MI:SS') AS TRX_DTTM
+                              ,A.USER_NM
+                              ,A.USER_IP AS USER_IP_ADDR
+                              ,SUBSTR(A.MNU_ID,1,12) AS MENU_ID
+                              ,CASE WHEN A.PGE_ID='main' THEN '메인화면'
+                                    WHEN A.PGE_ID='logout' THEN '로그아웃'
+                                    WHEN A.PGE_ID='roleChange' THEN '직무변경'
+                                    WHEN A.PGE_ID='ruleTemplate' THEN '위험항목관리'
+                                    WHEN A.PGE_ID='AML_00_02_01_01' THEN '데시보드'
+                                    ELSE ( SELECT M.DISPLAY_NM
+                                             FROM C_MENU_DISPLAY M
+                                            WHERE M.LANG_CD = 'ko-KR'
+                                              AND M.MENU_ACT_ID = SUBSTR(A.MNU_ID,1,9)
+                                          )
+                                    END AS MENU_NM
+                              ,A.PGE_ID PAGE_ID
+                              ,CASE WHEN A.PGE_ID='main' THEN '메인화면'
+                                    WHEN A.PGE_ID='logout' THEN '로그아웃'
+                                    WHEN A.PGE_ID='roleChange' THEN '직무변경'
+                                    WHEN A.PGE_ID='ruleTemplate' THEN '위험항목관리'
+                                    ELSE ( SELECT N.DISPLAY_NM
+                                             FROM C_WINDOW_DISPLAY N
+                                            WHERE N.LANG_CD = 'ko-KR'
+                                              AND N.WINDOW_ACT_ID = A.PGE_ID
+                                          )
+                                    END AS DISPLAY_NM
+                              ,( SELECT X.DEP_TITLE
+                                   FROM C_DEP_INFO X
+                                  WHERE X.DEP_ID = A.BRCH_NO
+                                ) AS DEP_TITLE
+                              ,A.SQL_ID_VAL AS SQL_ID_VAL
+                              ,'View' AS CHK
+                          FROM TB_EBZI_AML_LOG_AC A
+                         WHERE 1 = 1
+                        <if test="CRE_DT_SD != '' ">
+                           AND A.CNNT_TRY_DTTI <![CDATA[>=]]> #{CRE_DT_SD } || '000000'
+                        </if>
+                        <if test="CRE_DT_ED != '' ">
+                           AND A.CNNT_TRY_DTTI <![CDATA[<=]]> #{CRE_DT_ED } || '235999'
+                        </if>
+                        <if test="USER_NM != '' ">
+                           AND UPPER(A.USER_NM) LIKE '%' || UPPER(#{USER_NM }) || '%'
+                        </if>
+                        <if test="LOGIN_ID != '' ">
+                           AND A.LOGIN_ID LIKE  #{LOGIN_ID } || '%'
+                        </if>
+                        <if test="BRCH_NO != 'ALL' and BRCH_NO !=''">
+                           AND A.BRCH_NO IN (SELECT C.DEP_ID FROM C_DEP_INFO C WHERE C.DEP_DESC =#{BRCH_NO})
+                        </if>
+                        <if test="PGE_ID != '' ">
+                           AND A.PGE_ID LIKE #{PGE_ID } || '%'
+                        </if>
+                        <if test="USER_IP != '' ">
+                           AND A.USER_IP LIKE '%' || #{USER_IP } || '%'
+                        </if>
+                        <if test='SORT_YN == "Y"'>
+                         ORDER BY
+                            <choose>
+                                <when test="SORTCOLUMN == 'TRX_DTTM'">TRX_DTTM</when>
+                                <when test="SORTCOLUMN == 'LOGIN_ID'">LOGIN_ID</when>
+                                <when test="SORTCOLUMN == 'USER_NM'">USER_NM</when>
+                                <when test="SORTCOLUMN == 'USER_IP_ADDR'">USER_IP_ADDR</when>
+                                <when test="SORTCOLUMN == 'MENU_NM'">MENU_NM</when>
+                                <when test="SORTCOLUMN == 'DISPLAY_NM'">DISPLAY_NM</when>
+                                <when test="SORTCOLUMN == 'PAGE_ID'">PAGE_ID</when>
+                                <when test="SORTCOLUMN == 'DEP_TITLE'">DEP_TITLE</when>
+                                <when test="SORTCOLUMN == 'SQL_ID_VAL'">SQL_ID_VAL</when>
+                                <otherwise>TRX_DTTM</otherwise>
+                            </choose>
+                            <choose>
+                                <when test='SORTDIRECTION == "ASC"'>ASC</when>
+                                <otherwise>DESC</otherwise>
+                            </choose>
+                        </if>
+                        <if test='SORT_YN == "" or SORT_YN == null'>
+                         ORDER BY TRX_DTTM DESC
+                        </if>
+                       ) V
+                )
+         WHERE 1=1
+        <if test="thisPage != '' or pageCount !='' ">
+           AND RN <![CDATA[>=]]> ( ( #{thisPage} - 1 ) * #{pageCount} + 1 )
+           AND RN <![CDATA[<=]]> ( #{thisPage} * #{pageCount} )
+        </if>
+    </select>
+
+    <select id="AML_90_12_01_01_getViewSearch"   parameterType="hashMap" resultType="DataObj">
+        SELECT A.SEQ
+              ,A.LOGIN_ID
+              ,TO_DATE(A.CNNT_TRY_DTTI, 'YYYY.MM.DD HH24:MI:SS') AS TRX_DTTM
+              ,A.USER_NM
+              ,A.USER_IP USER_IP_ADDR
+              ,SUBSTR(A.MNU_ID,1,12) MENU_ID
+              ,CASE WHEN A.PGE_ID='main' THEN '메인화면'
+                    WHEN A.PGE_ID='logout' THEN '로그아웃'
+                    WHEN A.PGE_ID='roleChange' THEN '직무변경'
+                    WHEN A.PGE_ID='ruleTemplate' THEN '위험항목관리'
+                    WHEN A.PGE_ID='AML_00_02_01_01' THEN '데시보드'
+                    ELSE ( SELECT DISPLAY_NM
+                             FROM C_MENU_DISPLAY
+                            WHERE LANG_CD = 'ko-KR'
+                              AND MENU_ACT_ID = SUBSTR(A.MNU_ID,1,9)
+                          )
+                    END AS MENU_NM
+              ,A.PGE_ID PAGE_ID
+              ,CASE WHEN A.PGE_ID='main' THEN '메인화면'
+                    WHEN A.PGE_ID='logout' THEN '로그아웃'
+                    WHEN A.PGE_ID='roleChange' THEN '직무변경'
+                    WHEN A.PGE_ID='ruleTemplate' THEN '위험항목관리'
+                    ELSE ( SELECT DISPLAY_NM
+                             FROM C_WINDOW_DISPLAY
+                            WHERE LANG_CD = 'ko-KR'
+                              AND WINDOW_ACT_ID = A.PGE_ID
+                          )
+                    END AS DISPLAY_NM
+              ,A.BRCH_NO
+              ,( SELECT X.DEP_TITLE
+                  FROM C_DEP_INFO X
+                 WHERE X.DEP_ID = A.BRCH_NO
+              ) AS DEP_TITLE
+              ,A.PARAM_VAL SQL_PRMTR_VAL
+              ,A.SQL_ID_VAL SQL_ID_VAL
+              ,A.LOG_CNTN
+              ,'View' AS CHK
+          FROM TB_EBZI_AML_LOG_AC A
+         WHERE A.SEQ = #{SEQ}
+    </select>
+
+    <select id="AML_90_12_01_01_getSQLParamValSearch"   parameterType="hashMap" resultType="DataObj">
+        SELECT A.SEQ
+              ,A.PARAM_VAL AS SQL_PRMTR_VAL
+          FROM TB_EBZI_AML_LOG_AC A
+         WHERE A.SEQ = #{SEQ}
+    </select>
+
+    <!-- 20181218 - BSL 결재선 관리 신규 추가 쿼리 -->
+    <select id="AML_90_11_01_01_getSearch"  parameterType="hashMap" resultType="DataObj">
+        SELECT '' AS SELECTED
+              ,GYLJ_LINE_G_C
+              ,GYLJ_LINE_NM
+              ,USYN
+              ,DR_DT
+              ,TO_CHAR(TO_DATE(DR_TIME, 'HH24MISS'), 'HH24:MI:SS') AS DR_TIME
+              ,( SELECT USER_NM
+                   FROM C_USER
+                  WHERE LOGIN_ID = DR_OP_JKW_NO
+                ) AS DR_OP_JKW_NM
+              ,CHG_DT
+              ,TO_CHAR(TO_DATE(CHG_TIME, 'HH24MISS'), 'HH24:MI:SS') AS CHG_TIME
+              ,( SELECT USER_NM
+                   FROM C_USER
+                  WHERE LOGIN_ID = CHG_OP_JKW_NO
+                ) AS CHG_OP_JKW_NM
+              ,'U' AS IDU
+          FROM C_GYLJ_M
+         WHERE 1=1
+         ORDER BY GYLJ_LINE_G_C
+    </select>
+
+    <select id="AML_90_11_01_01_getSearch2" parameterType="hashMap" resultType="DataObj">
+        SELECT '' AS SELECTED
+              ,GYLJ_LINE_G_C
+              ,SNO
+              ,SNO AS SNO_ORG
+              ,GYLJ_ROLE_ID
+              ,NEXT_GYLJ_ROLE_ID
+              ,RTN_ROLE_ID
+              ,DR_DT
+              ,TO_CHAR(TO_DATE(DR_TIME, 'HH24MISS'), 'HH24:MI:SS') AS DR_TIME
+              ,( SELECT USER_NM
+                   FROM C_USER
+                  WHERE LOGIN_ID = DR_OP_JKW_NO
+                ) AS DR_OP_JKW_NM
+              ,CHG_DT
+              ,TO_CHAR(TO_DATE(CHG_TIME, 'HH24MISS'), 'HH24:MI:SS') AS CHG_TIME
+              ,( SELECT USER_NM
+                   FROM C_USER
+                  WHERE LOGIN_ID = CHG_OP_JKW_NO
+              ) AS CHG_OP_JKW_NM
+              ,'U' AS IDU
+          FROM C_GYLJ_D
+         WHERE 1=1
+           AND GYLJ_LINE_G_C = #{GYLJ_LINE_G_C, jdbcType=VARCHAR}
+         ORDER BY SNO
+    </select>
+
+    <update id="AML_90_11_01_01_mergeSRBA_GRP_C" parameterType="hashMap">
+        MERGE INTO C_GYLJ_M
+        USING DUAL
+           ON (GYLJ_LINE_G_C = #{GYLJ_LINE_G_C, jdbcType=VARCHAR})
+         WHEN MATCHED THEN
+       UPDATE
+          SET GYLJ_LINE_NM  = #{GYLJ_LINE_NM, jdbcType=VARCHAR}
+             ,USYN          = #{USYN, jdbcType=VARCHAR}
+             ,CHG_DT        = TO_CHAR(SYSDATE, 'YYYYMMDD')
+             ,CHG_TIME      = TO_CHAR(SYSDATE, 'HH24MISS')
+             ,CHG_OP_JKW_NO = #{OP_JKW_NO, jdbcType=VARCHAR}
+         WHEN NOT MATCHED THEN
+       INSERT (
+              GYLJ_LINE_G_C
+             ,GYLJ_LINE_NM
+             ,USYN
+             ,DR_DT
+             ,DR_TIME
+             ,DR_OP_JKW_NO
+             ,CHG_DT
+             ,CHG_TIME
+             ,CHG_OP_JKW_NO
+       ) VALUES (
+              #{GYLJ_LINE_G_C, jdbcType=VARCHAR}
+             ,#{GYLJ_LINE_NM, jdbcType=VARCHAR}
+             ,#{USYN, jdbcType=VARCHAR}
+             ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+             ,TO_CHAR(SYSDATE, 'HH24MISS')
+             ,#{OP_JKW_NO, jdbcType=VARCHAR}
+             ,TO_CHAR(SYSDATE, 'YYYYMMDD')
+             ,TO_CHAR(SYSDATE, 'HH24MISS')
+             ,#{OP_JKW_NO, jdbcType=VARCHAR}
+       )
+    </update>
+
+    <update id="AML_90_11_01_01_mergeSRBA_DTL_C" parameterType="hashMap">
+        MERGE INTO C_GYLJ_D
+        USING DUAL
+           ON ( GYLJ_LINE_G_C = #{GYLJ_LINE_G_C, jdbcType=VARCHAR}
+                AND SNO = #{SNO, jdbcType=VARCHAR}
+           )
+         WHEN MATCHED THEN
+       UPDATE
+          SET GYLJ_ROLE_ID = #{GYLJ_ROLE_ID, jdbcType=VARCHAR}
+             ,NEXT_GYLJ_ROLE_ID   = #{NEXT_GYLJ_ROLE_ID, jdbcType=VARCHAR}
+             ,RTN_ROLE_ID    = #{RTN_ROLE_ID, jdbcType=VARCHAR}
+             ,CHG_DT   = TO_CHAR(SYSDATE , 'YYYYMMDD')
+             ,CHG_TIME = TO_CHAR(SYSDATE , 'HH24MISS')
+             ,CHG_OP_JKW_NO = #{OP_JKW_NO, jdbcType=VARCHAR}
+         WHEN NOT MATCHED THEN
+       INSERT (
+              GYLJ_LINE_G_C
+             ,SNO
+             ,GYLJ_ROLE_ID
+             ,NEXT_GYLJ_ROLE_ID
+             ,RTN_ROLE_ID
+             ,DR_DT
+             ,DR_TIME
+             ,DR_OP_JKW_NO
+             ,CHG_DT
+             ,CHG_TIME
+             ,CHG_OP_JKW_NO
+       ) VALUES (
+              #{GYLJ_LINE_G_C,  jdbcType=VARCHAR}
+             ,#{SNO,  jdbcType=VARCHAR}
+             ,#{GYLJ_ROLE_ID,   jdbcType=VARCHAR}
+             ,#{NEXT_GYLJ_ROLE_ID,     jdbcType=VARCHAR}
+             ,#{RTN_ROLE_ID,  jdbcType=VARCHAR}
+             ,TO_CHAR(SYSDATE , 'YYYYMMDD')
+             ,TO_CHAR(SYSDATE , 'HH24MISS')
+             ,#{OP_JKW_NO,  jdbcType=VARCHAR}
+             ,TO_CHAR(SYSDATE , 'YYYYMMDD')
+             ,TO_CHAR(SYSDATE , 'HH24MISS')
+             ,#{OP_JKW_NO,  jdbcType=VARCHAR}
+       )
+    </update>
+
+    <select id="AML_90_11_01_01_select_from_C_GYLJ_M" parameterType="HashMap" resultType="DataObj">
+        SELECT *
+          FROM C_GYLJ_M
+         WHERE GYLJ_LINE_G_C = #{GYLJ_LINE_G_C, jdbcType=VARCHAR}
+    </select>
+
+    <select id="AML_90_11_01_01_GETCOUNT_C_GYLJ_D"  parameterType="hashMap" resultType="DataObj">
+        SELECT COUNT(*) AS CNT
+          FROM C_GYLJ_D
+         WHERE GYLJ_LINE_G_C = #{GYLJ_LINE_G_C, jdbcType=VARCHAR}
+    </select>
+
+    <update id="AML_90_11_01_01_DELETE_C_GYLJ_M" parameterType="DataObj" >
+        DELETE FROM C_GYLJ_M
+         WHERE GYLJ_LINE_G_C = #{GYLJ_LINE_G_C, jdbcType=VARCHAR}
+    </update>
+
+    <update id="AML_90_11_01_01_DELETE_C_GYLJ_D" parameterType="DataObj" >
+        DELETE FROM C_GYLJ_D
+         WHERE GYLJ_LINE_G_C = #{GYLJ_LINE_G_C, jdbcType=VARCHAR}
+           AND SNO = #{SNO_ORG, jdbcType=VARCHAR}
+    </update>
+
+
+    <!-- 결재선 정보 조회 -->
+    <select id="AML_90_11_01_01_getSearch_GYLJ_INFO"  parameterType="hashMap" resultType="DataObj">
+        SELECT B.GYLJ_LINE_G_C        /* 결재선구분코드 */
+              ,A.GYLJ_LINE_NM        /* 결재선명 */
+              ,B.SNO                /* 순번 */
+              ,B.GYLJ_ROLE_ID        /* 결재ROLE_ID */
+              ,C.ROLE_NM AS GYLJ_ROLE_NM
+              ,B.NEXT_GYLJ_ROLE_ID    /* 다음결재ROLE_ID */
+              ,D.ROLE_NM AS NEXT_GYLJ_ROLE_NM
+              ,B.RTN_ROLE_ID         /* 반려ROLE_ID */
+              ,E.ROLE_NM AS RTN_ROLE_NM
+          FROM C_GYLJ_M A
+          LEFT JOIN C_GYLJ_D B
+            ON A.GYLJ_LINE_G_C = B.GYLJ_LINE_G_C
+          LEFT JOIN C_ROLE C
+            ON B.GYLJ_ROLE_ID = C.ROLE_ID
+          LEFT JOIN C_ROLE D
+            ON B.NEXT_GYLJ_ROLE_ID = D.ROLE_ID
+          LEFT JOIN C_ROLE E
+            ON B.RTN_ROLE_ID = E.ROLE_ID
+         WHERE 1 = 1
+           AND A.GYLJ_LINE_G_C    = #{GYLJ_LINE_G_C}
+           AND B.GYLJ_ROLE_ID     = #{GYLJ_ROLE_ID}
+           AND A.USYN = 1
+    </select>
+
+    <!-- 결재일련번호 채번 -->
+    <select id="AML_90_11_01_01_doSave_getGyljSer" parameterType="hashMap" resultType="DataObj">
+        SELECT NVL(MAX(GYLJ_SER), 0) + 1 AS MAX_GYLJ_SER
+          FROM C_GYLJ_H /* RBA 결재이력 */
+         WHERE GYLJ_ID = #{GYLJ_ID, jdbcType=NUMERIC}
+    </select>
+
+    <!-- 결재이력등록 - 결재진행내역등록 -->
+    <update id="AML_90_11_01_01_doSave_insertAdd_GYLJ_H" parameterType="hashMap" >
+    /* RBA 결재이력   */
+        INSERT INTO C_GYLJ_H (
+               GYLJ_ID          /* 결재ID         */
+              ,GYLJ_SER         /* 결재일련번호   */
+              ,GYLJ_G_C         /* 결재구분코드   */
+              ,GYLJ_S_C         /* 결재상태코드   */
+              ,GYLJ_DT          /* 결재일자       */
+              ,GYLJ_JKW_NO      /* 결재직원번호   */
+              ,ROLE_ID          /* ROLE_ID        */
+              ,NOTE_CTNT        /* 비고내용       */
+              ,DR_DT            /* 등록일자       */
+              ,DR_TIME          /* 등록시간       */
+              ,DR_OP_JKW_NO     /* 등록조작자번호 */
+        ) VALUES (
+               #{GYLJ_ID, jdbcType=NUMERIC}
+              ,#{GYLJ_SER, jdbcType=NUMERIC}
+              ,#{GYLJ_G_C, jdbcType=VARCHAR}
+              ,#{GYLJ_S_C, jdbcType=VARCHAR}
+              ,TO_CHAR(SYSDATE,'YYYYMMDD')
+              ,#{GYLJ_JKW_NO, jdbcType=VARCHAR}
+              ,#{ROLE_ID, jdbcType=NUMERIC}
+              ,#{NOTE_CTNT, jdbcType=VARCHAR}
+              ,TO_CHAR(SYSDATE,'YYYYMMDD')
+              ,TO_CHAR(SYSDATE,'HH24MISS')
+              ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+        )
+    </update>
+
+    <!-- RBA 결재 테이블 UPDATE -->
+    <update id="AML_90_11_01_01_doSave_JRBA_RPT_RST_M" parameterType="hashMap" >
+        UPDATE JRBA_RPT_RST_M
+           SET GYLJ_S_C         = #{GYLJ_S_C}
+              ,GYLJ_DT         = TO_CHAR(SYSDATE, 'YYYYMMDD')
+              ,GYLJ_JKW_NO     = #{GYLJ_JKW_NO}
+              ,GYLJ_ID         = #{GYLJ_ID}
+              ,CHG_DT         = TO_CHAR(SYSDATE, 'YYYYMMDD')
+              ,CHG_TIME         = TO_CHAR(SYSDATE, 'HH24MISS')
+              ,CHG_OP_JKW_NO    = #{GYLJ_JKW_NO}
+              ,GYLJ_ROLE_ID    = #{GYLJ_ROLE_ID}
+         WHERE RPT_GJDT = #{RPT_GJDT}
+    </update>
+
+    <!-- 결재 아이디 생성 -->
+    <select id="AML_90_11_01_01_getSearch_GYLJ_ID"  parameterType="hashMap" resultType="DataObj">
+        SELECT LPAD(C_GYLJ_H_SEQ.NEXTVAL, 9, '0') AS MAX_GYLJ_ID
+          FROM DUAL
+    </select>
+
+    <!-- 결재이력등록 - 최초결재요청 & 결재없이 마감처리 건 반려 -->
+    <update id="AML_90_11_01_01_doSave_insertFirst_GYLJ_H" parameterType="hashMap" >
+        /* 결재이력   */
+        INSERT INTO C_GYLJ_H (GYLJ_ID          /* 결재ID         */
+                             ,GYLJ_SER         /* 결재일련번호   */
+                             ,GYLJ_G_C         /* 결재구분코드   */
+                             ,GYLJ_S_C         /* 결재상태코드   */
+                             ,GYLJ_DT          /* 결재일자       */
+                             ,GYLJ_JKW_NO      /* 결재직원번호   */
+                             ,ROLE_ID          /* ROLE_ID        */
+                             ,NOTE_CTNT        /* 비고내용       */
+                             ,DR_DT            /* 등록일자       */
+                             ,DR_TIME          /* 등록시간       */
+                             ,DR_OP_JKW_NO     /* 등록조작자번호 */
+                             )
+                      VALUES ( #{GYLJ_ID, jdbcType=NUMERIC}
+                             ,1
+                             ,#{GYLJ_G_C, jdbcType=VARCHAR}
+                             ,#{GYLJ_S_C, jdbcType=VARCHAR}
+                             ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                             ,#{GYLJ_JKW_NO, jdbcType=VARCHAR}
+                             ,#{ROLE_ID, jdbcType=NUMERIC}
+                             ,#{NOTE_CTNT, jdbcType=VARCHAR}
+                             ,TO_CHAR(SYSDATE,'YYYYMMDD')
+                             ,TO_CHAR(SYSDATE,'HH24MISS')
+                             ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+                             )
+    </update>
+
+
+    <!-- RBA 결재 테이블 UPDATE -->
+    <update id="AML_90_11_01_01_doSave2_JRBA_RPT_RST_M" parameterType="hashMap" >
+        UPDATE JRBA_RPT_RST_M
+           SET RPT_YN = 1
+         WHERE RPT_GJDT = #{RPT_GJDT}
+    </update>
+
+	<update id="AML_90_11_01_01_doSave_SRBA_IMPRV_M_RBA" parameterType="hashMap" >
+        UPDATE SRBA_IMPRV_M_RBA
+           SET GYLJ_S_C        = #{GYLJ_S_C}
+              ,GYLJ_DT         = TO_CHAR(SYSDATE, 'YYYYMMDD')
+              ,GYLJ_JKW_NO     = #{GYLJ_JKW_NO} 
+              ,GYLJ_ID         = #{GYLJ_ID}
+              ,CHG_DT          = TO_CHAR(SYSDATE, 'YYYYMMDD')
+              ,CHG_TIME        = TO_CHAR(SYSDATE, 'HH24MISS')
+              ,CHG_OP_JKW_NO   = #{GYLJ_JKW_NO}
+              ,GYLJ_ROLE_ID    = #{GYLJ_ROLE_ID}
+         WHERE 1=1
+           AND RSK_ELMT_C = (SELECT DTL_C FROM SRBA_DTL_C WHERE GRP_C = 'K003' AND DTL_C_NM = #{RSK_ELMT_C_NM, jdbcType=VARCHAR})
+           AND VALT_BRNO = (SELECT DPRT_CD FROM NIC41B WHERE DPRT_NM = #{BRNO_NM, jdbcType=VARCHAR}) 	--부점명
+    </update>
+
+	<update id="AML_90_11_01_01_doSave_IC_EDU_M" parameterType="hashMap" >
+        UPDATE IC_EDU_M
+           SET GYLJ_S_C        = #{GYLJ_S_C}
+              ,GYLJ_DT         = TO_CHAR(SYSDATE, 'YYYYMMDD')
+              ,GYLJ_JKW_NO     = #{GYLJ_JKW_NO} 
+              ,GYLJ_ID         = #{GYLJ_ID}
+              ,CHG_DT          = TO_CHAR(SYSDATE, 'YYYYMMDD')
+              ,CHG_TIME        = TO_CHAR(SYSDATE, 'HH24MISS')
+              ,CHG_OP_JKW_NO   = #{GYLJ_JKW_NO}
+              ,GYLJ_ROLE_ID    = #{GYLJ_ROLE_ID}
+         WHERE 1=1
+           AND RSK_ELMT_C = (SELECT DTL_C FROM SRBA_DTL_C WHERE GRP_C = 'K003' AND DTL_C_NM = #{RSK_ELMT_C_NM, jdbcType=VARCHAR})
+           AND VALT_BRNO = (SELECT DPRT_CD FROM NIC41B WHERE DPRT_NM = #{BRNO_NM, jdbcType=VARCHAR}) 	--부점명
+    </update>
+
+    <select id="AML_90_01_01_01_getSearch"  parameterType="hashMap" resultType="DataObj">
+            SELECT *
+              FROM (
+                    SELECT RANK() OVER(ORDER BY A.NOTI_ID DESC) AS IDX
+                          ,A.NOTI_ID
+                          ,A.TITLE
+                          ,A.CONTENT
+                          ,A.ISPOPUP
+                          ,A.ISSCROLL
+                          ,A.START_DT
+                          ,A.END_DT
+                          ,A.CRE_ID
+                          ,GET_USER_NAME(A.CRE_ID) AS CRE_ID_NM
+                          ,A.CRE_DT
+                          ,CASE WHEN ( SELECT COUNT(*)
+                                         FROM NIC90B_2
+                                        WHERE BOARD_ID= 'AML_01'
+                                          AND BOARD_SEQ=A.NOTI_ID) <![CDATA[>]]> 0 THEN 'Yes'
+                                ELSE 'No'
+                                END AS FILE_ATT_YN
+                          ,A.VIEW_COUNT
+                          ,A.QUICK_LINK
+                          ,A.UPD_DT
+                          ,A.UPD_ID
+                          ,GET_USER_NAME(A.UPD_ID) AS UPD_ID_NM
+                      FROM C_NOTI A
+                     WHERE 1=1
+                       AND NVL(A.PKG_NAME, 'AML') = 'AML'
+                <if test='QUICK_LINK == "Y" '>
+                       AND A.QUICK_LINK = 'Y'
+                </if>
+                <choose>
+                    <when test="gubun == 'TITLE'">
+                       AND UPPER(TITLE) LIKE '%'|| UPPER(#{searchWord}) || '%'
+                    </when>
+                    <when test="gubun == 'CONTENT'">
+                       AND UPPER(CONTENT) LIKE '%'|| UPPER(#{searchWord}) ||'%'
+                    </when>
+                    <otherwise></otherwise>
+                </choose>
+                    ) ORDER BY IDX ASC
+    </select>
+
+    <select id="AML_90_01_01_01_getSearch_main" parameterType="hashMap" resultType="DataObj">
+        SELECT *
+          FROM (
+                SELECT RANK() OVER(ORDER BY NOTI_ID DESC) AS IDX
+                      ,A.NOTI_ID
+                      ,A.TITLE
+                      ,A.CRE_DT
+                  FROM C_NOTI A
+                 WHERE 1 = 1
+                   AND NVL(A.PKG_NAME, 'AML') = 'AML'
+                   AND QUICK_LINK = 'Y'
+                )
+         WHERE 1 = 1
+           AND IDX <![CDATA[<=]]> 1
+         ORDER BY IDX ASC
+    </select>
+
+
+    <update  id="AML_90_01_02_03_doAnswer_C_QA" parameterType="hashMap" >
+        UPDATE C_QA
+           SET STATE = '8102'
+         WHERE SEQ = #{SEQ}
+    </update>
+
+    <update  id="AML_90_01_02_03_doAnswer_C_QA2" parameterType="hashMap" >
+        UPDATE C_QA
+           SET STATE = '8101'
+         WHERE SEQ = #{SEQ}
+    </update>
+
+
+
+    <select id="AML_90_01_02_01_getSearch"  parameterType="hashMap" resultType="DataObj">
+        SELECT *
+          FROM (
+                SELECT RANK() OVER(ORDER BY NOTI_ID DESC) AS IDX,
+                      ,A.NOTI_ID,
+                      ,A.TITLE,
+                      ,A.CONTENT,
+                      ,A.ISPOPUP,
+                      ,A.START_DT,
+                      ,A.END_DT,
+                      ,A.CRE_ID,
+                      ,GET_USER_NAME(A.CRE_ID) as  CRE_ID_NM,
+                      ,A.CRE_DT,
+                      ,CASE WHEN ( SELECT COUNT(*)
+                                     FROM NIC90B_2
+                                    WHERE BOARD_ID= 'AML_02'
+                                      AND BOARD_SEQ = A.NOTI_ID
+                                   ) <![CDATA[>]]> 0 THEN 'Yes'
+                            ELSE 'No' END AS FILE_ATT_YN
+                  FROM C_NOTI A
+                 WHERE 1=1
+                   AND NVL(A.PKG_NAME, 'AML') = 'AML'
+            <choose>
+                <when test="gubun == 'TITLE'">
+                   AND TITLE LIKE '%'|| #{searchWord} || '%'
+                </when>
+                <when test="gubun == 'CONTENT'">
+                   AND CONTENT LIKE '%'|| #{searchWord} ||'%'
+                </when>
+                <otherwise>
+                </otherwise>
+            </choose>
+                ) ORDER BY IDX ASC
+    </select>
+
+    <select id="AML_90_01_02_01_getSearch_C_QA" parameterType="hashMap" resultType="DataObj">
+        SELECT *
+          FROM (
+                SELECT RANK() OVER(ORDER BY SEQ DESC) AS IDX
+                      ,SEQ
+                      ,GET_CCD_NAME(KIND, #{LANG_CD}) AS KIND
+                      ,TITLE
+                      ,CONTENT
+                      ,ANSWER
+                      ,REG_ID
+                      ,REG_NAME
+                      ,GET_CCD_NAME(STATE, #{LANG_CD}) AS STATE
+                      ,REG_DT
+                      ,END_DT
+                      ,ANS_ID
+                      ,ANS_NAME
+                      ,( SELECT COUNT(*)
+                           FROM NIC90B_2
+                          WHERE BOARD_SEQ = C_QA.SEQ
+                            AND BOARD_ID = 'AML_02'
+                        ) AS FILE_ATT_YN
+                      ,VIEW_COUNT
+                  FROM C_QA
+                 WHERE 1 = 1
+                   AND NVL(PKG_NAME, 'AML') = #{PKG_NAME}
+                   <if test='STATE != null and STATE != ""'>
+                   AND STATE = #{STATE}
+                   </if>
+                   <if test='KIND != null and KIND != ""'>
+                   AND KIND = #{KIND}
+                   </if>
+                   <if test='TITLE != null and TITLE != ""'>
+                   AND UPPER(TITLE) LIKE '%' || UPPER(#{TITLE}) || '%'
+                   </if>
+                   <if test='EMP_NO != null and EMP_NO != ""'>
+                   AND REG_ID LIKE '%' || #{EMP_NO} || '%'
+                   </if>
+               )
+    </select>
+
+    <select id="AML_90_01_02_01_getSearch_C_QA_count" parameterType="hashMap" resultType="DataObj">
+        SELECT COUNT(*) AS COUNT
+          FROM (
+                SELECT RANK() OVER(ORDER BY SEQ DESC) AS IDX
+                      ,SEQ
+                      ,GET_CCD_NAME(KIND, #{LANG_CD}) AS KIND
+                      ,TITLE
+                      ,CONTENT
+                      ,ANSWER
+                      ,REG_ID
+                      ,REG_NAME
+                      ,GET_CCD_NAME(STATE, #{LANG_CD}) AS STATE
+                      ,REG_DT
+                      ,END_DT
+                      ,ANS_ID
+                      ,ANS_NAME
+                      ,( SELECT COUNT(*)
+                           FROM NIC90B_2
+                          WHERE BOARD_SEQ = C_QA.SEQ
+                            AND BOARD_ID = 'AML_02'
+                        ) AS FILE_ATT_YN
+                      ,VIEW_COUNT
+                  FROM C_QA
+                 WHERE 1 = 1
+                   AND NVL(PKG_NAME, 'AML') = #{PKG_NAME}
+                   <if test='STATE != null and STATE != ""'>
+                   AND STATE = #{STATE}
+                   </if>
+                   <if test='KIND != null and KIND != ""'>
+                   AND KIND = #{KIND}
+                   </if>
+                   <if test='TITLE != null and TITLE != ""'>
+                   AND UPPER(TITLE) LIKE '%' || UPPER(#{TITLE}) || '%'
+                   </if>
+                   <if test='EMP_NO != null and EMP_NO != ""'>
+                   AND REG_ID LIKE '%' || #{EMP_NO} || '%'
+                   </if>
+               )
+    </select>
+
+    <update id="AML_90_01_02_04_doModify_C_QA" parameterType="hashMap">
+        UPDATE C_QA
+           SET KIND = #{KIND jdbcType=VARCHAR}
+              ,TITLE = #{TITLE jdbcType=VARCHAR}
+              ,CONTENT = #{CONTENT jdbcType=VARCHAR}
+         WHERE SEQ = #{SEQ jdbcType=INTEGER}
+    </update>
+
+    <update id="AML_90_01_02_05_doAnswer_C_QA" parameterType="hashMap">
+        UPDATE C_QA
+           SET STATE = #{STATE jdbcType=VARCHAR}
+              ,ANSWER = #{ANSWER jdbcType=VARCHAR}
+              ,END_DT = #{END_DT jdbcType=VARCHAR}
+              ,ANS_ID = #{ANS_ID jdbcType=INTEGER}
+              ,ANS_NAME = #{ANS_NAME jdbcType=VARCHAR}
+         WHERE SEQ = #{SEQ jdbcType=INTEGER}
+    </update>
+
+    <select id="AML_90_01_03_01_getSearch" parameterType="hashMap" resultType="DataObj">
+        SELECT *
+          FROM (
+                SELECT RANK() OVER(ORDER BY BOARD_SEQ DESC) AS IDX
+                      ,BOARD_ID
+                      ,( SELECT BOARD_NM
+                           FROM NIC90B
+                          WHERE BOARD_ID = A.BOARD_ID
+                        ) AS BOARD_NM
+                      ,BOARD_SEQ
+                      ,TITLE
+                      ,BOARD_CONTENT
+                      ,VIEW_COUNT
+                      ,REG_ID
+                      ,GET_USER_NAME(REG_ID) AS REG_NM
+                      ,REG_IP
+                      ,TO_CHAR(REG_DT, 'YYYYMMDD') AS REG_DT
+                      ,UPD_ID
+                      ,GET_USER_NAME(UPD_ID) AS UPD_NM
+                      ,TO_CHAR(UPD_DT, 'YYYYMMDD') AS UPD_DT
+                      ,TEMP_01
+                      ,TEMP_02
+                      ,TEMP_03
+                      ,TEMP_04
+                      ,TEMP_05
+                      ,( SELECT COUNT(*)
+                           FROM NIC90B_2
+                          WHERE BOARD_ID = A.BOARD_ID
+                            AND BOARD_SEQ = A.BOARD_SEQ
+                        ) AS FILE_COUNT
+                  FROM NIC90B_1 A
+                 WHERE BOARD_ID = #{BOARD_ID}
+                 <if test='gubun == "TITLE"'>
+                   AND UPPER(TITLE) LIKE '%' || UPPER(#{searchWord}) || '%'
+                 </if>
+                 <if test='gubun == "BOARD_CONTENT"'>
+                   AND UPPER(BOARD_CONTENT) LIKE '%' || UPPER(#{searchWord}) || '%'
+                 </if>
+               ) A
+    </select>
+
+    <select id="AML_90_01_03_01_getSearch_count" parameterType="hashMap" resultType="DataObj">
+        SELECT COUNT(*) AS COUNT
+          FROM (
+                SELECT RANK() OVER(ORDER BY BOARD_SEQ DESC) AS IDX
+                      ,BOARD_ID
+                      ,( SELECT BOARD_NM
+                           FROM NIC90B
+                          WHERE BOARD_ID = A.BOARD_ID
+                        ) AS BOARD_NM
+                      ,BOARD_SEQ
+                      ,TITLE
+                      ,BOARD_CONTENT
+                      ,VIEW_COUNT
+                      ,REG_ID
+                      ,GET_USER_NAME(REG_ID) AS REG_NM
+                      ,REG_IP
+                      ,TO_CHAR(REG_DT, 'YYYYMMDD') AS REG_DT
+                      ,UPD_ID
+                      ,GET_USER_NAME(UPD_ID) AS UPD_NM
+                      ,TO_CHAR(UPD_DT, 'YYYYMMDD') AS UPD_DT
+                      ,TEMP_01
+                      ,TEMP_02
+                      ,TEMP_03
+                      ,TEMP_04
+                      ,TEMP_05
+                      ,( SELECT COUNT(*)
+                           FROM NIC90B_2
+                          WHERE BOARD_ID = A.BOARD_ID
+                            AND BOARD_SEQ = A.BOARD_SEQ
+                        ) AS FILE_COUNT
+                  FROM NIC90B_1 A
+                 WHERE BOARD_ID = #{BOARD_ID}
+                 <if test='gubun == "TITLE"'>
+                   AND UPPER(TITLE) LIKE '%' || UPPER(#{searchWord}) || '%'
+                 </if>
+                 <if test='gubun == "BOARD_CONTENT"'>
+                   AND UPPER(BOARD_CONTENT) LIKE '%' || UPPER(#{searchWord}) || '%'
+                 </if>
+               ) A
+    </select>
+
+    <select id="AML_90_01_03_01_getDetail" parameterType="hashMap" resultType="DataObj">
+        SELECT RANK() OVER(ORDER BY BOARD_SEQ DESC) AS IDX
+              ,BOARD_ID
+              ,( SELECT BOARD_NM
+                   FROM NIC90B
+                  WHERE BOARD_ID = A.BOARD_ID
+                ) AS BOARD_NM
+              ,BOARD_SEQ
+              ,TITLE
+              ,BOARD_CONTENT
+              ,VIEW_COUNT
+              ,REG_ID
+              ,GET_USER_NAME(REG_ID) AS REG_NM
+              ,REG_IP
+              ,TO_CHAR(REG_DT, 'YYYYMMDD') AS REG_DT
+              ,UPD_ID
+              ,GET_USER_NAME(UPD_ID) AS UPD_NM
+              ,TO_CHAR(UPD_DT, 'YYYYMMDD') AS UPD_DT
+              ,TEMP_01
+              ,TEMP_02
+              ,TEMP_03
+              ,TEMP_04
+              ,TEMP_05
+              ,( SELECT COUNT(*)
+                   FROM NIC90B_2
+                  WHERE BOARD_ID = A.BOARD_ID
+                    AND BOARD_SEQ = A.BOARD_SEQ
+                ) AS FILE_COUNT
+          FROM NIC90B_1 A
+         WHERE BOARD_ID = #{BOARD_ID}
+           AND BOARD_SEQ = #{BOARD_SEQ}
+    </select>
+
+    <select id="AML_90_01_03_01_getSearch_main" parameterType="hashMap" resultType="DataObj">
+        SELECT *
+          FROM (
+                SELECT RANK() OVER(ORDER BY BOARD_SEQ DESC) AS IDX
+                      ,BOARD_SEQ
+                      ,TITLE
+                      ,TO_CHAR(REG_DT,'YYYYMMDD') AS REG_DT
+                  FROM NIC90B_1
+                 WHERE 1 = 1
+                   AND BOARD_ID = 'AML_01')
+         WHERE 1 = 1
+           AND IDX <![CDATA[<=]]> 1 ORDER BY IDX ASC
+</select>
+
+    <delete id="AML_90_01_03_02_doDelete_NIC90B_1" parameterType="hashMap">
+        DELETE FROM NIC90B_1
+         WHERE BOARD_ID = #{BOARD_ID}
+           AND BOARD_SEQ = #{BOARD_SEQ}
+    </delete>
+
+    <delete id="AML_90_01_03_02_doDelete_NIC90B_2" parameterType="hashMap">
+        DELETE FROM NIC90B_2
+         WHERE BOARD_ID = #{BOARD_ID}
+           AND BOARD_SEQ = #{BOARD_SEQ}
+    </delete>
+
+    <select id="AML_90_01_03_02_doDetail_NIC90B_2_ATTACH_FILE" parameterType="hashMap" resultType="DataObj">
+        SELECT BOARD_ID
+              ,BOARD_SEQ
+              ,FILE_SEQ
+              ,FILE_POS
+              ,USER_FILE_NM
+              ,PHSC_FILE_NM
+              ,FILE_SIZE
+              ,DOWNLOAD_COUNT
+              ,REG_ID
+              ,GET_USER_NAME(REG_ID) AS REG_NM
+              ,REG_DT
+          FROM NIC90B_2
+         WHERE BOARD_ID = #{BOARD_ID}
+           AND BOARD_SEQ = #{BOARD_SEQ}
+         ORDER BY BOARD_SEQ, FILE_SEQ
+    </select>
+
+    <select id="AML_90_01_03_02_doDetail_NIC90B_2_ATTACH_FILE_FILE_SEQ" parameterType="hashMap" resultType="DataObj">
+        SELECT BOARD_ID
+              ,BOARD_SEQ
+              ,FILE_SEQ
+              ,FILE_POS
+              ,USER_FILE_NM
+              ,PHSC_FILE_NM
+              ,FILE_SIZE
+              ,DOWNLOAD_COUNT
+              ,REG_ID
+              ,GET_USER_NAME(REG_ID) AS REG_NM
+              ,REG_DT
+          FROM NIC90B_2
+         WHERE BOARD_ID = #{BOARD_ID}
+           AND BOARD_SEQ = #{BOARD_SEQ}
+           AND FILE_SEQ = #{FILE_SEQ}
+    </select>
+
+    <update id="AML_90_01_03_02_upViewCount_NIC90B_1" parameterType="hashMap">
+        UPDATE NIC90B_1
+           SET VIEW_COUNT = VIEW_COUNT + 1
+         WHERE BOARD_ID = #{BOARD_ID}
+           AND BOARD_SEQ = #{BOARD_SEQ}
+    </update>
+
+    <update id="AML_90_01_03_02_upDownCount_NIC90B_2" parameterType="hashMap">
+        UPDATE NIC90B_2
+           SET DOWNLOAD_COUNT = DOWNLOAD_COUNT + 1
+         WHERE BOARD_ID = #{BOARD_ID}
+           AND BOARD_SEQ = #{BOARD_SEQ}
+           AND FILE_SEQ = #{FILE_SEQ}
+    </update>
+
+    <insert id="AML_90_03_03_04_UserGroupRole_Insert" parameterType="HashMap">
+        INSERT INTO C_USER_GROUP_ROLE (
+               USER_ID
+              ,GROUP_ID
+              ,ROLE_ID
+              ,CRE_ID
+              ,CRE_DT
+              ,UPD_ID
+              ,UPD_DT
+        ) VALUES (
+               #{USER_ID}
+              ,#{GROUP_ID}
+              ,#{ROLE_ID}
+              ,#{CRE_ID}
+              ,#{CRE_DT}
+              ,#{UPD_ID}
+              ,#{UPD_DT}
+        )
+    </insert>
+
+    <update id="AML_90_03_03_04_UserGroupRole_Merge" parameterType="HashMap">
+        MERGE INTO C_USER_GROUP_ROLE
+        USING DUAL
+           ON ( USER_ID = #{USER_ID, jdbcType=VARCHAR}
+          AND GROUP_ID = #{GROUP_ID, jdbcType=VARCHAR}
+          AND ROLE_ID = #{ROLE_ID, jdbcType=VARCHAR}
+          )
+         WHEN MATCHED THEN
+       UPDATE
+          SET CRE_ID = #{CRE_ID, jdbcType=VARCHAR}
+             ,CRE_DT = #{CRE_DT, jdbcType=VARCHAR}
+             ,UPD_ID = #{UPD_ID, jdbcType=VARCHAR}
+             ,UPD_DT = #{UPD_DT, jdbcType=VARCHAR}
+        WHEN NOT MATCHED THEN
+      INSERT (
+              USER_ID
+             ,GROUP_ID
+             ,ROLE_ID
+             ,CRE_ID
+             ,CRE_DT
+             ,UPD_ID
+             ,UPD_DT
+      ) VALUES (
+              #{USER_ID}
+             ,#{GROUP_ID}
+             ,#{ROLE_ID}
+             ,#{CRE_ID}
+             ,#{CRE_DT}
+             ,#{UPD_ID}
+             ,#{UPD_DT}
+      )
+    </update>
+
+    <delete id="AML_90_03_03_04_UserGroupRole_Delete" parameterType="HashMap">
+        DELETE FROM C_USER_GROUP_ROLE
+         WHERE 1 = 1
+           AND USER_ID = #{USER_ID}
+           AND GROUP_ID = #{GROUP_ID}
+           AND ROLE_ID = #{ROLE_ID}
+    </delete>
+
+    <insert id="AML_90_03_03_04_UserGroupRole_H_Insert" parameterType="HashMap">
+        INSERT INTO C_USER_GROUP_ROLE_HIST (
+               USER_ID
+              ,GROUP_ID
+              ,ROLE_ID
+              ,SEQ
+              ,PROC_GUBUN
+              ,PROC_DTM
+              ,WINDOW_ID
+              ,CRE_ID
+              ,CRE_DT
+        ) VALUES (
+               #{USER_ID}
+              ,#{GROUP_ID}
+              ,#{ROLE_ID}
+              ,( SELECT NVL(MAX(SEQ) + 1, 1) AS SEQ
+                   FROM C_USER_GROUP_ROLE_HIST
+                  WHERE USER_ID = #{USER_ID}
+                    AND GROUP_ID = #{GROUP_ID}
+                    AND ROLE_ID = #{ROLE_ID}
+                )
+              ,#{CRUD}
+              ,#{PROC_DTM}
+              ,#{WINDOW_ID}
+              ,#{CRE_ID}
+              ,#{CRE_DT}
+        )
+    </insert>
+
+    <select id="AML_90_03_07_06_UserGroupRole_Select_UserId" parameterType="HashMap" resultType="DataObj">
+        SELECT USER_ID
+              ,GROUP_ID
+              ,ROLE_ID
+              ,CRE_ID
+              ,CRE_DT
+          FROM C_USER_GROUP_ROLE
+         WHERE 1 = 1
+           AND USER_ID = #{USER_ID}
+    </select>
+    
+    <select id="AML_90_03_07_06_Select_UserId" parameterType="HashMap" resultType="DataObj">
+        SELECT USER_ID
+          FROM C_USER
+         WHERE 1 = 1
+           AND LOGIN_ID = #{LOGIN_ID}
+    </select>
+
+    <insert id="AML_90_03_07_06_User_Insert" parameterType="HashMap" >
+        <selectKey keyProperty="USER_ID" order="BEFORE" resultType="java.lang.Integer">
+            SELECT C_USER_SEQ.NEXTVAL
+              FROM DUAL
+        </selectKey>
+        /* USER_ID의 값은 시퀀스에서 할당함 */
+        INSERT INTO C_USER (
+               USER_ID
+              ,DEP_ID
+              ,USER_NM
+              ,LOGIN_ID
+              ,USER_PWD
+              ,USER_IP
+              ,SOC_NO
+              ,ACTIVE_YN
+              ,CRE_ID
+              ,CRE_DT
+              ,UPD_ID
+              ,UPD_DT
+              ,DEL_YN
+              ,VALID_START_DT
+              ,VALID_END_DT
+        ) VALUES (
+               #{USER_ID}
+              ,#{DEP_ID}
+              ,#{USER_NM}
+              ,#{LOGIN_ID}
+              ,#{USER_PWD}
+              ,#{USER_IP}
+              ,#{SOC_NO}
+              ,#{ACTIVE_YN}
+              ,#{SESS_USER_ID}
+              ,#{TODAY}
+              ,#{SESS_USER_ID}
+              ,#{TODAY}
+              ,#{DEL_YN}
+              ,#{VALID_START_DT}
+              ,#{VALID_END_DT}
+        )
+    </insert>
+
+    <update id="AML_90_03_07_06_User_Update" parameterType="HashMap">
+        UPDATE C_USER
+           SET DEP_ID         = #{DEP_ID}
+              ,USER_NM        = #{USER_NM}
+              ,LOGIN_ID       = #{LOGIN_ID}
+             <if test='PWD_CHG_YN == "Y" '>
+              ,USER_PWD       = #{USER_PWD}
+             </if>
+              ,USER_IP        = #{USER_IP}
+              ,SOC_NO         = #{SOC_NO}
+              ,ACTIVE_YN      = #{ACTIVE_YN}
+              ,UPD_ID         = #{SESS_USER_ID}
+              ,UPD_DT         = #{TODAY}
+              ,VALID_START_DT = #{VALID_START_DT}
+              ,VALID_END_DT   = #{VALID_END_DT}
+              ,DEL_YN         = #{DEL_YN}
+              ,DEL_ID = ''
+              ,DEL_DT = ''
+         WHERE 1 = 1
+           AND USER_ID = #{USER_ID}
+    </update>
+
+    <delete id="AML_90_03_07_06_UserDetail_Delete" parameterType="HashMap">
+        DELETE FROM C_USER_DETAIL
+         WHERE 1 = 1
+           AND USER_ID = #{USER_ID}
+    </delete>
+
+    <insert id="AML_90_03_07_06_UserDetail_Insert" parameterType="HashMap">
+        INSERT INTO C_USER_DETAIL (
+               USER_ID
+              ,DETAIL_CD
+              ,DETAIL
+        ) VALUES (
+               #{USER_ID}
+              ,#{DETAIL_CD}
+              ,#{DETAIL}
+        )
+    </insert>
+
+    <delete id="AML_90_03_07_06_UserBizAuth_Delete" parameterType="HashMap">
+        DELETE FROM C_USER_BIZ_AUTH
+         WHERE 1 = 1
+           AND USER_ID = #{USER_ID}
+    </delete>
+
+    <delete id="AML_90_03_07_06_UserMenuActAuth_Delete" parameterType="HashMap">
+        DELETE FROM C_USER_MENU_ACT_AUTH
+         WHERE 1 = 1
+           AND USER_ID = #{USER_ID}
+    </delete>
+
+    <update id="AML_90_03_07_06_User_Update_DelYn" parameterType="HashMap">
+        UPDATE C_USER
+           SET DEL_YN = 'Y'
+              ,DEL_ID = #{SESS_USER_ID}
+              ,DEL_DT = #{TODAY}
+              ,UPD_ID = ''
+              ,UPD_DT = ''
+              ,ACTIVE_YN = 'N'
+         WHERE 1 = 1
+           AND USER_ID = #{USER_ID}
+    </update>
+
+    <insert id="AML_90_03_07_06_UserHst_Insert" parameterType="HashMap">
+        INSERT INTO C_USER_HST (
+               USER_ID
+              ,DEP_ID
+              ,USER_NM
+              ,LOGIN_ID
+              ,USER_PWD
+              ,USER_IP
+              ,SOC_NO
+              ,ACTIVE_YN
+              ,LAST_USE_DATE
+              ,LAST_USE_IP
+              ,PWD_FAIL_COUNT
+              ,CRE_ID
+              ,CRE_DT
+              ,UPD_ID
+              ,UPD_DT
+              ,DEL_YN
+              ,DEL_ID
+              ,DEL_DT
+              ,OFF_DUTY_YN
+              ,VALID_START_DT
+              ,VALID_END_DT
+        )
+        SELECT USER_ID
+              ,DEP_ID
+              ,USER_NM
+              ,LOGIN_ID
+              ,USER_PWD
+              ,USER_IP
+              ,SOC_NO
+              ,ACTIVE_YN
+              ,LAST_USE_DATE
+              ,LAST_USE_IP
+              ,PWD_FAIL_COUNT
+              ,CRE_ID
+              ,CRE_DT
+              ,UPD_ID
+              ,UPD_DT
+              ,DEL_YN
+              ,DEL_ID
+              ,DEL_DT
+              ,OFF_DUTY_YN
+              ,VALID_START_DT
+              ,VALID_END_DT
+          FROM C_USER
+         WHERE 1 = 1
+           AND USER_ID = #{USER_ID}
+    </insert>
+<!-- 게시판 START -->
+    <select id = "AML_90_01_01_01_getSearch_C_NOTI" parameterType="HashMap" resultType = "DataObj">
+        SELECT A.NOTI_ID
+              ,A.TITLE
+              ,A.CONTENT
+              ,A.USER_FILE_NM
+              ,A.ISPOPUP
+              ,A.START_DT
+              ,A.END_DT
+              ,GET_USER_NAME(CRE_ID) CRE_ID_NM
+              ,A.CRE_DT
+              ,A.UPD_ID
+              ,A.UPD_DT
+          FROM C_NOTI A
+         WHERE TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN A.START_DT AND A.END_DT
+           AND A.ISPOPUP = 'Y'
+         ORDER BY CRE_DT DESC
+    </select>
+
+    <select id = "AML_90_01_01_02_getSearch" parameterType="HashMap" resultType = "DataObj">
+        SELECT RANK() OVER(ORDER BY A.NOTI_ID DESC) AS IDX
+              ,A.NOTI_ID
+              ,A.TITLE
+              ,A.CONTENT
+              ,A.ISPOPUP
+              ,A.ISSCROLL
+              ,A.START_TM
+              ,A.END_TM
+              ,A.START_DT
+              ,A.END_DT
+              ,A.CRE_ID
+              ,GET_USER_NAME(A.CRE_ID) AS CRE_ID_NM
+              ,A.CRE_DT
+              ,( SELECT COUNT(*)
+                   FROM NIC90B_2
+                  WHERE BOARD_SEQ=A.NOTI_ID
+                    AND BOARD_ID = 'AML_02'
+                ) AS FILE_COUNT
+              ,A.QUICK_LINK
+          FROM C_NOTI A
+         WHERE 1=1
+           AND NOTI_ID = #{NOTI_ID, jdbcType=INTEGER}
+    </select>
+
+    <select id = "AML_90_01_01_03_C_NOTI_SEQ_nextval" parameterType="HashMap" resultType = "DataObj">
+        SELECT C_NOTI_SEQ.NEXTVAL AS C_NOTI_SEQ
+          FROM DUAL
+    </select>
+
+    <insert id = "AML_90_01_01_03_doSave_C_NOTI" parameterType="HashMap">
+        INSERT INTO C_NOTI (
+               NOTI_ID
+              ,TITLE
+              ,CONTENT
+              ,USER_FILE_NM
+              ,ISPOPUP
+              ,START_DT
+              ,END_DT
+              ,CRE_ID
+              ,CRE_DT
+              ,PKG_NAME
+              ,QUICK_LINK
+              ,ISSCROLL
+              ,START_TM
+              ,END_TM
+        ) VALUES (
+               #{NOTI_ID, jdbcType=INTEGER}
+              ,#{TITLE, jdbcType=VARCHAR}
+              ,#{CONTENT, jdbcType=VARCHAR}
+              ,#{USER_FILE_NM, jdbcType=VARCHAR}
+              ,#{S_ISPOPUP, jdbcType=CHAR}
+              ,#{S_START_DT, jdbcType=VARCHAR}
+              ,#{S_END_DT, jdbcType=VARCHAR}
+              ,#{CRE_ID, jdbcType=INTEGER}
+              ,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+              ,#{PKG_NAME, jdbcType=INTEGER}
+              ,#{S_QUICK_LINK, jdbcType=CHAR}
+              ,#{S_ISSCROLL , jdbcType=VARCHAR}
+              ,#{S_START_TM , jdbcType=VARCHAR}
+              ,#{S_END_TM , jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <select id = "AML_90_01_01_03_getAttachSearch" parameterType="HashMap" resultType="DataObj">
+        SELECT BOARD_ID
+              ,BOARD_SEQ
+              ,FILE_SEQ
+              ,FILE_POS
+              ,USER_FILE_NM
+              ,PHSC_FILE_NM
+              ,FILE_SIZE
+              ,DOWNLOAD_COUNT
+              ,REG_ID
+              ,GET_USER_NAME(REG_ID) AS REG_NM
+              ,REG_DT
+          FROM NIC90B_2
+         WHERE BOARD_ID = #{BOARD_ID, jdbcType=VARCHAR}
+           AND BOARD_SEQ = #{BOARD_SEQ, jdbcType=INTEGER}
+         ORDER BY BOARD_SEQ, FILE_SEQ
+    </select>
+
+    <delete id="AML_90_01_01_02_doDelete_C_NOTI" parameterType="HashMap">
+        DELETE FROM C_NOTI
+         WHERE NOTI_ID = #{BOARD_SEQ, jdbcType=INTEGER}
+    </delete>
+
+    <delete id="AML_90_01_01_03_doDelete_NIC90B_2" parameterType="HashMap">
+        DELETE FROM NIC90B_2
+         WHERE BOARD_ID  = #{BOARD_ID, jdbcType=VARCHAR}
+           AND BOARD_SEQ = #{BOARD_SEQ, jdbcType=INTEGER}
+    </delete>
+
+    <insert id="AML_90_01_01_03_doSave_NIC90B_2" parameterType="HashMap">
+        INSERT INTO NIC90B_2(
+               BOARD_ID
+              ,BOARD_SEQ
+              ,FILE_SEQ
+              ,FILE_POS
+              ,USER_FILE_NM
+              ,PHSC_FILE_NM
+              ,FILE_SIZE
+              ,DOWNLOAD_COUNT
+              ,REG_ID
+              ,REG_DT
+        ) VALUES (
+               #{BOARD_ID, jdbcType=VARCHAR}
+              ,#{BOARD_SEQ, jdbcType=INTEGER}
+              ,#{FILE_SEQ, jdbcType=VARCHAR}
+              ,#{FILE_POS, jdbcType=VARCHAR}
+              ,#{USER_FILE_NM, jdbcType=VARCHAR}
+              ,#{PHSC_FILE_NM, jdbcType=VARCHAR}
+              ,#{FILE_SIZE, jdbcType=INTEGER}
+              ,#{DOWNLOAD_COUNT, jdbcType=INTEGER}
+              ,#{REG_ID, jdbcType=INTEGER}
+              ,TO_DATE(TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+        )
+    </insert>
+
+    <update id = "AML_90_01_01_03_doUpdate_C_NOTI" parameterType="HashMap">
+        UPDATE C_NOTI
+           SET TITLE = #{TITLE}
+              ,CONTENT  = #{CONTENT}
+              ,ISPOPUP  = #{S_ISPOPUP}
+              ,QUICK_LINK = #{S_QUICK_LINK}
+              ,START_DT = #{S_START_DT}
+              ,END_DT   = #{S_END_DT}
+              ,ISSCROLL = #{S_ISSCROLL}
+              ,START_TM = #{S_START_TM}
+              ,END_TM   = #{S_END_TM}
+              ,UPD_ID   = #{UPD_ID}
+              ,UPD_DT   = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+         WHERE NOTI_ID = #{NOTI_ID}
+    </update>
+
+    <update id = "AML_90_01_01_02_upViewCount_C_NOTI" parameterType="HashMap">
+        UPDATE C_NOTI
+           SET VIEW_COUNT = VIEW_COUNT + 1
+         WHERE NOTI_ID = #{NOTI_ID, jdbcType=INTEGER}
+    </update>
+
+    <update id="AML_90_01_01_04_doUpdate_C_NOTI" parameterType="HashMap">
+        UPDATE C_NOTI
+           SET TITLE = #{TITLE}
+              ,CONTENT = #{CONTENT}
+              ,ISPOPUP = #{ISPOPUP}
+              ,START_DT = #{START_DT}
+              ,END_DT = #{END_DT}
+         WHERE NOTI_ID = #{NOTI_ID}
+    </update>
+
+    <update id = "AML_90_01_02_02_doUpdate_C_QA" parameterType="HashMap">
+        UPDATE C_QA
+           SET TITLE = #{TITLE}
+              ,CONTENT = #{CONTENT}
+              ,KIND = #{KIND}
+         WHERE SEQ = #{SEQ}
+    </update>
+
+    <update id = "AML_90_01_02_03_upViewCount_C_QA" parameterType="HashMap">
+        UPDATE C_QA
+           SET VIEW_COUNT = VIEW_COUNT + 1
+         WHERE SEQ = #{SEQ}
+    </update>
+
+    <select id = "AML_90_01_03_03_NIC90B_1_SEQ_nextval" parameterType="HashMap" resultType = "DataObj">
+        SELECT NIC90B_1_SEQ.NEXTVAL AS NIC90B_1_SEQ FROM DUAL
+    </select>
+
+    <insert id="AML_90_01_03_03_doSave_NIC90B_1" parameterType="HashMap">
+        INSERT INTO NIC90B_1 (
+               BOARD_ID
+              ,BOARD_SEQ
+              ,TITLE
+              ,BOARD_CONTENT
+              ,REG_ID
+              ,REG_IP
+              ,REG_DT
+              ,UPD_ID
+              ,UPD_DT
+              ,TEMP_01
+              ,TEMP_02
+              ,TEMP_03
+              ,TEMP_04
+              ,TEMP_05
+        ) VALUES (
+               #{BOARD_ID, jdbcType=VARCHAR}
+              ,#{BOARD_SEQ, jdbcType=INTEGER}
+              ,#{TITLE, jdbcType=VARCHAR}
+              ,#{BOARD_CONTENT, jdbcType=VARCHAR}
+              ,#{REG_ID, jdbcType=INTEGER}
+              ,#{REG_IP, jdbcType=VARCHAR}
+              ,SYSDATE
+              ,#{UPD_ID, jdbcType=INTEGER}
+              ,SYSDATE
+              ,#{TEMP_01, jdbcType=VARCHAR}
+              ,#{TEMP_02, jdbcType=VARCHAR}
+              ,#{TEMP_03, jdbcType=VARCHAR}
+              ,#{TEMP_04, jdbcType=VARCHAR}
+              ,#{TEMP_05, jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <update id = "AML_90_01_03_04_doUpdate_NIC90B_1" parameterType="HashMap">
+        UPDATE NIC90B_1
+           SET TITLE = #{TITLE, jdbcType=VARCHAR}
+              ,BOARD_CONTENT = #{BOARD_CONTENT, jdbcType=VARCHAR}
+              ,UPD_ID = #{UPD_ID, jdbcType=INTEGER}
+              ,UPD_DT = SYSDATE
+         WHERE BOARD_SEQ = #{BOARD_SEQ, jdbcType=INTEGER}
+    </update>
+
+    <select id="AML_90_01_03_04_MAX_NIC90B_2" parameterType="hashMap" resultType="DataObj">
+        SELECT NVL(MAX(FILE_SEQ), 0) AS FILE_SEQ
+          FROM NIC90B_2
+         WHERE BOARD_ID = #{BOARD_ID}
+           AND BOARD_SEQ = #{BOARD_SEQ}
+    </select>
+<!-- 게시판 END -->
+
+    <select id = "AML_90_01_02_03_amlUserIDCheck" parameterType="HashMap" resultType="DataObj">
+        SELECT USER_ID
+          FROM C_QA_ANSWER
+         WHERE SEQ = #{SEQ}
+           AND ANSWER_SEQ = #{ANSWER_SEQ}
+    </select>
+
+    <delete id="AML_90_02_01_01_delete" parameterType="hashMap">
+        DELETE FROM NIC93B
+         WHERE JOB_ID = #{JOB_ID}
+    </delete>
+
+    <select id="AML_90_02_01_01_getDESC" parameterType="hashMap" resultType="DataObj">
+        SELECT DESC1
+              ,DESC2
+          FROM NIC93B
+         WHERE JOB_ID = #{JOB_ID}
+    </select>
+
+    <select id = "AML_90_02_01_04_getSearch" parameterType="HashMap" resultType="DataObj">
+        SELECT JOB_DT
+              ,JOB_ID
+              ,PARENT_JOBID AS PARENT_JOB_ID
+              ,JOB_NM AS JOB_NM
+              ,TO_CHAR(STRT_DY_TM,'YYYY-MM-DD HH24:MI:SS') AS STRT_DY_TM
+              ,TO_CHAR(END_DY_TM,'YYYY-MM-DD HH24:MI:SS') AS END_DY_TM
+              ,JOB_ST_CD
+              ,TO_CHAR(HNDL_DY_TM,'YYYY-MM-DD HH24:MI:SS') AS HNDL_DY_TM
+              ,GET_USER_NAME(HNDL_P_ENO) AS HNDL_P_ENO_NM
+              ,LAST_YN
+              ,DISPLAY_ORDER
+              ,DESC1
+              ,PROGRAM_NM
+              ,PROC_FLAG
+              ,TRADE_DT
+              ,REPORT_DT
+          FROM NIC93B_LOG
+          WHERE JOB_ID != 'AML'
+            AND JOB_ID = #{JOB_ID, jdbcType=VARCHAR}
+            AND (LAST_YN = 'N' OR USE_YN = 'Y' )
+            AND JOB_DT LIKE #{JOB_DT, jdbcType=VARCHAR} || '%'
+          ORDER BY STRT_DY_TM DESC, DISPLAY_ORDER
+    </select>
+
+    <insert id="AML_90_02_01_05_insert" parameterType="HashMap">
+        INSERT INTO NIC93B (
+               JOB_ID
+              ,PARENT_JOBID
+              ,JOB_NM
+              ,DEPTH
+              ,DISPLAY_ORDER
+              ,LAST_YN
+              ,USE_YN
+              ,PROGRAM_NM
+              ,HNDL_DY_TM
+              ,HNDL_P_ENO
+              ,SCHEDULE_YN
+              ,CRON_EXP
+        ) VALUES (
+               #{JOB_ID, jdbcType=VARCHAR}
+              ,#{PARENT_JOBID, jdbcType=VARCHAR}
+              ,#{JOB_NM, jdbcType=VARCHAR}
+              ,#{DEPTH}
+              ,#{DISPLAY_ORDER, jdbcType=VARCHAR}
+              ,#{LAST_YN, jdbcType=VARCHAR}
+              ,#{USE_YN, jdbcType=VARCHAR}
+              ,#{PROGRAM_NM, jdbcType=VARCHAR}
+              ,GET_SYSDATE()
+              ,#{HNDL_P_ENO}
+              ,#{SCHEDULE_YN, jdbcType=VARCHAR}
+              ,#{CRON_EXP, jdbcType=VARCHAR}
+        )
+    </insert>
+
+    <update id = "AML_90_02_01_05_update" parameterType="HashMap">
+        UPDATE NIC93B
+           SET JOB_NM = #{JOB_NM, jdbcType=VARCHAR}
+              ,DISPLAY_ORDER = #{DISPLAY_ORDER, jdbcType=VARCHAR}
+              ,USE_YN = #{USE_YN, jdbcType=VARCHAR}
+              ,PROGRAM_NM = #{PROGRAM_NM, jdbcType=VARCHAR}
+              ,LAST_YN = #{LAST_YN, jdbcType=VARCHAR}
+              ,HNDL_DY_TM = GET_SYSDATE()
+              ,HNDL_P_ENO = #{HNDL_P_ENO}
+              ,SCHEDULE_YN = #{SCHEDULE_YN, jdbcType=VARCHAR}
+              ,CRON_EXP = #{CRON_EXP, jdbcType=VARCHAR}
+         WHERE JOB_ID = #{JOB_ID, jdbcType=VARCHAR}
+    </update>
+
+    <select id="AML_90_05_01_01_getSearch" parameterType="HashMap" resultType="DataObj">
+        SELECT A.PAR_MENU_ACT_ID
+              ,A.MENU_ACT_ID
+              ,E.DISPLAY_NM
+              ,DECODE(F.MENU_ACT_ID, NULL, 'N', 'Y') AS AUTH_YN
+          FROM C_PKG_MENU_MAP A
+          LEFT JOIN C_MENU_ACT B
+            ON A.MENU_ACT_ID = B.MENU_ACT_ID
+          LEFT JOIN C_MENU_DISPLAY E
+            ON B.MENU_ACT_ID = E.MENU_ACT_ID
+          LEFT JOIN (SELECT MENU_ACT_ID
+                       FROM C_GROUP_ROLE_MENU_ACT_AUTH
+                      WHERE GROUP_ID = #{GROUP_ID}
+                        AND ROLE_ID = #{ROLE_ID}
+                     ) F
+            ON A.MENU_ACT_ID = F.MENU_ACT_ID
+         WHERE A.PKG_ID = #{PKG_ID}
+           AND B.MENU_DISPLAY_YN = 'Y'
+           AND E.LANG_CD = #{LANG_CD}
+         ORDER BY A.PAR_MENU_ACT_ID ASC, A.DISPLAY_ORDER ASC
+    </select>
+
+    <update id="AML_90_05_03_01_updateDisplayOrderCPkgMenuMap" parameterType="HashMap">
+        UPDATE C_PKG_MENU_MAP
+           SET DISPLAY_ORDER = #{DISPLAY_ORDER}
+         WHERE PKG_ID = #{PKG_ID}
+           AND PAR_MENU_ACT_ID = #{PAR_MENU_ACT_ID}
+           AND MENU_ACT_ID = #{MENU_ACT_ID}
+    </update>
+
+    <!-- 파견/겸임 관리 조회 -->
+    <select id="AML_90_05_03_04_getSearch" parameterType="HashMap" resultType = "DataObj">
+    SELECT *
+      FROM (
+             SELECT A.SEQ                                                             AS SEQ
+                   ,A.START_DT                                                        AS START_DT       -- 시작일자
+                   ,A.END_DT                                                          AS END_DT         -- 종료일자
+                   ,(SELECT USER_NM FROM C_USER WHERE USER_ID = A.CRE_ID)             AS RQST_P_NM      -- 신청자
+                   ,(SELECT USER_NM FROM C_USER WHERE USER_ID = A.CHRG_P_ID)          AS CHRG_P_NM      -- 담당자
+                   ,A.CHRG_P_ID
+                   ,GET_CODE_NAME('A032', A.TASK_DVCD )                               AS TASK_DVCD_NM   -- 구분명
+                   ,A.TASK_DVCD                                                       AS TASK_DVCD      -- 구분 코드
+                   ,(SELECT DEP_TITLE FROM C_DEP_INFO WHERE DEP_ID = A.TGT_DEP_ID)    AS TGT_DEP_NM     -- 대상부점
+                   ,(SELECT ROLE_NM FROM C_ROLE WHERE ROLE_ID = A.ROLE_ID)            AS P_ROLE_NM      -- 권한
+                   ,A.ROLE_ID AS P_ROLE_ID
+                   ,A.RQST_CNTNT                                                      AS RQST_CNTNT     -- 요청사유
+                   ,GET_CODE_NAME('A033', A.APPR_STAT_CD )                            AS APPR_STAT_NM   -- 상태
+                   ,A.APPR_STAT_CD
+                   ,A.RTN_CNTNT                                                       AS RTN_CNTNT      -- 반려사유
+                   ,TO_DATE(A.CRE_DTTM, 'YYYY-MM-DD HH24:MI:SS')                      AS CRE_DTTM       -- 등록일시
+                   ,A.DEL_YN                                                          AS DEL_YN         -- 삭제여부
+                   ,A.APP_NO
+                   ,A.CHRG_DEP_ID
+               FROM C_MULTI_POSITION A
+              WHERE A.RQST_P_ID = #{RQST_P_ID}
+                AND A.START_DT <![CDATA[>=]]> #{CRE_DT_SD }
+                AND A.START_DT <![CDATA[<=]]> #{CRE_DT_ED }
+           ) A
+      WHERE 1=1
+          <if test="CHRG_P_NM != ''">
+        AND A.CHRG_P_NM LIKE '%'||#{CHRG_P_NM}|| '%'
+          </if>
+          <if test="TASK_DVCD != ''">
+        AND A.TASK_DVCD = #{TASK_DVCD}
+          </if>
+          <if test="TGT_DEP_NM != ''">
+        AND A.TGT_DEP_NM LIKE '%'||#{TGT_DEP_NM}||'%'
+          </if>
+          <if test="P_ROLE_NM != ''">
+        AND A.P_ROLE_NM LIKE '%'||#{P_ROLE_NM}||'%'
+          </if>
+      ORDER BY A.APP_NO DESC
+    </select>
+
+<!-- 담당자 조회 -->
+    <select id="AML_90_05_03_04_getChrgPNmSearch" parameterType="HashMap" resultType = "DataObj">
+        SELECT A.USER_NM AS CHRG_P_NM
+              ,A.USER_ID AS CHRG_P_ID
+              ,B.DEP_TITLE AS DEP_TITLE
+              ,A.LOGIN_ID AS LOGIN_ID
+          FROM C_USER A, C_DEP_INFO B
+         WHERE 1=1
+           AND A.DEP_ID = B.DEP_ID
+           AND A.DEL_YN = 'N'
+           AND A.USER_NM LIKE '%' || #{CHRG_P_NM} || '%'
+    </select>
+
+<!-- 대상 부점 조회 -->
+    <select id="AML_90_05_03_04_getTgtDepSearch" parameterType="HashMap" resultType = "DataObj">
+        SELECT A.DEP_TITLE AS TGT_DEP_NM
+              ,A.DEP_ID AS TGT_DEP_ID
+          FROM C_DEP_INFO A
+         WHERE A.DEP_TITLE LIKE '%'||#{TGT_DEP_NM}||'%'
+    </select>
+
+<!-- 권한 조회 -->
+    <select id="AML_90_05_03_04_getRoleSearch" parameterType="HashMap" resultType = "DataObj">
+         SELECT ROLE_NM AS P_ROLE_NM
+               ,ROLE_ID AS P_ROLE_ID
+           FROM C_ROLE
+          WHERE 1=1
+            AND ROLE_NM LIKE '%'||#{P_ROLE_NM}||'%'
+    </select>
+
+
+<!-- 승인요청 -->
+    <select id="AML_90_05_03_04_getReqAppr" parameterType="HashMap" resultType = "DataObj">
+        INSERT INTO C_MULTI_POSITION(
+               SEQ
+              ,START_DT
+              ,END_DT
+              ,RQST_P_ID
+              ,CHRG_P_ID
+              ,TASK_DVCD
+              ,TGT_DEP_ID
+              ,ROLE_ID
+              ,RQST_CNTNT
+              ,APPR_STAT_CD
+              ,CRE_DTTM
+              ,CRE_ID
+              ,APP_NO
+              ,CHRG_DEP_ID
+       ) VALUES(
+               C_MULTI_POSITION_SEQ.NEXTVAL
+              ,#{CRE_DT_SD}
+              ,#{CRE_DT_ED}
+              ,#{CRE_ID}
+              ,#{CHRG_P_ID}
+              ,#{TASK_DVCD}
+              ,#{TGT_DEP_ID}
+              ,#{P_ROLE_ID}
+              ,#{RQST_CNTNT}
+              ,#{APPR_STAT_CD}
+              ,#{CRE_DTTM}
+              ,#{CRE_ID}
+              ,#{APP_NO}
+              ,( SELECT DEP_ID
+                 FROM C_USER
+                WHERE USER_ID = #{CHRG_P_ID}
+                )
+            )
+    </select>
+
+<!-- 승인 -->
+    <update id = "AML_90_05_03_04_doAppr" parameterType="HashMap">
+        UPDATE C_MULTI_POSITION
+           SET APP_NO = #{APP_NO}
+              ,APPR_STAT_CD = #{APPR_STAT_CD}
+              ,UPD_DTTM = #{UPD_DTTM}
+              ,UPD_ID = #{UPD_ID}
+         WHERE 1=1
+           AND SEQ = #{SEQ}
+    </update>
+
+    <!-- KYC결재에서 결재 상태값 업데이트 -->
+    <update id = "AML_90_05_03_04_doApprStatUpdate" parameterType="HashMap">
+        UPDATE C_MULTI_POSITION
+           SET APPR_STAT_CD = ( SELECT DECODE(#{SN_CCD},'R', 'R', DECODE( NEXT_GYLJ_ROLE_ID , 0 , 'E',  #{SN_CCD} ))
+                                  FROM C_GYLJ_D
+                                 WHERE GYLJ_LINE_G_C = 'AML'
+                                   AND SNO =  #{SNO}
+                               )
+              ,UPD_DTTM = #{UPD_DTTM}
+              ,UPD_ID = #{UPD_ID}
+         WHERE 1=1
+           AND APP_NO = #{APP_NO}
+    </update>
+
+<!-- 반려 -->
+    <update id = "AML_90_05_03_04_doRtn" parameterType="HashMap">
+        UPDATE C_MULTI_POSITION
+           SET APPR_STAT_CD = #{APPR_STAT_CD}
+              ,UPD_DTTM = #{UPD_DTTM}
+              ,UPD_ID = #{UPD_ID}
+              ,RTN_CNTNT = #{RTN_CNTNT}
+         WHERE 1=1
+           AND SEQ = #{SEQ}
+    </update>
+
+<!-- 원복-->
+    <update id = "AML_90_05_03_04_doRst" parameterType="HashMap">
+        UPDATE C_MULTI_POSITION
+           SET DEL_YN = #{DEL_YN}
+              ,APPR_STAT_CD = 'B'
+         WHERE 1=1
+           AND SEQ = #{SEQ}
+    </update>
+
+    <delete id="AML_90_05_03_04_GroupRole_Delete" parameterType="HashMap">
+        DELETE FROM C_USER_GROUP_ROLE
+         WHERE 1 = 1
+           AND USER_ID = #{USER_ID}
+           AND GROUP_ID = #{GROUP_ID}
+    </delete>
+
+    <!-- 롤 원복을 위한 백업 -->
+    <insert id ="AML_90_05_03_04_MultiPositionROLE_Insert" parameterType="HashMap">
+        INSERT INTO C_MULTI_POSITION_ROLE (
+               SEQ
+              ,USER_ID
+              ,GROUP_ID
+              ,ROLE_ID
+              ,CRE_ID
+              ,CRE_DT
+              ,UPD_ID
+              ,UPD_DT
+        )
+        SELECT #{SEQ}
+              ,USER_ID
+              ,GROUP_ID
+              ,ROLE_ID
+              ,#{CRE_ID}
+              ,#{CRE_DT}
+              ,#{UPD_ID}
+              ,#{UPD_DT}
+          FROM C_USER_GROUP_ROLE
+         WHERE USER_ID = #{USER_ID}
+    </insert>
+
+    <insert id ="AML_90_05_03_04_MultiPositionROLE_Restore" parameterType="HashMap">
+        INSERT INTO C_USER_GROUP_ROLE (
+               USER_ID
+              ,GROUP_ID
+              ,ROLE_ID
+              ,CRE_ID
+              ,CRE_DT
+              ,UPD_ID
+              ,UPD_DT
+        )
+        SELECT USER_ID
+              ,GROUP_ID
+              ,ROLE_ID
+              ,#{CRE_ID}
+              ,#{CRE_DT}
+              ,#{UPD_ID}
+              ,#{UPD_DT}
+          FROM C_MULTI_POSITION_ROLE
+         WHERE USER_ID = #{USER_ID}
+           AND SEQ = #{SEQ}
+    </insert>
+
+    <update id ="AML_90_05_03_04_MultiPositionROLE_Delete" parameterType="HashMap">
+    DELETE FROM C_MULTI_POSITION_ROLE
+     WHERE USER_ID = #{USER_ID }
+       AND SEQ = #{SEQ}
+    </update>
+
+    <update id="AML_90_05_03_04_ApprStatusUpdate" parameterType="HashMap">
+         UPDATE AML_APPR
+            SET SN_CCD ='R'
+               ,HNDL_DY_TM = SYSDATE
+               ,HNDL_P_ENO = #{HNDL_P_ENO}
+          WHERE APP_NO = #{APP_NO}
+            AND NUM_SQ = ( SELECT MAX(NUM_SQ)
+                             FROM AML_APPR
+                            WHERE APP_NO = #{APP_NO}
+                          )
+    </update>
+
+    <update id="AML_90_05_03_04_UserDepIdUpdate" parameterType="HashMap">
+        UPDATE C_USER
+           SET DEP_ID = #{DEP_ID}
+              ,UPD_ID = #{UPD_ID}
+              ,UPD_DT = #{UPD_DT}
+        WHERE USER_ID = #{USER_ID}
+    </update>
+
+    <!-- 20211117 - 데이터검증결과 조회 쿼리 -->
+    <select id="AML_90_14_01_01_getSearch"   parameterType="hashMap" resultType="DataObj">
+        WITH BASE_R AS ( SELECT MAX(A.WK_DT) AS MAX_DT
+                           FROM NIC00B_MART_LOG A
+                          WHERE A.WK_DT BETWEEN #{CRE_DT_SD} AND #{CRE_DT_ED} || '999999'
+                          GROUP BY SUBSTR(A.WK_DT,1,8)
+                        )
+        SELECT A.WK_DT AS WK_DT
+              ,GET_CODE_NAME('A034', A.VRFY_ITEM_CD ) AS VRFY_ITEM_CD
+              ,A.TABLE_NM
+              ,A.TABLE_COMMENT
+              ,A.COLUMN_NM
+              ,A.COLUMN_COMMENT
+              ,A.COLUMN_TYPE
+              ,CASE WHEN SUBSTR(A.REFF_TBL,1,1) = '''' THEN ' '||A.REFF_TBL
+                    ELSE A.REFF_TBL
+                    END AS REFF_TBL
+              ,CASE WHEN SUBSTR(A.EFFVAL_RANG, 0,1) = '''' AND SUBSTR(A.EFFVAL_RANG, LENGTH(A.EFFVAL_RANG),1) = ''''
+                    THEN ''''''||A.EFFVAL_RANG||''''''
+                    ELSE A.EFFVAL_RANG
+                    END AS EFFVAL_RANG
+              ,CASE WHEN A.COL_VAL = '정상'
+                    THEN ''
+                    ELSE D.CD_LIST
+                    END AS CD_LIST
+              ,CASE WHEN A.TABLE_NM LIKE 't%'
+                    THEN '임시적재'
+                    ELSE '마트'
+                    END AS TABLE_TYPE
+              ,CASE WHEN A.COL_VAL = '정상'
+                    THEN '정상'
+                    ELSE '오류'
+                    END AS COL_VAL
+              ,CASE WHEN A.COL_VAL = '정상'
+                    THEN ''
+                    ELSE A.COL_VAL
+                    END AS COL_VAL_COMMENT
+              ,A.COL_CNT
+              ,CASE WHEN SUBSTR(A.ADD_SQL_WHERE, 0,1) = '''' AND SUBSTR(A.ADD_SQL_WHERE, LENGTH(A.ADD_SQL_WHERE),1) = ''''
+                    THEN ''''''||A.ADD_SQL_WHERE||''''''
+                    ELSE A.ADD_SQL_WHERE
+                    END AS ADD_SQL_WHERE
+              ,CASE WHEN SUBSTR(A.REMK, 0,1) = '''' AND SUBSTR(A.REMK, LENGTH(A.REMK),1) = ''''
+                    THEN ''''''||A.REMK||''''''
+                    ELSE A.REMK
+                 END REMK
+          FROM NIC00B_MART_LOG A
+          LEFT JOIN (
+                     SELECT CD
+                           ,LISTAGG(CNTNT||':'||CD_NM,CHR(10)) WITHIN GROUP ( ORDER BY CNTNT ) AS CD_LIST
+                       FROM ( SELECT B.*
+                                    ,ROW_NUMBER() OVER ( PARTITION BY B.CD ORDER BY B.CNTNT ) AS RNO
+                                FROM NIC92B B
+                             )
+                      WHERE 1 = 1
+                        AND RNO <![CDATA[<]]> 21
+                      GROUP BY CD
+                     ) D
+            ON D.CD = A.EFFVAL_RANG
+              ,BASE_R E
+         WHERE 1 = 1
+    <if test="VRFY_ITEM_CD != ''">
+           AND VRFY_ITEM_CD = #{VRFY_ITEM_CD}
+    </if>
+    <if test="COL_VAL != 'ALL'">
+        <choose>
+            <when test='COL_VAL == "1"'>
+           AND COL_VAL = '정상'
+            </when>
+            <when test='COL_VAL == "2"'>
+           AND COL_VAL != '정상'
+            </when>
+        </choose>
+    </if>
+    <if test="ADD_SQL_WHERE != 'ALL'">
+        <choose>
+            <when test='ADD_SQL_WHERE == "Y"'>
+           AND ADD_SQL_WHERE IS NOT NULL
+            </when>
+            <when test='ADD_SQL_WHERE == "N"'>
+           AND ADD_SQL_WHERE IS NULL
+            </when>
+        </choose>
+    </if>
+    <if test="TABLE_NM != ''">
+           AND (UPPER(A.TABLE_NM) LIKE '%'|| UPPER(#{TABLE_NM}) || '%' OR UPPER(A.TABLE_COMMENT) LIKE '%'|| UPPER(#{TABLE_NM}) || '%')
+    </if>
+    <if test="COLUMN_NM != ''">
+           AND (UPPER(A.COLUMN_NM) LIKE '%'|| UPPER(#{COLUMN_NM}) || '%' OR UPPER(A.COLUMN_COMMENT) LIKE '%'|| UPPER(#{COLUMN_NM}) || '%')
+    </if>
+           AND A.WK_DT BETWEEN #{CRE_DT_SD} AND #{CRE_DT_ED} || '999999'
+           AND A.WK_DT = E.MAX_DT
+         ORDER BY WK_DT DESC, TABLE_TYPE, TABLE_NM, COLUMN_NM
+    </select>
+
+    <!-- 20221207 - 데이터 검증결과 이력조회 쿼리 -->
+<select id="AML_90_14_01_01_getHistorySearch"   parameterType="hashMap" resultType="DataObj">
+    SELECT A.WK_DT AS WK_DT
+          ,GET_CODE_NAME('A034', A.VRFY_ITEM_CD ) AS VRFY_ITEM_CD
+          ,A.TABLE_NM
+          ,A.TABLE_COMMENT
+          ,A.COLUMN_NM
+          ,A.COLUMN_COMMENT
+          ,A.COLUMN_TYPE
+          ,CASE WHEN SUBSTR(A.REFF_TBL,1,1) = ''''
+                THEN ' '||A.REFF_TBL ELSE A.REFF_TBL
+            END AS REFF_TBL
+          ,CASE WHEN SUBSTR(A.EFFVAL_RANG, 0,1) = '''' AND SUBSTR(A.EFFVAL_RANG, LENGTH(A.EFFVAL_RANG),1) = ''''
+                THEN ''''''||A.EFFVAL_RANG||'''''' ELSE A.EFFVAL_RANG END EFFVAL_RANG
+          ,CASE WHEN A.COL_VAL = '정상'
+                THEN '' ELSE D.CD_LIST END AS CD_LIST
+          ,CASE WHEN A.TABLE_NM LIKE 't%'
+                THEN '임시적재' ELSE '마트' END AS TABLE_TYPE
+          ,CASE WHEN A.COL_VAL = '정상'
+                THEN '정상' ELSE '오류' END AS COL_VAL
+          ,CASE WHEN A.COL_VAL = '정상'
+          THEN '' ELSE A.COL_VAL END AS COL_VAL_COMMENT
+          ,A.COL_CNT
+          ,CASE WHEN SUBSTR(A.ADD_SQL_WHERE, 0,1) = '''' AND SUBSTR(A.ADD_SQL_WHERE, LENGTH(A.ADD_SQL_WHERE),1) = '''' THEN ''''''||A.ADD_SQL_WHERE||'''''' ELSE A.ADD_SQL_WHERE END ADD_SQL_WHERE
+          ,CASE WHEN SUBSTR(A.REMK, 0,1) = '''' AND SUBSTR(A.REMK, LENGTH(A.REMK),1) = '''' THEN ''''''||A.REMK||'''''' ELSE A.REMK END REMK
+      FROM NIC00B_MART_LOG A
+      LEFT JOIN (
+                  SELECT CD
+                         ,LISTAGG(CNTNT||':'||CD_NM,CHR(10)) WITHIN GROUP ( ORDER BY CNTNT ) AS CD_LIST
+                     FROM ( SELECT A.*, ROW_NUMBER() OVER ( PARTITION BY CD ORDER BY CNTNT ) AS RNO FROM NIC92B A )
+                    WHERE 1 = 1
+                      AND RNO <![CDATA[<]]> 21
+                    GROUP BY CD
+                ) D
+        ON D.CD = A.EFFVAL_RANG
+     WHERE 1 = 1
+   <if test="VRFY_ITEM_CD != ''">
+       AND VRFY_ITEM_CD = #{VRFY_ITEM_CD}
+    </if>
+   <if test="COL_VAL != 'ALL'">
+      <choose>
+       <when test='COL_VAL == "1"'>
+       AND COL_VAL = '정상'
+       </when>
+       <when test='COL_VAL == "2"'>
+       AND COL_VAL != '정상'
+       </when>
+      </choose>
+   </if>
+   <if test="TABLE_NM != ''">
+       AND (UPPER(A.TABLE_NM) LIKE '%'|| UPPER(#{TABLE_NM}) || '%' OR UPPER(A.TABLE_COMMENT) LIKE '%'|| UPPER(#{TABLE_NM}) || '%')
+   </if>
+   <if test="COLUMN_NM != ''">
+       AND (UPPER(A.COLUMN_NM) LIKE '%'|| UPPER(#{COLUMN_NM}) || '%' OR UPPER(A.COLUMN_COMMENT) LIKE '%'|| UPPER(#{COLUMN_NM}) || '%')
+   </if>
+   <if test="ADD_SQL_WHERE != 'ALL'">
+      <choose>
+           <when test='ADD_SQL_WHERE == "Y"'>
+       AND ADD_SQL_WHERE IS NOT NULL
+           </when>
+           <when test='ADD_SQL_WHERE == "N"'>
+       AND ADD_SQL_WHERE IS NULL
+           </when>
+      </choose>
+    </if>
+       AND A.WK_DT BETWEEN #{CRE_DT_SD} AND #{CRE_DT_ED} || '999999'
+     ORDER BY WK_DT DESC, TABLE_TYPE, TABLE_NM, COLUMN_NM
+</select>
+
+<select id="AML_90_14_01_01_getSearchReport"   parameterType="hashMap" resultType="DataObj">
+    SELECT WK_DT
+          ,COUNT(NRML_CNT) AS TOT_CNT
+          ,SUM(NRML_CNT) AS NORM_CNT
+          ,COUNT(NRML_CNT)-SUM(NRML_CNT) AS ERR_CNT
+      FROM (
+             SELECT A.WK_DT
+                   ,GET_CODE_NAME('A034', A.VRFY_ITEM_CD ) AS VRFY_ITEM_CD
+                   ,CASE
+                         WHEN A.OK_YN = 'N'
+                         THEN 1 ELSE 0
+                     END AS NRML_CNT
+                   ,A.OK_YN
+               FROM NIC00B_MART_LOG A
+              WHERE 1 = 1
+                AND WK_DT BETWEEN #{CRE_DT_SD}
+                              AND #{CRE_DT_ED} || '999999'
+           )
+     GROUP BY WK_DT
+     ORDER BY WK_DT DESC
+</select>
+
+<update id="AML_90_14_01_01_doDelete" parameterType="hashMap" >
+    DELETE FROM NIC00B_MART_LOG
+</update>
+
+<select id="AML_90_19_01_01_getSearch" parameterType="HashMap" resultType="DataObj">
+    SELECT *
+      FROM (
+             SELECT ID
+                   ,TABLE_NM
+                   ,B.COMMENTS AS TABLE_COMMENT
+                   ,COLUMN_NM
+                   ,C.COMMENTS AS COLUMN_COMMENT
+                   ,CASE WHEN D.DATA_TYPE IN ('VARCHAR2')
+                              THEN D.DATA_TYPE || '(' || D.DATA_LENGTH || ')'
+                         WHEN D.DATA_TYPE IN ('NUMBER') AND DATA_PRECISION IS NULL
+                              THEN D.DATA_TYPE || '(' || D.DATA_LENGTH || ')'
+                         WHEN D.DATA_TYPE IN ('NUMBER') AND DATA_PRECISION IS NOT NULL
+                              THEN D.DATA_TYPE || '(' || D.DATA_PRECISION ||','||D.DATA_SCALE || ')'
+                         ELSE D.DATA_TYPE
+                     END AS COLUMN_TYPE
+                   ,VRFY_ITEM_CD
+                   ,REFF_TBL
+                   ,CASE WHEN SUBSTR(EFFVAL_RANG, 0,1) = '''' AND SUBSTR(EFFVAL_RANG, LENGTH(EFFVAL_RANG),1) = '''' THEN ''''''||EFFVAL_RANG||'''''' ELSE EFFVAL_RANG END EFFVAL_RANG
+                   ,USE_YN
+                   ,CASE WHEN SUBSTR(ADD_SQL_WHERE, 0,1) = '''' AND SUBSTR(ADD_SQL_WHERE, LENGTH(ADD_SQL_WHERE),1) = '''' THEN ''''''||ADD_SQL_WHERE||'''''' ELSE ADD_SQL_WHERE END ADD_SQL_WHERE
+                   ,CRT_DT
+                   ,UPD_DT
+                   ,CASE WHEN SUBSTR(REMK, 0,1) = '''' AND SUBSTR(REMK, LENGTH(REMK),1) = '''' THEN ''''''||REMK||'''''' ELSE REMK END REMK
+               FROM NIC00B_MART A
+                    LEFT OUTER JOIN USER_TAB_COMMENTS B
+                                 ON A.TABLE_NM = B.TABLE_NAME
+                    LEFT OUTER JOIN USER_COL_COMMENTS C
+                                 ON A.TABLE_NM = C.TABLE_NAME
+                                AND A.COLUMN_NM = C.COLUMN_NAME
+                    LEFT OUTER JOIN USER_TAB_COLUMNS D
+                                 ON A.TABLE_NM = D.TABLE_NAME
+                                AND A.COLUMN_NM = D.COLUMN_NAME
+              WHERE 1=1
+              <if test="USE_YN != 'ALL'">
+                <choose>
+                     <when test='USE_YN == "Y"'>
+                AND USE_YN = 'Y'
+                  </when>
+                     <when test='USE_YN == "N"'>
+                AND USE_YN = 'N'
+                  </when>
+                </choose>
+                </if>
+                <if test="ADD_SQL_WHERE != 'ALL'">
+                <choose>
+                     <when test='ADD_SQL_WHERE == "Y"'>
+                AND ADD_SQL_WHERE IS NOT NULL
+                     </when>
+                     <when test='ADD_SQL_WHERE == "N"'>
+                AND ADD_SQL_WHERE IS NULL
+                     </when>
+                </choose>
+              </if>
+              <if test="VRFY_ITEM_CD != ''">
+                AND VRFY_ITEM_CD = #{VRFY_ITEM_CD}
+              </if>
+             )
+        WHERE 1=1
+     <if test="TABLE_NM != ''">
+          AND (UPPER(TABLE_NM) LIKE '%'|| UPPER(#{TABLE_NM}) || '%' OR UPPER(TABLE_COMMENT) LIKE '%'|| UPPER(#{TABLE_NM}) ||'%')
+     </if>
+     <if test="COLUMN_NM != ''">
+          AND (UPPER(COLUMN_NM) LIKE '%'|| UPPER(#{COLUMN_NM}) || '%' OR UPPER(COLUMN_COMMENT) LIKE '%'|| UPPER(#{COLUMN_NM}) || '%')
+     </if>
+        ORDER BY TABLE_NM ASC
+</select>
+
+
+<select id="AML_90_19_01_02_doInsert" parameterType="HashMap" resultType = "DataObj">
+    INSERT INTO NIC00B_MART
+           (
+              ID
+             ,TABLE_NM
+             ,COLUMN_NM
+             ,VRFY_ITEM_CD
+             ,REFF_TBL
+             ,EFFVAL_RANG
+             ,USE_YN
+             ,ADD_SQL_WHERE
+             ,CRT_DT
+             ,UPD_DT
+             ,REMK
+           )
+           VALUES
+           (
+              NIC00B_MART_SEQ.nextval
+             ,#{TABLE_NM}
+             ,#{COLUMN_NM}
+             ,#{VRFY_ITEM_CD}
+             ,#{REFF_TBL}
+             ,#{EFFVAL_RANG}
+             ,#{USE_YN}
+             ,#{ETC_CONT}
+             ,#{CRT_DT}
+             ,#{UPD_DT}
+             ,#{REMK}
+           )
+</select>
+
+<update id="AML_90_19_01_03_doUpdate" parameterType="hashMap" >
+    UPDATE NIC00B_MART
+       SET TABLE_NM      = #{TABLE_NM}
+          ,COLUMN_NM     = #{COLUMN_NM}
+          ,VRFY_ITEM_CD  = #{VRFY_ITEM_CD}
+          ,REFF_TBL      = #{REFF_TBL}
+          ,EFFVAL_RANG   = #{EFFVAL_RANG}
+          ,USE_YN        = #{USE_YN}
+          ,ADD_SQL_WHERE = #{ETC_CONT}
+          ,UPD_DT        = #{UPD_DT}
+          ,REMK          = #{REMK}
+     WHERE ID = #{ID}
+</update>
+
+<update id="AML_90_19_01_01_doDelete" parameterType="hashMap" >
+   DELETE FROM NIC00B_MART
+    WHERE ID = #{ID}
+</update>
+
+    <!-- 테이블 목록 조회 쿼리 -->
+<select id="AML_90_19_01_04_getSearchTableInfo" parameterType="hashMap" resultType="DataObj">
+    SELECT B.TABLE_NAME
+          ,B.COMMENTS AS TABLE_COMMENT
+      FROM ALL_TAB_COMMENTS B
+     WHERE 1=1
+       AND OWNER ='SSQ' AND TABLE_NAME NOT LIKE '%$%' AND TABLE_TYPE = 'TABLE'AND TABLE_NAME LIKE '%NIC%'
+       AND UPPER(B.TABLE_NAME) LIKE '%'|| UPPER(#{TABLE_NM}) || '%'
+     ORDER BY B.TABLE_NAME
+</select>
+
+     <!-- 컬럼 상세정보 조회 쿼리 -->
+<select id="AML_90_19_01_04_getSearchColumnInfo" parameterType="hashMap" resultType="DataObj">
+    SELECT A.COLUMN_NAME
+          ,CASE WHEN A.DATA_TYPE IN ('VARCHAR2')
+                     THEN A.DATA_TYPE || '(' || A.DATA_LENGTH || ')'
+                WHEN A.DATA_TYPE IN ('NUMBER') AND DATA_PRECISION IS NULL
+                     THEN A.DATA_TYPE || '(' || A.DATA_LENGTH || ')'
+                WHEN A.DATA_TYPE IN ('NUMBER') AND DATA_PRECISION IS NOT NULL
+                     THEN A.DATA_TYPE || '(' || A.DATA_PRECISION ||','||A.DATA_SCALE || ')'
+                ELSE A.DATA_TYPE
+                 END AS COLUMN_TYPE
+          ,B.COMMENTS as COLUMN_COMMENT
+      FROM ALL_TAB_COLUMNS A , ALL_COL_COMMENTS B
+     WHERE A.TABLE_NAME = B.TABLE_NAME
+       AND A.COLUMN_NAME = B.COLUMN_NAME
+       AND A.OWNER = B.OWNER
+       AND A.OWNER = 'SSQ'
+       AND A.TABLE_NAME = #{TABLE_NAME}
+     ORDER BY COLUMN_ID
+</select>
+
+    <!-- 부서 수정 -->
+<update  id="AML_90_03_07_01_updateDepInfo" parameterType="hashMap">
+    UPDATE C_DEP_INFO
+       SET DEP_TITLE = #{DEP_TITLE}
+          ,DEP_DESC  = #{DEP_DESC}
+          ,DEP_TP_CD = #{DEP_TP_CD}
+          ,UPD_ID    = #{SESS_USER_ID}
+          ,UPD_DT    = TO_CHAR(SYSDATE, 'yyyyMMddHHmmss')
+     WHERE DEP_ID=#{DEP_ID}
+</update>
+<!-- [START] 배치오류 소스 추가  부분 -->
+    <!-- STR/CTR 배치 오류 -->
+<select id="AML_90_02_01_94_getSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT A.JOB_DT
+          ,A.JOB_ID
+          ,A.PARENT_JOBID as PARENT_JOB_ID
+          ,A.JOB_NM as JOB_NM
+          ,TO_CHAR(A.STRT_DY_TM,'yyyy-MM-dd HH24:MI:SS') AS STRT_DY_TM
+          ,TO_CHAR(A.END_DY_TM,'yyyy-MM-dd HH24:MI:SS') AS END_DY_TM
+          ,A.JOB_ST_CD
+          ,TO_CHAR(A.HNDL_DY_TM,'yyyy-MM-dd HH24:MI:SS') AS HNDL_DY_TM
+          ,GET_USER_NAME(A.HNDL_P_ENO) AS HNDL_P_ENO_NM
+          ,A.LAST_YN
+          ,A.DISPLAY_ORDER
+          ,A.DESC1
+          ,A.PROGRAM_NM
+          ,A.PROC_FLAG
+          ,TO_CHAR(TO_DATE(A.TRADE_DT, 'yyyyMMdd'), 'yyyy-MM-dd') AS TRADE_DT
+          ,TO_CHAR(TO_DATE(A.REPORT_DT, 'yyyyMMdd'), 'yyyy-MM-dd') AS REPORT_DT
+      FROM NIC93B_LOG A
+     WHERE 1=1
+       AND JOB_ID IN ('A30S10','A50S10') -- 사이트에 맞게 JOB_ID변경
+       AND JOB_ST_CD = '9'
+       AND TRADE_DT IS NOT NULL
+       AND NOT EXISTS (
+                        SELECT X.JOB_DT
+                          FROM NIC93B_LOG X
+                         WHERE 1=1
+                           AND JOB_ID IN ('A30S10','A50S10') -- 사이트에 맞게 JOB_ID변경
+                           AND X.JOB_ST_CD = 1
+                           AND A.TRADE_DT = X.TRADE_DT
+                           AND X.JOB_DT = (
+                                            SELECT MAX(JOB_DT)
+                                              FROM NIC93B_LOG
+                                             WHERE SUBSTR(X.JOB_DT, 1, 8) = SUBSTR(JOB_DT, 1, 8)
+                                               AND X.JOB_SEQ = JOB_SEQ
+                                             GROUP BY SUBSTR(JOB_DT, 1, 8)
+                                          )
+                      )
+     ORDER BY STRT_DY_TM DESC, DISPLAY_ORDER DESC
+</select>
+<!-- [END] 배치오류 소스 추가  부분 -->
+
+<select id="AML_90_03_07_08_getSearch" parameterType="HashMap" resultType="DataObj">
+    SELECT A.LOGIN_ID
+          ,A.USER_NM
+          ,A.CELL_PHONE
+          ,A.EMAIL
+          ,A.UPD_DT
+          ,A.VALID_START_DT
+          ,A.VALID_END_DT
+          ,A.DEL_YN
+          ,A.ACTIVE_YN
+          ,(SELECT USER_NM FROM C_USER B WHERE B.USER_ID = A.UPD_ID ) AS UPD_NM
+          ,A.UPD_DT
+          ,(SELECT USER_NM FROM C_USER B WHERE B.USER_ID = A.DEL_ID ) AS DEL_NM
+          ,A.DEL_DT
+          ,NVL(A.UPD_DT, A.DEL_DT) AS DT
+      FROM C_USER_HST A
+     WHERE USER_ID = #{USER_ID}
+     ORDER BY DT DESC
+</select>
+
+<select id="AML_90_03_07_09_getSearch" parameterType="HashMap" resultType="DataObj">
+    SELECT B.USER_NM
+          ,C.ROLE_NM
+          ,CASE WHEN A.PROC_GUBUN = 'C' THEN '권한부여'
+                WHEN A.PROC_GUBUN = 'D' THEN '권한삭제'
+            END AS PROC_GUBUN
+          ,A.PROC_DTM
+      FROM C_USER_GROUP_ROLE_HIST A
+           LEFT OUTER JOIN C_USER B
+                        ON A.USER_ID = B.USER_ID
+           LEFT OUTER JOIN C_ROLE C
+                        ON A.ROLE_ID = C.ROLE_ID
+     WHERE B.USER_ID = #{USER_ID}
+     ORDER BY A.PROC_DTM DESC
+</select>
+
+
+   <!-- OTP KEY값 체크 -->
+<select id="AML_90_03_07_08_userOtpkey" parameterType="hashMap" resultType="DataObj">
+    SELECT LOGIN_ID
+          ,OTP_PWD
+          ,OTP_URL
+          ,USER_ID
+          ,OTP_DT
+      FROM C_USER
+     WHERE 1=1
+       AND LOGIN_ID = #{checklogin}
+</select>
+    <!-- OTP KEY값 저장 -->
+<update id="AML_90_03_07_08_userUpdateOtpkey" parameterType="hashMap" >
+    UPDATE C_USER
+       SET OTP_PWD = #{OTP_PWD}
+          ,OTP_URL = #{OTP_URL}
+          ,OTP_DT  = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+     WHERE LOGIN_ID = #{LOGIN_ID}
+</update>
+
+<update id="AML_90_03_07_08_userOtpkeyClear" parameterType="hashMap" >
+    UPDATE C_USER
+       SET OTP_PWD = NULL
+          ,OTP_URL = NULL
+          ,OTP_DT  = NULL
+     WHERE LOGIN_ID = #{LOGIN_ID_VAL}
+</update>
+
+<!-- 사용자 로그인 이력조회 -->
+<select id="AML_90_12_02_01_getSearch"   parameterType="hashMap" resultType="DataObj">
+    SELECT TO_DATE(A.CNNT_TRY_DTTI,'YYYYMMDDHH24MISS') AS CNNT_TRY_DTTI
+          ,A.LOGIN_ID
+          ,A.USER_NM
+          ,A.USER_IP
+          ,A.LOGIN_SUS_YN
+          ,A.LOGIN_OUT
+      FROM (
+             SELECT '로그인' AS LOGIN_OUT
+                   ,CNNT_TRY_DTTI
+                   ,LOGIN_ID
+                   ,USER_NM
+                   ,USER_IP
+                   ,LOGIN_SUS_YN
+               FROM TB_EBZI_AML_LOG_SC
+              UNION
+             SELECT '로그아웃' AS LOGIN_OUT
+                   ,CNNT_TRY_DTTI
+                   ,LOGIN_ID
+                   ,USER_NM
+                   ,USER_IP
+                   ,'Y' AS LOGIN_SUS_YN
+               FROM TB_EBZI_AML_LOG_AC
+              WHERE PGE_ID ='logout'
+           ) A
+      LEFT OUTER JOIN C_USER B
+                   ON A.LOGIN_ID = B.LOGIN_ID
+      LEFT OUTER JOIN C_DEP_INFO C
+                   ON B.DEP_ID = C.DEP_ID
+     WHERE 1=1
+       AND A.CNNT_TRY_DTTI <![CDATA[>=]]> (#{CRE_DT_SD }||'000000')
+       AND A.CNNT_TRY_DTTI <![CDATA[<=]]> (#{CRE_DT_ED }||'235999')
+     <if test="USER_NM != '' ">
+       AND UPPER(A.USER_NM) LIKE '%' ||UPPER(#{USER_NM}) || '%'
+     </if>
+     <if test="LOGIN_SUS_YN != 'ALL'">
+      <choose>
+       <when test='LOGIN_SUS_YN == "Y"'>
+       AND A.LOGIN_SUS_YN = 'Y'
+       </when>
+       <when test='LOGIN_SUS_YN == "N"'>
+       AND A.LOGIN_SUS_YN = 'N'
+       </when>
+      </choose>
+    </if>
+     ORDER BY A.CNNT_TRY_DTTI DESC
+</select>
+
+<!-- 20230703 e매뉴얼관리 추가 -->
+<select id ="AML_90_20_01_02_doSearchManual" parameterType="hashMap" resultType="DataObj">
+    SELECT WINDOW_ACT_ID
+          ,FILE_POS
+          ,PHSC_FILE_NM
+          ,REG_DTTM
+          ,FILE_TYPE
+          ,LANG_CD
+      FROM C_MANUAL_HIST
+     WHERE FILE_TYPE = 'PDF'
+       AND WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+       AND LANG_CD = #{SEL_LANG_CD}
+     ORDER BY REG_DTTM DESC
+</select>
+
+<select id ="AML_90_20_01_02_doSearchManualYN" parameterType="hashMap" resultType="DataObj">
+    SELECT WINDOW_ACT_ID
+          ,MANUAL_YN
+      FROM C_MENU_WINDOW_MAP
+     WHERE WINDOW_DEFAULT_YN = 'Y'
+       AND WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+</select>
+
+<select id ="AML_90_20_01_02_doSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT WINDOW_ACT_ID
+          ,COMMENT_SEQ
+          ,CONTENT
+          ,LOGIN_ID AS SESS_LOGIN_ID
+          ,TO_CHAR(REG_DT, 'YYYY-MM-DD hh24:mi:ss') AS REG_DT
+          ,REG_ID AS SESS_REG_ID
+          ,REG_NM AS SESS_REG_NM
+      FROM C_MANUAL_COMMENT
+     WHERE WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+       AND LANG_CD = #{SEL_LANG_CD}
+     ORDER BY REG_DT
+</select>
+
+<insert id="AML_90_20_01_02_doSaveComment" parameterType="hashMap">
+    INSERT INTO C_MANUAL_COMMENT
+         (
+            WINDOW_ACT_ID
+           ,LANG_CD
+           ,COMMENT_SEQ
+           ,CONTENT
+           ,LOGIN_ID
+           ,REG_DT
+           ,REG_ID
+           ,REG_NM
+         )
+         VALUES
+         (
+            #{WINDOW_ACT_ID}
+           ,#{SEL_LANG_CD}
+           ,C_MANUAL_COMMENT_SEQ.nextval
+           ,#{COMMENT}
+           ,#{LOGIN_ID}
+           ,SYSDATE
+           ,#{REG_ID}
+           ,#{REG_NM}
+         )
+</insert>
+
+<update  id="AML_90_20_01_02_doDelete_C_MANUAL_COMMENT" parameterType="hashMap" >
+    DELETE C_MANUAL_COMMENT
+     WHERE COMMENT_SEQ = #{COMMENT_SEQ}
+       AND WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+</update>
+
+<select id = "AML_90_20_01_02_amlUserIDCheck" parameterType="HashMap" resultType="DataObj">
+    SELECT REG_ID
+      FROM C_MANUAL_COMMENT
+     WHERE COMMENT_SEQ = #{COMMENT_SEQ}
+       AND WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+</select>
+
+<update  id="AML_90_20_01_02_doUpdate_C_MANUAL_COMMENT" parameterType="hashMap" >
+    UPDATE C_MANUAL_COMMENT
+       SET CONTENT = #{CONTENT}
+          ,REG_DT = SYSDATE
+     WHERE COMMENT_SEQ = #{COMMENT_SEQ}
+       AND WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+</update>
+
+<select id ="AML_90_20_01_01_getWindowList_AML" parameterType="hashMap" resultType="DataObj">
+    SELECT A.*
+          ,B.FILE_POS
+          ,B.USER_FILE_NM
+          ,B.PHSC_FILE_NM
+          --,FN_DATE_FORMAT(B.REG_DTTM) AS REG_DTTM
+          ,(SELECT FN_DATE_FORMAT(MAX(REG_DTTM))
+              FROM C_MANUAL_HIST
+             WHERE LANG_CD =#{SEL_LANG_CD}
+               AND WINDOW_ACT_ID = DECODE(A.WINDOW_ACT_ID, '', A.MENU_ACT_ID, A.WINDOW_ACT_ID)
+               AND FILE_TYPE = 'PDF') AS REG_DTTM
+          ,(SELECT COUNT(*)
+              FROM C_MANUAL_HIST
+             WHERE LANG_CD =#{SEL_LANG_CD}
+               AND WINDOW_ACT_ID = DECODE(A.WINDOW_ACT_ID, '', A.MENU_ACT_ID, A.WINDOW_ACT_ID)
+               AND FILE_TYPE = 'WORD') AS WORD_CNT
+          ,(SELECT COUNT(*)
+              FROM C_MANUAL_HIST
+             WHERE LANG_CD =#{SEL_LANG_CD}
+               AND WINDOW_ACT_ID = DECODE(A.WINDOW_ACT_ID, '', A.MENU_ACT_ID, A.WINDOW_ACT_ID)
+               AND FILE_TYPE = 'PDF') AS PDF_CNT
+          ,B.REG_ID
+    FROM (SELECT X.PAR_ID
+                ,X.PAR_DISPLAY_NM
+                ,X.MENU_ACT_ID
+                ,DECODE(Y.WINDOW_ACT_ID,'','▶　' || X.WINDOW_DISPLAY_NM, ' ▷　' || X.WINDOW_DISPLAY_NM) AS WINDOW_DISPLAY_NM
+                ,Y.WINDOW_ACT_ID
+                ,Y.MANUAL_YN
+                ,X.DISPLAY_ORDER
+           FROM (
+                  SELECT DECODE(T.MENU_ACT_ID, 'AML', '0', T.PAR_MENU_ACT_ID) AS PAR_ID
+                        ,DECODE(U.DISPLAY_NM, 'AMLExpress', '', U.DISPLAY_NM) AS PAR_DISPLAY_NM
+                        ,T.MENU_ACT_ID
+                        ,DECODE(U.DISPLAY_NM, 'AMLExpress', 'AMLXpress', U.DISPLAY_NM) AS WINDOW_DISPLAY_NM
+                        ,DECODE(T.MENU_ACT_ID, 'AML', 0, T.DISPLAY_ORDER) AS DISPLAY_ORDER
+                    FROM C_PKG_MENU_MAP T
+                        ,C_MENU_DISPLAY U
+                        ,(SELECT PAR_MENU_ACT_ID, MENU_ACT_ID
+                            FROM C_GROUP_ROLE_MENU_ACT_AUTH
+                           WHERE ACCESS_YN ='Y'
+                           GROUP BY PAR_MENU_ACT_ID
+                                   ,MENU_ACT_ID) V
+                   WHERE T.PKG_ID = #{PKG_ID}
+                     AND T.MENU_ACT_ID = U.MENU_ACT_ID
+                     AND T.MENU_ACT_ID = V.MENU_ACT_ID
+                     AND U.LANG_CD = #{SEL_LANG_CD}
+                     --일시적용
+                     -- AND T.MENU_ACT_ID NOT LIKE '%RBA%'
+                     -- AND T.MENU_ACT_ID NOT IN ('AML_70', 'AML_80')
+                     AND T.PAR_MENU_ACT_ID != 'AML_80'
+                     AND T.MENU_ACT_ID != 'AML_80'
+                     --
+                ) X
+               ,(
+                  SELECT T.MENU_ACT_ID
+                        ,T.WINDOW_ACT_ID
+                        ,U.DISPLAY_NM
+                        ,T.MANUAL_YN
+                    FROM C_MENU_WINDOW_MAP T
+                        ,C_WINDOW_DISPLAY U
+                   WHERE T.WINDOW_ACT_ID = U.WINDOW_ACT_ID
+                     AND T.WINDOW_DEFAULT_YN = 'Y'
+                     AND U.LANG_CD = #{SEL_LANG_CD}
+                ) Y
+                     WHERE X.MENU_ACT_ID = Y.MENU_ACT_ID(+)
+          ) A
+         ,C_MANUAL B
+    WHERE B.LANG_CD(+) = #{SEL_LANG_CD}
+      AND DECODE(A.WINDOW_ACT_ID, '', A.MENU_ACT_ID, A.WINDOW_ACT_ID) = B.WINDOW_ACT_ID(+)
+    START WITH A.PAR_ID ='0'
+  CONNECT BY PRIOR A.MENU_ACT_ID = A.PAR_ID
+    ORDER SIBLINGS BY A.DISPLAY_ORDER ASC
+</select>
+
+<select id ="AML_90_20_01_01_getWindowList_RBA" parameterType="hashMap" resultType="DataObj">
+    SELECT A.*
+          ,B.FILE_POS
+          ,B.USER_FILE_NM
+          ,B.PHSC_FILE_NM
+          --,FN_DATE_FORMAT(B.REG_DTTM) AS REG_DTTM
+          ,(SELECT FN_DATE_FORMAT(MAX(REG_DTTM))
+              FROM C_MANUAL_HIST
+             WHERE LANG_CD = #{SEL_LANG_CD}
+               AND WINDOW_ACT_ID = DECODE(A.WINDOW_ACT_ID, '', A.MENU_ACT_ID, A.WINDOW_ACT_ID)
+               AND FILE_TYPE = 'PDF') AS REG_DTTM
+          ,(SELECT COUNT(*)
+              FROM C_MANUAL_HIST
+             WHERE LANG_CD = #{SEL_LANG_CD}
+               AND WINDOW_ACT_ID = DECODE(A.WINDOW_ACT_ID, '', A.MENU_ACT_ID, A.WINDOW_ACT_ID)
+               AND FILE_TYPE = 'WORD') AS WORD_CNT
+          ,(SELECT COUNT(*)
+              FROM C_MANUAL_HIST
+             WHERE LANG_CD = #{SEL_LANG_CD}
+               AND WINDOW_ACT_ID = DECODE(A.WINDOW_ACT_ID, '', A.MENU_ACT_ID, A.WINDOW_ACT_ID)
+               AND FILE_TYPE = 'PDF') AS PDF_CNT
+          ,B.REG_ID
+      FROM (SELECT X.PAR_ID
+                  ,X.PAR_DISPLAY_NM
+                  ,X.MENU_ACT_ID
+                  ,DECODE(Y.WINDOW_ACT_ID,'','▶　' || X.WINDOW_DISPLAY_NM, ' ▷　' || X.WINDOW_DISPLAY_NM) AS WINDOW_DISPLAY_NM
+                  ,Y.WINDOW_ACT_ID
+                  ,Y.MANUAL_YN
+                  ,X.DISPLAY_ORDER
+              FROM (
+                     SELECT DECODE(T.PAR_MENU_ACT_ID, 'AML_80', 'RBA', DECODE(T.MENU_ACT_ID, 'AML_80', '0', T.PAR_MENU_ACT_ID)) AS PAR_ID
+                           ,DECODE(U.DISPLAY_NM, 'RBA', '', U.DISPLAY_NM) AS PAR_DISPLAY_NM
+                           ,DECODE(T.MENU_ACT_ID, 'AML_80', 'RBA', T.MENU_ACT_ID) AS MENU_ACT_ID
+                           ,U.DISPLAY_NM AS WINDOW_DISPLAY_NM
+                           ,DECODE(T.MENU_ACT_ID, 'AML_80', 0, T.DISPLAY_ORDER) AS DISPLAY_ORDER
+                       FROM C_PKG_MENU_MAP T
+                           ,C_MENU_DISPLAY U
+                           ,(SELECT PAR_MENU_ACT_ID, MENU_ACT_ID
+                               FROM C_GROUP_ROLE_MENU_ACT_AUTH
+                              WHERE ACCESS_YN ='Y'
+                              GROUP BY PAR_MENU_ACT_ID
+                                      ,MENU_ACT_ID) V
+                      WHERE T.PKG_ID = #{PKG_ID}
+                        AND T.MENU_ACT_ID = U.MENU_ACT_ID
+                        AND T.MENU_ACT_ID = V.MENU_ACT_ID
+                        AND U.LANG_CD = #{SEL_LANG_CD}
+                        --일시적용
+                        AND (T.MENU_ACT_ID LIKE #{SCOPE_COND} OR T.MENU_ACT_ID = 'AML_80')
+                        --
+                   ) X
+                  ,(SELECT T.MENU_ACT_ID
+                          ,T.WINDOW_ACT_ID
+                          ,U.DISPLAY_NM
+                          ,T.MANUAL_YN
+                      FROM C_MENU_WINDOW_MAP T
+                          ,C_WINDOW_DISPLAY U
+                     WHERE T.WINDOW_ACT_ID = U.WINDOW_ACT_ID
+                       AND T.WINDOW_DEFAULT_YN = 'Y'
+                       AND U.LANG_CD = #{SEL_LANG_CD}
+                   ) Y
+              WHERE X.MENU_ACT_ID = Y.MENU_ACT_ID(+)
+           ) A
+          ,C_MANUAL B
+     WHERE B.LANG_CD(+) = #{SEL_LANG_CD}
+       AND DECODE(A.WINDOW_ACT_ID, '', A.MENU_ACT_ID, A.WINDOW_ACT_ID) = B.WINDOW_ACT_ID(+)
+     START WITH A.PAR_ID ='0'
+   CONNECT BY PRIOR A.MENU_ACT_ID = A.PAR_ID
+     ORDER SIBLINGS BY A.DISPLAY_ORDER ASC
+</select>
+
+<select id ="AML_90_20_01_01_getRegisterHist" parameterType="hashMap" resultType="DataObj">
+    SELECT WINDOW_ACT_ID
+          ,SEQ
+          ,FILE_POS
+          ,USER_FILE_NM
+          ,PHSC_FILE_NM
+          ,FILE_SIZE
+          ,FILE_TYPE
+          ,GET_USER_NAME(REG_ID) AS REG_ID
+          ,FN_DATE_FORMAT(REG_DTTM) AS REG_DTTM
+      FROM C_MANUAL_HIST
+     WHERE WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+       AND LANG_CD = #{SEL_LANG_CD}
+     ORDER BY REG_DTTM DESC
+</select>
+
+<delete id="AML_90_20_01_01_doManualHistDelete" parameterType="hashMap">
+    DELETE FROM C_MANUAL_HIST
+     WHERE WINDOW_ACT_ID = #{WINDOW_ACT_ID, jdbcType=VARCHAR}
+       AND LANG_CD = #{SEL_LANG_CD, jdbcType=VARCHAR}
+       AND FILE_TYPE = #{FILE_TYPE, jdbcType=VARCHAR}
+       AND SEQ = #{SEQ, jdbcType=VARCHAR}
+</delete>
+
+<select id ="AML_90_20_01_01_getManualtoCheck" parameterType="hashMap" resultType="DataObj">
+    SELECT FILE_POS
+          ,PHSC_FILE_NM
+          ,FN_DATE_FORMAT(REG_DTTM) AS REG_DTTM
+      FROM C_MANUAL
+     WHERE WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+</select>
+
+<update id="AML_90_20_01_01_doSaveManualActivate" parameterType="hashMap">
+    UPDATE C_MENU_WINDOW_MAP
+       SET MANUAL_YN = #{MANUAL_YN}
+     WHERE MENU_ACT_ID = #{MENU_ACT_ID}
+       AND WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+</update>
+
+<insert id ="AML_90_20_01_03_doManualSaveHist" parameterType="hashMap">
+    INSERT INTO C_MANUAL_HIST
+           (
+              WINDOW_ACT_ID
+             ,LANG_CD
+             ,SEQ
+             ,FILE_TYPE
+             ,FILE_POS
+             ,USER_FILE_NM
+             ,PHSC_FILE_NM
+             ,FILE_SIZE
+             ,REG_ID
+             ,REG_DTTM
+           )
+           VALUES
+           (
+              #{WINDOW_ACT_ID}
+             ,#{LANG_CD}
+             ,C_MANUAL_HIST_SEQ.NEXTVAL
+             ,#{FILE_TYPE}
+             ,#{FILE_POS}
+             ,#{USER_FILE_NM}
+             ,#{PHSC_FILE_NM}
+             ,#{FILE_SIZE}
+             ,#{REG_ID}
+             ,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+           )
+</insert>
+
+<delete id="AML_90_20_01_03_doManualDelete" parameterType="hashMap">
+    DELETE FROM C_MANUAL
+     WHERE WINDOW_ACT_ID  = #{WINDOW_ACT_ID, jdbcType=VARCHAR}
+       AND LANG_CD = #{LANG_CD, jdbcType=VARCHAR}
+</delete>
+
+<insert id ="AML_90_20_01_03_doManualSave" parameterType="hashMap">
+    INSERT INTO C_MANUAL
+           (
+             SELECT WINDOW_ACT_ID
+                   ,LANG_CD
+                   ,FILE_TYPE
+                   ,FILE_POS
+                   ,USER_FILE_NM
+                   ,PHSC_FILE_NM
+                   ,FILE_SIZE
+                   ,REG_ID
+                   ,REG_DTTM
+              FROM (SELECT C_MANUAL_HIST.*
+                          ,ROW_NUMBER() OVER(ORDER BY REG_DTTM DESC) AS RN
+                      FROM C_MANUAL_HIST
+                     WHERE WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+                       AND LANG_CD = #{LANG_CD}
+                       AND FILE_TYPE = 'WORD')
+             WHERE RN = 1
+           )
+</insert>
+
+<select id="AML_90_02_01_01_getSearch"  parameterType="hashMap" resultType="DataObj">
+SELECT *
+  FROM (
+         SELECT A.JOB_ID
+               ,A.PARENT_JOBID AS PARENT_JOB_ID
+               ,A.JOB_NM AS JOB_NM
+               ,TO_CHAR(B.STRT_DY_TM, 'YYYY-MM-DD HH24:MI:SS') AS STRT_DY_TM
+               ,TO_CHAR(B.END_DY_TM, 'YYYY-MM-DD HH24:MI:SS') AS END_DY_TM
+               ,B.JOB_ST_CD AS JOB_ST_CD
+               ,TO_CHAR(NVL(B.HNDL_DY_TM,A.HNDL_DY_TM), 'YYYY-MM-DD HH24:MI:SS') AS HNDL_DY_TM
+               ,FN_CDINFO_VAR('USER',NVL(B.HNDL_P_ENO,A.HNDL_P_ENO),'' ) AS HNDL_P_ENO_NM
+               ,B.LAST_YN
+               ,A.DISPLAY_ORDER
+               ,A.PROGRAM_NM
+               ,A.DESC1
+               ,A.DEPTH
+               ,A.USE_YN
+               ,SCHEDULE_YN
+               ,CRON_EXP
+           FROM NIC93B A,
+                (
+                  SELECT *
+                    FROM NIC93B_LOG
+                   WHERE (JOB_DT,JOB_SEQ, JOB_ID)
+                      IN ( SELECT MAX(AA.JOB_DT)
+                                 ,MAX(AA.JOB_SEQ)
+                                 ,JOB_ID
+                             FROM NIC93B_LOG AA
+                            WHERE JOB_DT BETWEEN #{startDate} || '000000'
+                                             AND #{endDate} || '235959'
+                            GROUP BY JOB_ID )
+                ) B
+           WHERE A.JOB_ID = B.JOB_ID(+)
+       )
+  WHERE 1=1
+   -- AND PARENT_JOB_ID NOT IN ('00_AML')
+<if test="USE_YN != 'ALL' ">
+    AND USE_YN = #{USE_YN}
+</if>
+  ORDER BY DISPLAY_ORDER
+</select>
+
+<select id="AML_90_03_07_01_doSearch" parameterType="hashMap" resultType="DataObj">
+    <![CDATA[
+     SELECT A.DEP_ID
+           ,A.PAR_DEP_ID
+           ,CASE WHEN PAR_DEP_ID = -1
+                      THEN (SELECT DISPLAY_NM FROM C_CD_NM    WHERE CD_ID  = 'FDS_F002' AND LANG_CD = 'ko-KR')
+                      ELSE (SELECT DEP_TITLE  FROM C_DEP_INFO WHERE DEP_ID = A.PAR_DEP_ID)
+                  END AS PAR_DEP_NM
+           ,A.DEP_TITLE
+           ,A.DEP_DESC
+           ,A.DEP_TP_CD
+           ,(SELECT DISPLAY_NM
+               FROM C_CD_NM
+              WHERE CD_ID = A.DEP_TP_CD
+                AND LANG_CD = 'ko-KR'  ) AS DEP_TP_NM
+           ,A.DISPLAY_DEPTH
+           ,A.DISPLAY_ORDER
+           ,A.CRE_ID
+           ,(SELECT USER_NM
+               FROM C_USER
+              WHERE USER_ID = A.CRE_ID  ) AS CRE_NM
+           ,A.CRE_DT
+           ,A.UPD_ID
+           ,(SELECT USER_NM
+               FROM C_USER
+              WHERE USER_ID = A.UPD_ID ) AS UPD_NM
+           ,A.UPD_DT
+           ,(SELECT CASE WHEN COUNT(*) > 0 THEN 'Y' ELSE 'N' END
+               FROM C_DEP_INFO
+              WHERE PAR_DEP_ID = A.DEP_ID
+                AND ROWNUM  < 2) AS CHILD_YN
+      FROM C_DEP_INFO A
+     WHERE A.DEP_ID >= 0
+       AND TO_CHAR(PAR_DEP_ID)  LIKE  #{PAR_DEP_ID}
+    ]]>
+<if test="DEP_TITLE != '' and DEP_TITLE != null ">
+    AND A.DEP_TITLE LIKE '%' || #{DEP_TITLE} || '%'
+</if>
+  ORDER BY DISPLAY_ORDER
+</select>
+
+<select id="AML_90_03_07_01_doSearchUser" parameterType="hashMap" resultType="DataObj">
+SELECT A.USER_ID
+      ,A.DEP_ID
+      ,( SELECT DEP_TITLE
+           FROM C_DEP_INFO
+          WHERE DEP_ID = A.DEP_ID ) AS DEP_NM
+      ,A.POSITION_CODE
+      ,(SELECT DISPLAY_NM
+          FROM C_CD_NM
+         WHERE CD_ID = A.POSITION_CODE
+           AND LANG_CD = 'ko-KR' ) AS POSITION_NM
+      ,A.USER_NM
+      ,A.LOGIN_ID
+      ,'' AS USER_PWD
+      ,A.USER_IP
+      ,A.SOC_NO
+      ,A.EMAIL
+      ,A.CELL_PHONE
+      ,A.ACTIVE_YN
+      ,A.LAST_USE_DATE
+      ,A.LAST_USE_IP
+      ,A.PWD_FAIL_COUNT
+      ,A.CRE_ID
+      ,( SELECT USER_NM
+           FROM C_USER
+          WHERE USER_ID = A.CRE_ID ) AS CRE_NM
+      ,A.CRE_DT
+      ,A.UPD_ID
+      ,( SELECT USER_NM
+           FROM C_USER
+          WHERE USER_ID = A.UPD_ID ) AS UPD_NM
+      ,A.UPD_DT
+      ,A.DEL_YN
+      ,A.DEL_ID
+      ,( SELECT USER_NM
+           FROM C_USER
+          WHERE USER_ID = A.DEL_ID ) AS DEL_NM
+      ,A.DEL_DT
+      ,A.OFF_DUTY_YN
+      ,B.RNAME AS ROLE_NAME
+      ,'초기화' AS INIT_SECURY
+   FROM C_USER A
+   LEFT OUTER JOIN (SELECT USER_ID
+                          ,LISTAGG(GET_ROLE_NAME(ROLE_ID),',') WITHIN GROUP(ORDER BY USER_ID) AS RNAME
+                      FROM C_USER_GROUP_ROLE
+                     GROUP BY USER_ID) B
+                ON A.USER_ID = B.USER_ID
+  WHERE 1=1
+<if test="DEP_ID != '' ">
+    AND A.DEP_ID = #{DEP_ID}
+</if>
+<if test="USER_NM != '' and USER_NM != null ">
+    AND A.USER_NM LIKE '%' || #{USER_NM} || '%'
+</if>
+  ORDER BY A.USER_NM
+</select>
+
+<select id="AML_90_07_01_01_getParentWindowCount" parameterType="HashMap" resultType="DataObj">
+    SELECT DECODE(SIGN(A.PARENT), 1, 'N', 0, DECODE(A.TOTAL, 0, 'Y', 'C')) AS DIRECTION
+      FROM (SELECT COUNT(*) AS TOTAL
+                  ,NVL(SUM(DECODE(MENU_ACT_ID, #{MENU_ACT_ID}, 1, 0)), 0) AS PARENT
+              FROM C_MENU_WINDOW_MAP
+             WHERE WINDOW_ACT_ID = #{WINDOW_ACT_ID}) A
+</select>
+
+<delete id="AML_90_07_02_01_doSave_delete_C_AUTH_WINDOW_MAP" parameterType="hashMap">
+    DELETE FROM C_AUTH_WINDOW_MAP
+     WHERE GROUP_ID = #{GROUP_ID }
+       AND ROLE_ID = #{ROLE_ID }
+</delete>
+
+<insert id="AML_90_07_02_01_doSave_insert_C_AUTH_WINDOW_MAP" parameterType="HashMap">
+    INSERT INTO C_AUTH_WINDOW_MAP
+           (
+              GROUP_ID
+             ,ROLE_ID
+             ,WINDOW_ACT_ID
+             ,USE_YN
+             ,C
+             ,R
+             ,U
+             ,D
+             ,CRE_ID
+             ,CRE_DT
+             ,UPD_ID
+             ,UPD_DT
+           )
+           VALUES
+           (
+              #{GROUP_ID}
+             ,#{ROLE_ID}
+             ,#{WINDOW_ACT_ID}
+             ,#{USE_YN}
+             ,#{C}
+             ,#{R}
+             ,#{U}
+             ,#{D}
+             ,NVL(#{CRE_ID},'')
+             ,NVL(#{CRE_DT},'')
+             ,NVL(#{UPD_ID},'')
+             ,NVL(#{UPD_DT},'')
+           )
+</insert>
+
+<select id="AML_90_07_02_01_getMenu" parameterType="HashMap" resultType="DataObj">
+    SELECT B.MENU_ACT_ID
+          ,A.DISPLAY_NM
+          ,B.MENU_FORM_URL
+          ,B.ACTIVE_MENU_IMAGE
+          ,B.INACTIVE_MENU_IMAGE
+          ,B.POPUP_YN
+          ,C.DISPLAY_ORDER
+          ,B.SCREEN_ID
+      FROM C_MENU_DISPLAY A
+      LEFT JOIN C_MENU_ACT B
+             ON A.MENU_ACT_ID = B.MENU_ACT_ID
+      LEFT JOIN C_PKG_MENU_MAP C
+             ON B.MENU_ACT_ID = C.MENU_ACT_ID
+      LEFT JOIN C_GROUP_ROLE_MENU_ACT_AUTH D
+             ON C.PKG_ID = D.PKG_ID
+       AND C.PAR_MENU_ACT_ID = D.PAR_MENU_ACT_ID
+       AND C.MENU_ACT_ID = D.MENU_ACT_ID
+     WHERE A.LANG_CD = #{LANG_CD}
+       AND C.MENU_ACT_ID <![CDATA[<>]]> 'AML'
+       AND B.MENU_DISPLAY_YN = 'Y'
+       AND C.PKG_ID = #{PKG_ID}
+       AND C.PAR_MENU_ACT_ID = #{PAR_MENU_ACT_ID}
+       AND D.GROUP_ID = #{GROUP_ID}
+       AND D.ROLE_ID = #{ROLE_ID}
+       AND D.ACCESS_YN = 'Y'
+     ORDER BY C.DISPLAY_ORDER ASC
+</select>
+
+<select id="AML_90_07_02_01_getMenuWin" parameterType="HashMap" resultType="DataObj">
+    SELECT A.MENU_ACT_ID
+          ,A.WINDOW_ACT_ID
+          ,C.DISPLAY_NM
+          ,A.WINDOW_DEFAULT_YN
+          ,B.WINDOW_DISPLAY_YN
+          ,D.USE_YN
+          ,D.C
+          ,D.R
+          ,D.U
+          ,D.D
+      FROM C_WINDOW_DISPLAY C
+     INNER JOIN C_WINDOW_ACT B
+             ON C.WINDOW_ACT_ID = B.WINDOW_ACT_ID
+            AND C.LANG_CD = #{LANG_CD}
+     INNER JOIN C_MENU_WINDOW_MAP A
+             ON A.WINDOW_ACT_ID = B.WINDOW_ACT_ID
+      LEFT JOIN C_AUTH_WINDOW_MAP D
+             ON A.WINDOW_ACT_ID = D.WINDOW_ACT_ID
+            AND D.GROUP_ID = #{GROUP_ID}
+            AND D.ROLE_ID = #{ROLE_ID}
+     WHERE A.MENU_ACT_ID = #{MENU_ACT_ID}
+     ORDER BY A.WINDOW_ACT_ID ASC
+</select>
+</mapper>

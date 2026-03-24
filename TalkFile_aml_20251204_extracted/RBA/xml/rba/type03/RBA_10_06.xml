@@ -1,0 +1,2257 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="RBA_10" >
+
+
+<select id="RBA_10_06_01_01_getSearch01" parameterType="hashMap" resultType="DataObj">
+<![CDATA[ 
+SELECT A01, A02, A03, A04, A05, A06, A07, A08, A09, A10
+  FROM
+       (   
+         SELECT SUM(DECODE(RSK_B_C, 'I', CNT,0)) AS A01
+               ,SUM(DECODE(RSK_B_C, 'T', CNT,0)) AS A02
+               ,SUM(DECODE(RSK_B_C, 'I', 1,0)) AS A03
+               ,SUM(DECODE(RSK_B_C, 'T', 1,0)) AS A04
+           FROM (
+                 SELECT RSK_B_C, MNG_BRNO,  COUNT(*) AS CNT
+                   FROM RBA_RSK_M X
+                  WHERE USYN = '1'
+                  GROUP BY  RSK_B_C, MNG_BRNO  
+                 ) 
+        ) AA,
+        (SELECT COUNT(*) AS A05 FROM RBA_PROC_M WHERE USYN = 1) BB,
+        (SELECT COUNT(*) AS A06 FROM RBA_TONGJE_M WHERE USYN = 1) CC,
+        (SELECT SUM(DECODE(RSK_B_C, 'I', CNT,0)) AS A07,
+                SUM(DECODE(RSK_B_C, 'T', CNT,0)) AS A08
+           FROM (SELECT RSK_B_C, COUNT(*) CNT
+                   FROM RBA_KRI_M
+                  WHERE USYN = '1'
+               GROUP BY RSK_B_C )) DD,
+        (SELECT SUM(DECODE(RSK_B_C, 'I', CNT,0)) AS A09,
+                SUM(DECODE(RSK_B_C, 'T', CNT,0)) AS A10
+           FROM (SELECT RSK_B_C, COUNT(*) CNT
+                   FROM RBA_KCI_M
+                  WHERE USYN = '1'          
+               GROUP BY RSK_B_C )) EE
+]]> 
+</select>
+<select id="RBA_10_06_01_01_getSearch02" parameterType="hashMap" resultType="DataObj">
+ 
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+       <![CDATA[
+      WHERE  VALT_TRN > 0
+      ]]> 
+        AND VALT_G = '1'
+        <![CDATA[
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+        ]]>
+)  
+SELECT CC.IRSK_T_CNT AS A11
+      ,CC.IRSK_VALT_CNT AS A12
+      ,DECODE(CC.IRSK_T_CNT, 0, 0, ROUND(CC.IRSK_VALT_CNT/CC.IRSK_T_CNT * 100, 2)) AS A13
+      
+      ,CC.IRSK_TONGJE4_CNT AS A14
+      ,DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_TONGJE4_CNT/CC.IRSK_VALT_CNT * 100, 2)) AS A15
+      ,CC.IRSK_TONGJE3_CNT AS A16
+      ,DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_TONGJE3_CNT/CC.IRSK_VALT_CNT * 100, 2)) AS A17
+      ,CC.IRSK_TONGJE2_CNT AS A18
+      ,DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_TONGJE2_CNT/CC.IRSK_VALT_CNT * 100, 2)) AS A19
+      ,CC.IRSK_TONGJE1_CNT AS A20
+      ,DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_TONGJE1_CNT/CC.IRSK_VALT_CNT * 100, 2)) AS A21
+      
+      ,CC.IRSK_REMDR4_CNT AS A22
+      ,DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_REMDR4_CNT/CC.IRSK_VALT_CNT * 100, 2)) AS A23
+      ,CC.IRSK_REMDR3_CNT AS A24
+      ,DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_REMDR3_CNT/CC.IRSK_VALT_CNT * 100, 2)) AS A25
+      ,CC.IRSK_REMDR2_CNT AS A26
+      ,DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_REMDR2_CNT/CC.IRSK_VALT_CNT * 100, 2)) AS A27
+      ,CC.IRSK_REMDR1_CNT AS A28
+      ,DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_REMDR1_CNT/CC.IRSK_VALT_CNT * 100, 2)) AS A29
+FROM
+   ( 
+    SELECT SUM(IRSK_T_CNT)       AS IRSK_T_CNT
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT
+          ,SUM(IRSK_TONGJE4_CNT) AS IRSK_TONGJE4_CNT
+          ,SUM(IRSK_TONGJE3_CNT) AS IRSK_TONGJE3_CNT
+          ,SUM(IRSK_TONGJE2_CNT) AS IRSK_TONGJE2_CNT
+          ,SUM(IRSK_TONGJE1_CNT) AS IRSK_TONGJE1_CNT
+          ,SUM(IRSK_REMDR4_CNT)  AS IRSK_REMDR4_CNT
+          ,SUM(IRSK_REMDR3_CNT)  AS IRSK_REMDR3_CNT
+          ,SUM(IRSK_REMDR2_CNT)  AS IRSK_REMDR2_CNT
+          ,SUM(IRSK_REMDR1_CNT)  AS IRSK_REMDR1_CNT
+      FROM 
+      (
+       SELECT COUNT(RSK_NO) AS IRSK_T_CNT
+              ,0             AS IRSK_VALT_CNT
+              ,0             AS IRSK_TONGJE4_CNT
+              ,0             AS IRSK_TONGJE3_CNT
+              ,0             AS IRSK_TONGJE2_CNT
+              ,0             AS IRSK_TONGJE1_CNT
+              ,0             AS IRSK_REMDR4_CNT
+              ,0             AS IRSK_REMDR3_CNT
+              ,0             AS IRSK_REMDR2_CNT
+              ,0             AS IRSK_REMDR1_CNT
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+        <if test="RSK_G_C != null and RSK_G_C != '' ">
+           AND X.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+        </if>
+        UNION ALL
+        SELECT 0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT 
+              ,NVL(SUM(DECODE(B.MOFC_TONGJE_GD, 4, 1, 0)),0) AS IRSK_TONGJE4_CNT
+              ,NVL(SUM(DECODE(B.MOFC_TONGJE_GD, 3, 1, 0)),0) AS IRSK_TONGJE3_CNT          
+              ,NVL(SUM(DECODE(B.MOFC_TONGJE_GD, 2, 1, 0)),0) AS IRSK_TONGJE2_CNT          
+              ,NVL(SUM(DECODE(B.MOFC_TONGJE_GD, 1, 1, 0)),0) AS IRSK_TONGJE1_CNT          
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 4, 1, 0)),0) AS IRSK_REMDR4_CNT
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 3, 1, 0)),0) AS IRSK_REMDR3_CNT          
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 2, 1, 0)),0) AS IRSK_REMDR2_CNT          
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 1, 1, 0)),0) AS IRSK_REMDR1_CNT          
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+            <![CDATA[
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           ]]>
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9')
+        <if test="RSK_G_C != null and RSK_G_C != '' ">
+           AND A.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+        </if>
+      ) BB
+     ) CC 
+
+</select>
+<select id="RBA_10_06_01_01_getSearch03" parameterType="hashMap" resultType="DataObj">
+
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+       <![CDATA[ 
+      WHERE  VALT_TRN > 0
+      ]]>
+        AND VALT_G = '1'
+        <![CDATA[
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+        ]]>
+)          
+SELECT CC.TRSK_T_CTN AS A31
+      ,CC.TONGJE_CNT AS A32      
+      ,CC.TRSK_VALT_CNT AS A33
+      ,DECODE(CC.TRSK_T_CTN, 0, 0, ROUND(CC.TRSK_VALT_CNT/CC.TRSK_T_CTN * 100, 2)) AS A34           
+      ,CC.TRSK4_CNT AS A35
+      ,DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK4_CNT/CC.TRSK_VALT_CNT * 100, 2)) AS A36      
+      ,CC.TRSK3_CNT AS A37
+      ,DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK3_CNT/CC.TRSK_VALT_CNT * 100, 2)) AS A38      
+      ,CC.TRSK2_CNT AS A39
+      ,DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK2_CNT/CC.TRSK_VALT_CNT * 100, 2)) AS A40      
+      ,CC.TRSK1_CNT AS A41
+      ,DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK1_CNT/CC.TRSK_VALT_CNT * 100, 2)) AS A42      
+      ,CC.TRSK_TONGJE4_CNT AS A43
+      ,DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK_TONGJE4_CNT/CC.TRSK_VALT_CNT * 100, 2)) AS A44            
+      ,CC.TRSK_TONGJE3_CNT AS A45
+      ,DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK_TONGJE3_CNT/CC.TRSK_VALT_CNT * 100, 2)) AS A46            
+      ,CC.TRSK_TONGJE2_CNT AS A47
+      ,DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK_TONGJE2_CNT/CC.TRSK_VALT_CNT * 100, 2)) AS A48            
+      ,CC.TRSK_TONGJE1_CNT AS A49
+      ,DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK_TONGJE1_CNT/CC.TRSK_VALT_CNT * 100, 2)) AS A50                 
+      ,CC.TRSK_REMDR4_CNT AS A51
+      ,DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK_REMDR4_CNT/CC.TRSK_VALT_CNT * 100, 2)) AS A52            
+      ,CC.TRSK_REMDR3_CNT AS A53
+      ,DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK_REMDR3_CNT/CC.TRSK_VALT_CNT * 100, 2)) AS A54
+      ,CC.TRSK_REMDR2_CNT AS A55
+      ,DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK_REMDR2_CNT/CC.TRSK_VALT_CNT * 100, 2)) AS A56
+      ,CC.TRSK_REMDR1_CNT AS A57
+      ,DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK_REMDR1_CNT/CC.TRSK_VALT_CNT * 100, 2)) AS A58
+  FROM (
+        SELECT SUM(TRSK_T_CTN)       AS TRSK_T_CTN
+              ,SUM(TONGJE_CNT)    AS TONGJE_CNT
+              ,SUM(TRSK_VALT_CNT)    AS TRSK_VALT_CNT
+              ,SUM(TRSK4_CNT) AS TRSK4_CNT
+              ,SUM(TRSK3_CNT) AS TRSK3_CNT
+              ,SUM(TRSK2_CNT) AS TRSK2_CNT
+              ,SUM(TRSK1_CNT) AS TRSK1_CNT
+              ,SUM(TRSK_TONGJE4_CNT) AS TRSK_TONGJE4_CNT
+              ,SUM(TRSK_TONGJE3_CNT) AS TRSK_TONGJE3_CNT
+              ,SUM(TRSK_TONGJE2_CNT) AS TRSK_TONGJE2_CNT
+              ,SUM(TRSK_TONGJE1_CNT) AS TRSK_TONGJE1_CNT
+              ,SUM(TRSK_REMDR4_CNT)  AS TRSK_REMDR4_CNT
+              ,SUM(TRSK_REMDR3_CNT)  AS TRSK_REMDR3_CNT
+              ,SUM(TRSK_REMDR2_CNT)  AS TRSK_REMDR2_CNT
+              ,SUM(TRSK_REMDR1_CNT)  AS TRSK_REMDR1_CNT
+         FROM   
+        (  
+        SELECT COUNT(RSK_NO) AS TRSK_T_CTN
+              ,MAX((SELECT COUNT(*) FROM RBA_RSK_TONGJE_MP
+                     WHERE RSK_NO = X.RSK_NO)) AS TONGJE_CNT
+              ,0             AS TRSK_VALT_CNT
+              ,0             AS TRSK4_CNT
+              ,0             AS TRSK3_CNT
+              ,0             AS TRSK2_CNT
+              ,0             AS TRSK1_CNT
+              ,0             AS TRSK_TONGJE4_CNT
+              ,0             AS TRSK_TONGJE3_CNT
+              ,0             AS TRSK_TONGJE2_CNT
+              ,0             AS TRSK_TONGJE1_CNT
+              ,0             AS TRSK_REMDR4_CNT
+              ,0             AS TRSK_REMDR3_CNT
+              ,0             AS TRSK_REMDR2_CNT
+              ,0             AS TRSK_REMDR1_CNT
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'T'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL 
+        <if test="RSK_G_C != null and RSK_G_C != '' ">
+           AND X.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+        </if> 
+        UNION ALL    
+  
+        SELECT 0 AS TRSK_T_CTN
+              ,0 AS TONGJE_CNT
+              ,COUNT(B.RSK_NO) AS TRSK_VALT_CNT
+
+              ,NVL(SUM(DECODE(B.KRI_UNTY_RSK_GD, 4, 1, 0)),0) AS TRSK4_CNT
+              ,NVL(SUM(DECODE(B.KRI_UNTY_RSK_GD, 3, 1, 0)),0) AS TRSK3_CNT          
+              ,NVL(SUM(DECODE(B.KRI_UNTY_RSK_GD, 2, 1, 0)),0) AS TRSK2_CNT          
+              ,NVL(SUM(DECODE(B.KRI_UNTY_RSK_GD, 1, 1, 0)),0) AS TRSK1_CNT                 
+
+              ,NVL(SUM(DECODE(B.LST_TONGJE_VALT_GD, 4, 1, 0)),0) AS TRSK_TONGJE4_CNT
+              ,NVL(SUM(DECODE(B.LST_TONGJE_VALT_GD, 3, 1, 0)),0) AS TRSK_TONGJE3_CNT          
+              ,NVL(SUM(DECODE(B.LST_TONGJE_VALT_GD, 2, 1, 0)),0) AS TRSK_TONGJE2_CNT          
+              ,NVL(SUM(DECODE(B.LST_TONGJE_VALT_GD, 1, 1, 0)),0) AS TRSK_TONGJE1_CNT                 
+                           
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 4, 1, 0)),0) AS TRSK_REMDR4_CNT
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 3, 1, 0)),0) AS TRSK_REMDR3_CNT          
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 2, 1, 0)),0) AS TRSK_REMDR2_CNT          
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 1, 1, 0)),0) AS TRSK_REMDR1_CNT                 
+          FROM RBA_RSK_M A
+             , RBA_TRSK_VALT_I B
+             , VALT_SCHD Z                
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 통합위험 현재회차에서만 구함. */
+           AND A.LST_VALT_TRN = Z.VALT_TRN
+           AND A.RSK_B_C = 'T'
+           AND A.USYN = '1'
+           AND B.MNG_BRNO = '9999'   -- 공통
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인 
+          <if test="RSK_G_C != null and RSK_G_C != '' ">
+           AND A.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+        </if>   
+      ) BB
+     ) CC
+
+</select>
+ <select id="RBA_10_06_01_01_getSearch04" parameterType="hashMap" resultType="DataObj">
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+ 	<![CDATA[ 
+      WHERE  VALT_TRN > 0
+      ]]> 
+        AND VALT_G = '1'
+     <![CDATA[ 
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+	 ]]> 
+)
+SELECT IRSK_T_CNT AS B01, AVG_IRSK_SCORE AS B02, AVG_IRSK_GD AS B03, AVG_ITONGJE_SCORE AS B04, AVG_ITONGJE_GD AS B05
+      ,TRSK_T_CNT AS B06, AVG_TRSK_SCORE AS B07, AVG_TRSK_GD AS B08, AVG_TTONGJE_SCORE AS B09, AVG_TTONGJE_GD AS B10 
+      ,RSK_T_CNT AS B11, AVG_RSK_SCORE AS B12, AVG_RSK_GD AS B13, AVG_TONGJE_SCORE AS B14, AVG_TONGJE_GD AS B15 
+      ,REMR_RSK_GD AS B16
+      ,GET_CODE_NAME('R013',REMR_RSK_GD)  AS B17  
+      ,GET_CODE_NAME('R014',REMR_RSK_GD)  AS B18   
+  FROM
+  (
+    SELECT IRSK_T_CNT, AVG_IRSK_SCORE, AVG_IRSK_GD, AVG_ITONGJE_SCORE, AVG_ITONGJE_GD
+          ,TRSK_T_CNT, AVG_TRSK_SCORE, AVG_TRSK_GD, AVG_TTONGJE_SCORE, AVG_TTONGJE_GD 
+          ,(IRSK_T_CNT + TRSK_T_CNT)                          AS RSK_T_CNT
+          ,ROUND((AVG_IRSK_SCORE + AVG_IRSK_SCORE)/2,2)       AS AVG_RSK_SCORE
+          ,ROUND((AVG_IRSK_GD + AVG_TRSK_GD)/2,0)             AS AVG_RSK_GD
+          ,ROUND((AVG_ITONGJE_SCORE + AVG_TTONGJE_SCORE)/2,2) AS AVG_TONGJE_SCORE
+          ,ROUND((AVG_ITONGJE_GD + AVG_TTONGJE_GD)/2,0)       AS AVG_TONGJE_GD
+          ,(SELECT RSK_GD FROM RBA_RSK_GD_M A, RBA_RSK_GD_S B
+             WHERE A.RSK_GD_HMK_C = 3  
+               AND A.RSK_GD_HMK_C = B.RSK_GD_HMK_C
+               AND A.LST_SER = B.RSK_GD_SER
+               AND B.RSK_GD_X_V = ROUND((AVG_ITONGJE_GD + AVG_TTONGJE_GD)/2,0)   
+               AND B.RSK_GD_Y_V = ROUND((AVG_IRSK_GD + AVG_TRSK_GD)/2,0)         
+               AND ROWNUM = 1
+            ) REMR_RSK_GD
+      FROM
+     (SELECT CC.IRSK_T_CNT                                                                               
+          ,DECODE(CC.IRSK_VALT_CNT, 0, 0,  ROUND(CC.INDV_RSK_VALT_PNT / CC.IRSK_VALT_CNT * 0.8,2)  ) AS AVG_IRSK_SCORE  
+          ,DECODE(CC.IRSK_VALT_CNT, 0, 0,  ROUND(CC.INDV_RSK_GD / CC.IRSK_VALT_CNT, 0)  )            AS AVG_IRSK_GD                
+          ,DECODE(CC.IRSK_VALT_CNT, 0, 0,  ROUND(CC.MOFC_TONGJE_VALT_PNT / CC.IRSK_VALT_CNT,2)  )    AS AVG_ITONGJE_SCORE 
+          ,DECODE(CC.IRSK_VALT_CNT, 0, 0,  ROUND(CC.MOFC_TONGJE_GD / CC.IRSK_VALT_CNT, 0)  )         AS AVG_ITONGJE_GD         
+      FROM
+       (
+        SELECT SUM(IRSK_T_CNT)           AS IRSK_T_CNT 
+              ,SUM(IRSK_VALT_CNT)        AS IRSK_VALT_CNT          
+              ,SUM(INDV_RSK_VALT_PNT)    AS INDV_RSK_VALT_PNT          
+              ,SUM(INDV_RSK_GD)          AS INDV_RSK_GD          
+              ,SUM(MOFC_TONGJE_VALT_PNT) AS MOFC_TONGJE_VALT_PNT          
+              ,SUM(MOFC_TONGJE_GD)       AS MOFC_TONGJE_GD          
+          FROM
+           ( 
+
+            SELECT COUNT(RSK_NO) AS IRSK_T_CNT
+                  ,0             AS IRSK_VALT_CNT
+                  ,0             AS INDV_RSK_VALT_PNT
+                  ,0             AS INDV_RSK_GD
+                  ,0             AS MOFC_TONGJE_VALT_PNT
+                  ,0             AS MOFC_TONGJE_GD
+
+             FROM RBA_RSK_M X
+             WHERE X.RSK_B_C = 'I'
+               AND X.USYN = 1
+               AND X.GYLJ_DT IS NOT NULL
+               AND X.MNG_BRNO ! = '9999' 
+            <if test="RSK_G_C != null and RSK_G_C != '' ">
+               AND X.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+            </if>
+            <if test="RSK_FLD_C != null and RSK_FLD_C != '' ">
+			   AND X.RSK_FLD_C = #{RSK_FLD_C,jdbcType=VARCHAR}
+			</if>
+			<if test="RSK_BUMUN_C != null and RSK_BUMUN_C != '' ">
+			   AND X.RSK_BUMUN_C = #{RSK_BUMUN_C,jdbcType=VARCHAR}
+			</if>                   
+            GROUP BY X.MNG_BRNO           
+            UNION ALL
+            SELECT 0 as IRSK_T_CNT
+                  ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT
+                  ,NVL(SUM(B.INDV_RSK_VALT_PNT),0) AS INDV_RSK_VALT_PNT  
+                  ,NVL(SUM(B.INDV_RSK_GD),1) AS INDV_RSK_GD               
+                  ,NVL(SUM(B.MOFC_TONGJE_VALT_PNT),0) AS MOFC_TONGJE_VALT_PNT   
+                  ,NVL(SUM(B.MOFC_TONGJE_GD),1) AS MOFC_TONGJE_GD               
+              FROM RBA_RSK_M A
+                 , RBA_IRSK_VALT_I B
+                   LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                     ON B.RSK_NO = C.RSK_NO
+                    AND B.VALT_TRN = C.VALT_TRN
+                    AND B.VALT_SER = C.VALT_SER             
+                 , VALT_SCHD Z   
+             WHERE A.RSK_NO = B.RSK_NO       
+               AND A.LST_VALT_TRN = B.VALT_TRN
+               AND A.LST_VALT_SER = B.VALT_SER
+               /* 현재회차 평가건 또는 이전회차 개신진행중 */
+               <![CDATA[ 
+               AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+               ]]> 
+               AND RSK_B_C = 'I'
+               AND A.USYN = '1'
+               AND A.GYLJ_DT IS NOT NULL  
+            <if test="RSK_G_C != null and RSK_G_C != '' ">
+               AND A.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+            </if>  
+            <if test="RSK_FLD_C != null and RSK_FLD_C != '' ">
+			   AND A.RSK_FLD_C = #{RSK_FLD_C,jdbcType=VARCHAR}
+			</if>
+			<if test="RSK_BUMUN_C != null and RSK_BUMUN_C != '' ">
+			   AND A.RSK_BUMUN_C = #{RSK_BUMUN_C,jdbcType=VARCHAR}
+			</if>                          
+               AND B.VALT_JINHG_S_C IN ('2','9')
+              ) BB 
+          ) CC 
+         ) FF, 
+         (
+         SELECT TRSK_T_CNT                                                                                
+          ,DECODE(TRSK_VALT_CNT, 0, 0,  ROUND(KRI_RSK_VALT_PNT / TRSK_VALT_CNT,2))  AS AVG_TRSK_SCORE  
+          ,DECODE(TRSK_VALT_CNT, 0, 0,  ROUND(KRI_RSK_GD / TRSK_VALT_CNT, 0))       AS AVG_TRSK_GD               
+          ,DECODE(TRSK_VALT_CNT, 0, 0,  ROUND(TONGJE_VALT_PNT / TRSK_VALT_CNT,2))   AS AVG_TTONGJE_SCORE 
+          ,DECODE(TRSK_VALT_CNT, 0, 0,  ROUND(TONGJE_GD / TRSK_VALT_CNT, 0))        AS AVG_TTONGJE_GD          
+              FROM
+               (
+                SELECT SUM(TRSK_T_CNT)           AS TRSK_T_CNT 
+                      ,SUM(TRSK_VALT_CNT)        AS TRSK_VALT_CNT          
+                      ,SUM(KRI_RSK_VALT_PNT)     AS KRI_RSK_VALT_PNT          
+                      ,SUM(KRI_RSK_GD)           AS KRI_RSK_GD          
+                      ,SUM(TONGJE_VALT_PNT)      AS TONGJE_VALT_PNT          
+                      ,SUM(TONGJE_GD)            AS TONGJE_GD          
+                  FROM
+                   ( 
+                    SELECT COUNT(RSK_NO) AS TRSK_T_CNT                    
+                          ,0             AS TRSK_VALT_CNT                   
+                          ,0             AS KRI_RSK_VALT_PNT
+                          ,0             AS KRI_RSK_GD
+                          ,0             AS TONGJE_VALT_PNT
+                          ,0             AS TONGJE_GD              
+                      FROM RBA_RSK_M X
+                     WHERE X.RSK_B_C = 'T'
+                       AND X.USYN = 1
+                       AND X.GYLJ_DT IS NOT NULL 
+                      <if test="RSK_G_C != null and RSK_G_C != '' ">
+                       AND X.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+                      </if>
+                      <if test="RSK_FLD_C != null and RSK_FLD_C != '' ">
+					   AND X.RSK_FLD_C = #{RSK_FLD_C,jdbcType=VARCHAR}
+					  </if>
+					  <if test="RSK_BUMUN_C != null and RSK_BUMUN_C != '' ">
+					   AND X.RSK_BUMUN_C = #{RSK_BUMUN_C,jdbcType=VARCHAR}
+					  </if>   
+                    UNION ALL    
+                    SELECT 0 AS TRSK_T_CTN
+                          ,COUNT(B.RSK_NO) AS TRSK_VALT_CNT
+                          ,NVL(SUM(B.KRI_UNTY_RSK_VALT_PNT),0) AS KRI_RSK_VALT_PNT      
+                          ,NVL(SUM(B.KRI_UNTY_RSK_GD),0) AS KRI_RSK_GD                 
+                          ,NVL(SUM(B.LST_TONGJE_VALT_PNT),0) AS TONGJE_VALT_PNT        
+                          ,NVL(SUM(B.LST_TONGJE_VALT_GD),0) AS TONGJE_GD                         
+                      FROM RBA_RSK_M A
+                         , RBA_TRSK_VALT_I B
+                         , VALT_SCHD Z                
+                     WHERE A.RSK_NO = B.RSK_NO       
+                       AND A.LST_VALT_TRN = B.VALT_TRN
+                       AND A.LST_VALT_SER = B.VALT_SER
+                       /* 통합위험 현재회차에서만 구함. */
+                       AND A.LST_VALT_TRN = Z.VALT_TRN
+                       AND A.RSK_B_C = 'T'
+                       AND A.USYN = '1'
+                       AND A.MNG_BRNO = '9999'  
+                       AND A.GYLJ_DT IS NOT NULL  
+                       <if test="RSK_G_C != null and RSK_G_C != '' ">
+                       AND A.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+                       </if>
+                       <if test="RSK_FLD_C != null and RSK_FLD_C != '' ">
+					   AND A.RSK_FLD_C = #{RSK_FLD_C,jdbcType=VARCHAR}
+					   </if>
+					   <if test="RSK_BUMUN_C != null and RSK_BUMUN_C != '' ">
+					   AND A.RSK_BUMUN_C = #{RSK_BUMUN_C,jdbcType=VARCHAR}
+					   </if>                
+                       AND B.VALT_JINHG_S_C IN ('2','9')   
+                    ) DD            
+                  ) EE
+           ) GG 
+     )
+</select> 
+<select id="RBA_10_06_01_01_getSearch05" parameterType="hashMap" resultType="DataObj">
+
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+       <![CDATA[ 
+      WHERE  VALT_TRN > 0
+      ]]>
+        AND VALT_G = '1'
+        <![CDATA[ 
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+         ]]>
+)
+SELECT IRSK_T_CNT AS C01 
+      ,IRSK_VALT_CNT AS C02
+      ,IRSK_IMPRV_CNT1 AS C03
+      ,IRSK_IMPRV_CNT2 AS C04
+      ,IRSK_IMPRV_CNT3 AS C05
+      ,I_IMPRV_CNT1 AS C06
+      ,I_IMPRV_CNT2 AS C07
+      ,I_IMPRV_CNT3 AS C08
+      ,DECODE(I_IMPRV_CNT3, 0, 0, ROUND(I_IMPRV_CNT3/(IRSK_IMPRV_CNT1 + IRSK_IMPRV_CNT2 + IRSK_IMPRV_CNT3 )  * 100, 2))  || ' %' AS C09  -- 개선완료율
+      
+  FROM
+   (
+    SELECT SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_IMPRV_CNT1)  AS IRSK_IMPRV_CNT1          
+          ,SUM(IRSK_IMPRV_CNT2)  AS IRSK_IMPRV_CNT2
+          ,SUM(IRSK_IMPRV_CNT3)  AS IRSK_IMPRV_CNT3
+          ,SUM(I_IMPRV_CNT1)     AS I_IMPRV_CNT1          
+          ,SUM(I_IMPRV_CNT2)     AS I_IMPRV_CNT2          
+          ,SUM(I_IMPRV_CNT3)     AS I_IMPRV_CNT3          
+      FROM
+       ( 
+        SELECT COUNT(RSK_NO) AS IRSK_T_CNT         --등록위험수
+              ,0             AS IRSK_VALT_CNT      --위험평가건수
+              ,0             AS IRSK_IMPRV_CNT1    --통합개선건수 
+              ,0             AS IRSK_IMPRV_CNT2    --설계개선건수
+              ,0             AS IRSK_IMPRV_CNT3    --운영개선건수
+              ,0             AS I_IMPRV_CNT1    --개선계획건수      
+              ,0             AS I_IMPRV_CNT2    --개선활동건수
+              ,0             AS I_IMPRV_CNT3    --개선완료
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+        
+ 	<if test="MNG_BRNO != null and MNG_BRNO != '' and MNG_BRNO != '999'">  
+     AND X.MNG_BRNO = #{MNG_BRNO,jdbcType=VARCHAR}
+	</if>
+        UNION ALL
+        SELECT 0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT             --
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 3, 1, 0)),0) AS IRSK_IMPRV_CNT1   --통합개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 1, 1, 0)),0) AS IRSK_IMPRV_CNT2   --설계개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 2, 1, 0)),0) AS IRSK_IMPRV_CNT2   --운영개선
+              <![CDATA[ 
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C < '3' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT1 -- 개선계획
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '3'  AND C.IMPRV_PROC_APRV_S_C < '7'  THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT2 -- 개선활동
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '7' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT3 -- 개선완료
+          		]]>
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+            <![CDATA[ 
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           ]]>
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인
+         <if test="MNG_BRNO != null and MNG_BRNO != '' and MNG_BRNO != '999'">  
+	       AND B.MNG_BRNO = #{MNG_BRNO,jdbcType=VARCHAR}
+		 </if>
+          ) BB           
+      ) CC
+</select>
+<select id="RBA_10_06_01_01_getSearch06" parameterType="hashMap" resultType="DataObj">
+<![CDATA[ 
+SELECT C11, C12, C13, C14, C15, C16, C17, C18, C19, C21, C22, C23, C24, C25, C26, C27, C28, C29
+       ,C31, C32, C33, C34, C35, C36, C37, C38, C39, C41, C42, C43, C44, C45, C46, C47, C48, C49
+       ,C51, C52, C53, C54, C55, C56, C57, C58, C59, C61, C62, C63, C64, C65, C66, C67, C68, C69
+  FROM
+  (
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+      WHERE  VALT_TRN > 0
+        AND VALT_G = '1'
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+)
+SELECT IRSK_T_CNT AS C11 
+      ,IRSK_VALT_CNT AS C12
+      ,IRSK_IMPRV_CNT1 AS C13
+      ,IRSK_IMPRV_CNT2 AS C14
+      ,IRSK_IMPRV_CNT3 AS C15
+      ,I_IMPRV_CNT1 AS C16
+      ,I_IMPRV_CNT2 AS C17
+      ,I_IMPRV_CNT3 AS C18
+      ,DECODE(I_IMPRV_CNT3, 0, 0, ROUND(I_IMPRV_CNT3 / (IRSK_IMPRV_CNT1 + IRSK_IMPRV_CNT2 + IRSK_IMPRV_CNT3 )  * 100, 2))  || ' %' AS C19  -- 개선완료율
+      
+  FROM
+   (
+    SELECT SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_IMPRV_CNT1)  AS IRSK_IMPRV_CNT1          
+          ,SUM(IRSK_IMPRV_CNT2)  AS IRSK_IMPRV_CNT2
+          ,SUM(IRSK_IMPRV_CNT3)  AS IRSK_IMPRV_CNT3
+          ,SUM(I_IMPRV_CNT1)     AS I_IMPRV_CNT1          
+          ,SUM(I_IMPRV_CNT2)     AS I_IMPRV_CNT2          
+          ,SUM(I_IMPRV_CNT3)     AS I_IMPRV_CNT3          
+      FROM
+       ( 
+        SELECT COUNT(RSK_NO) AS IRSK_T_CNT         --등록위험수
+              ,0             AS IRSK_VALT_CNT      --위험평가건수
+              ,0             AS IRSK_IMPRV_CNT1    --통합개선건수 
+              ,0             AS IRSK_IMPRV_CNT2    --설계개선건수
+              ,0             AS IRSK_IMPRV_CNT3    --운영개선건수
+              ,0             AS I_IMPRV_CNT1    --개선계획건수      
+              ,0             AS I_IMPRV_CNT2    --개선활동건수
+              ,0             AS I_IMPRV_CNT3    --개선완료
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+           AND X.RSK_G_C='1'
+        UNION ALL
+        SELECT 0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT             --
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 3, 1, 0)),0) AS IRSK_IMPRV_CNT1   --통합개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 1, 1, 0)),0) AS IRSK_IMPRV_CNT2   --설계개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 2, 1, 0)),0) AS IRSK_IMPRV_CNT2   --운영개선
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C < '3' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT1 -- 개선계획
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '3'  AND C.IMPRV_PROC_APRV_S_C < '7'  THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT2 -- 개선활동
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '7' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT3 -- 개선완료
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND A.RSK_G_C='1'
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인
+          ) BB           
+      ) CC)UU,
+       (
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+      WHERE  VALT_TRN > 0
+        AND VALT_G = '1'
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+)
+SELECT IRSK_T_CNT AS C21 
+      ,IRSK_VALT_CNT AS C22
+      ,IRSK_IMPRV_CNT1 AS C23
+      ,IRSK_IMPRV_CNT2 AS C24
+      ,IRSK_IMPRV_CNT3 AS C25
+      ,I_IMPRV_CNT1 AS C26
+      ,I_IMPRV_CNT2 AS C27
+      ,I_IMPRV_CNT3 AS C28
+      ,DECODE(I_IMPRV_CNT3, 0, 0, ROUND(I_IMPRV_CNT3 /(IRSK_IMPRV_CNT1 + IRSK_IMPRV_CNT2 + IRSK_IMPRV_CNT3 )  * 100, 2))  || ' %' AS C29  -- 개선완료율
+      
+  FROM
+   (
+    SELECT SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_IMPRV_CNT1)  AS IRSK_IMPRV_CNT1          
+          ,SUM(IRSK_IMPRV_CNT2)  AS IRSK_IMPRV_CNT2
+          ,SUM(IRSK_IMPRV_CNT3)  AS IRSK_IMPRV_CNT3
+          ,SUM(I_IMPRV_CNT1)     AS I_IMPRV_CNT1          
+          ,SUM(I_IMPRV_CNT2)     AS I_IMPRV_CNT2          
+          ,SUM(I_IMPRV_CNT3)     AS I_IMPRV_CNT3          
+      FROM
+       ( 
+        SELECT COUNT(RSK_NO) AS IRSK_T_CNT         --등록위험수
+              ,0             AS IRSK_VALT_CNT      --위험평가건수
+              ,0             AS IRSK_IMPRV_CNT1    --통합개선건수 
+              ,0             AS IRSK_IMPRV_CNT2    --설계개선건수
+              ,0             AS IRSK_IMPRV_CNT3    --운영개선건수
+              ,0             AS I_IMPRV_CNT1    --개선계획건수      
+              ,0             AS I_IMPRV_CNT2    --개선활동건수
+              ,0             AS I_IMPRV_CNT3    --개선완료
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+           AND X.RSK_G_C='2'
+        UNION ALL
+        SELECT 0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT             --
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 3, 1, 0)),0) AS IRSK_IMPRV_CNT1   --통합개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 1, 1, 0)),0) AS IRSK_IMPRV_CNT2   --설계개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 2, 1, 0)),0) AS IRSK_IMPRV_CNT2   --운영개선
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C < '3' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT1 -- 개선계획
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '3'  AND C.IMPRV_PROC_APRV_S_C < '7'  THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT2 -- 개선활동
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '7' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT3 -- 개선완료
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND A.RSK_G_C='2'
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인
+          ) BB           
+      ) CC)VV,
+      (
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+      WHERE  VALT_TRN > 0
+        AND VALT_G = '1'
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+)
+SELECT IRSK_T_CNT AS C31 
+      ,IRSK_VALT_CNT AS C32
+      ,IRSK_IMPRV_CNT1 AS C33
+      ,IRSK_IMPRV_CNT2 AS C34
+      ,IRSK_IMPRV_CNT3 AS C35
+      ,I_IMPRV_CNT1 AS C36
+      ,I_IMPRV_CNT2 AS C37
+      ,I_IMPRV_CNT3 AS C38
+      ,DECODE(I_IMPRV_CNT3, 0, 0, ROUND(I_IMPRV_CNT3/(IRSK_IMPRV_CNT1 + IRSK_IMPRV_CNT2 + IRSK_IMPRV_CNT3 )  * 100, 2))  || ' %' AS C39  -- 개선완료율
+      
+  FROM
+   (
+    SELECT SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_IMPRV_CNT1)  AS IRSK_IMPRV_CNT1          
+          ,SUM(IRSK_IMPRV_CNT2)  AS IRSK_IMPRV_CNT2
+          ,SUM(IRSK_IMPRV_CNT3)  AS IRSK_IMPRV_CNT3
+          ,SUM(I_IMPRV_CNT1)     AS I_IMPRV_CNT1          
+          ,SUM(I_IMPRV_CNT2)     AS I_IMPRV_CNT2          
+          ,SUM(I_IMPRV_CNT3)     AS I_IMPRV_CNT3          
+      FROM
+       ( 
+        SELECT COUNT(RSK_NO) AS IRSK_T_CNT         --등록위험수
+              ,0             AS IRSK_VALT_CNT      --위험평가건수
+              ,0             AS IRSK_IMPRV_CNT1    --통합개선건수 
+              ,0             AS IRSK_IMPRV_CNT2    --설계개선건수
+              ,0             AS IRSK_IMPRV_CNT3    --운영개선건수
+              ,0             AS I_IMPRV_CNT1    --개선계획건수      
+              ,0             AS I_IMPRV_CNT2    --개선활동건수
+              ,0             AS I_IMPRV_CNT3    --개선완료
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+           AND X.RSK_G_C='3'
+        UNION ALL
+        SELECT 0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT             --
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 3, 1, 0)),0) AS IRSK_IMPRV_CNT1   --통합개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 1, 1, 0)),0) AS IRSK_IMPRV_CNT2   --설계개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 2, 1, 0)),0) AS IRSK_IMPRV_CNT2   --운영개선
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C < '3' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT1 -- 개선계획
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '3'  AND C.IMPRV_PROC_APRV_S_C < '7'  THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT2 -- 개선활동
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '7' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT3 -- 개선완료
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND A.RSK_G_C='3'
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인
+          ) BB           
+      ) CC)WW,
+      (
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+      WHERE  VALT_TRN > 0
+        AND VALT_G = '1'
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+)
+SELECT IRSK_T_CNT AS C41 
+      ,IRSK_VALT_CNT AS C42
+      ,IRSK_IMPRV_CNT1 AS C43
+      ,IRSK_IMPRV_CNT2 AS C44
+      ,IRSK_IMPRV_CNT3 AS C45
+      ,I_IMPRV_CNT1 AS C46
+      ,I_IMPRV_CNT2 AS C47
+      ,I_IMPRV_CNT3 AS C48
+      ,DECODE(I_IMPRV_CNT3, 0, 0, ROUND(I_IMPRV_CNT3/(IRSK_IMPRV_CNT1 + IRSK_IMPRV_CNT2 + IRSK_IMPRV_CNT3 )  * 100, 2))  || ' %' AS C49  -- 개선완료율
+      
+  FROM
+   (
+    SELECT SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_IMPRV_CNT1)  AS IRSK_IMPRV_CNT1          
+          ,SUM(IRSK_IMPRV_CNT2)  AS IRSK_IMPRV_CNT2
+          ,SUM(IRSK_IMPRV_CNT3)  AS IRSK_IMPRV_CNT3
+          ,SUM(I_IMPRV_CNT1)     AS I_IMPRV_CNT1          
+          ,SUM(I_IMPRV_CNT2)     AS I_IMPRV_CNT2          
+          ,SUM(I_IMPRV_CNT3)     AS I_IMPRV_CNT3          
+      FROM
+       ( 
+        SELECT COUNT(RSK_NO) AS IRSK_T_CNT         --등록위험수
+              ,0             AS IRSK_VALT_CNT      --위험평가건수
+              ,0             AS IRSK_IMPRV_CNT1    --통합개선건수 
+              ,0             AS IRSK_IMPRV_CNT2    --설계개선건수
+              ,0             AS IRSK_IMPRV_CNT3    --운영개선건수
+              ,0             AS I_IMPRV_CNT1    --개선계획건수      
+              ,0             AS I_IMPRV_CNT2    --개선활동건수
+              ,0             AS I_IMPRV_CNT3    --개선완료
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+           AND X.RSK_G_C='4'
+        UNION ALL
+        SELECT 0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT             --
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 3, 1, 0)),0) AS IRSK_IMPRV_CNT1   --통합개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 1, 1, 0)),0) AS IRSK_IMPRV_CNT2   --설계개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 2, 1, 0)),0) AS IRSK_IMPRV_CNT2   --운영개선
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C < '3' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT1 -- 개선계획
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '3'  AND C.IMPRV_PROC_APRV_S_C < '7'  THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT2 -- 개선활동
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '7' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT3 -- 개선완료
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND A.RSK_G_C='4'
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인
+          ) BB           
+      ) CC)XX,
+      (
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+      WHERE  VALT_TRN > 0
+        AND VALT_G = '1'
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+)
+SELECT IRSK_T_CNT AS C51 
+      ,IRSK_VALT_CNT AS C52
+      ,IRSK_IMPRV_CNT1 AS C53
+      ,IRSK_IMPRV_CNT2 AS C54
+      ,IRSK_IMPRV_CNT3 AS C55
+      ,I_IMPRV_CNT1 AS C56
+      ,I_IMPRV_CNT2 AS C57
+      ,I_IMPRV_CNT3 AS C58
+      ,DECODE(I_IMPRV_CNT3, 0, 0, ROUND(I_IMPRV_CNT3/(IRSK_IMPRV_CNT1 + IRSK_IMPRV_CNT2 + IRSK_IMPRV_CNT3 )  * 100, 2))  || ' %' AS C59  -- 개선완료율
+      
+  FROM
+   (
+    SELECT SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_IMPRV_CNT1)  AS IRSK_IMPRV_CNT1          
+          ,SUM(IRSK_IMPRV_CNT2)  AS IRSK_IMPRV_CNT2
+          ,SUM(IRSK_IMPRV_CNT3)  AS IRSK_IMPRV_CNT3
+          ,SUM(I_IMPRV_CNT1)     AS I_IMPRV_CNT1          
+          ,SUM(I_IMPRV_CNT2)     AS I_IMPRV_CNT2          
+          ,SUM(I_IMPRV_CNT3)     AS I_IMPRV_CNT3          
+      FROM
+       ( 
+        SELECT COUNT(RSK_NO) AS IRSK_T_CNT         --등록위험수
+              ,0             AS IRSK_VALT_CNT      --위험평가건수
+              ,0             AS IRSK_IMPRV_CNT1    --통합개선건수 
+              ,0             AS IRSK_IMPRV_CNT2    --설계개선건수
+              ,0             AS IRSK_IMPRV_CNT3    --운영개선건수
+              ,0             AS I_IMPRV_CNT1    --개선계획건수      
+              ,0             AS I_IMPRV_CNT2    --개선활동건수
+              ,0             AS I_IMPRV_CNT3    --개선완료
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+           AND X.RSK_G_C='5'
+        UNION ALL
+        SELECT 0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT             --
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 3, 1, 0)),0) AS IRSK_IMPRV_CNT1   --통합개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 1, 1, 0)),0) AS IRSK_IMPRV_CNT2   --설계개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 2, 1, 0)),0) AS IRSK_IMPRV_CNT2   --운영개선
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C < '3' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT1 -- 개선계획
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '3'  AND C.IMPRV_PROC_APRV_S_C < '7'  THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT2 -- 개선활동
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '7' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT3 -- 개선완료
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND A.RSK_G_C='5'
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인
+          ) BB           
+      ) CC)YY,
+      (
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+      WHERE  VALT_TRN > 0
+        AND VALT_G = '1'
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+)
+SELECT IRSK_T_CNT AS C61 
+      ,IRSK_VALT_CNT AS C62
+      ,IRSK_IMPRV_CNT1 AS C63
+      ,IRSK_IMPRV_CNT2 AS C64
+      ,IRSK_IMPRV_CNT3 AS C65
+      ,I_IMPRV_CNT1 AS C66
+      ,I_IMPRV_CNT2 AS C67
+      ,I_IMPRV_CNT3 AS C68
+      ,DECODE(I_IMPRV_CNT3, 0, 0, ROUND(I_IMPRV_CNT3/(IRSK_IMPRV_CNT1 + IRSK_IMPRV_CNT2 + IRSK_IMPRV_CNT3 ) * 100, 2))  || ' %' AS C69  -- 개선완료율
+      
+  FROM
+   (
+    SELECT SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_IMPRV_CNT1)  AS IRSK_IMPRV_CNT1          
+          ,SUM(IRSK_IMPRV_CNT2)  AS IRSK_IMPRV_CNT2
+          ,SUM(IRSK_IMPRV_CNT3)  AS IRSK_IMPRV_CNT3
+          ,SUM(I_IMPRV_CNT1)     AS I_IMPRV_CNT1          
+          ,SUM(I_IMPRV_CNT2)     AS I_IMPRV_CNT2          
+          ,SUM(I_IMPRV_CNT3)     AS I_IMPRV_CNT3          
+      FROM
+       ( 
+        SELECT COUNT(RSK_NO) AS IRSK_T_CNT         --등록위험수
+              ,0             AS IRSK_VALT_CNT      --위험평가건수
+              ,0             AS IRSK_IMPRV_CNT1    --통합개선건수 
+              ,0             AS IRSK_IMPRV_CNT2    --설계개선건수
+              ,0             AS IRSK_IMPRV_CNT3    --운영개선건수
+              ,0             AS I_IMPRV_CNT1    --개선계획건수      
+              ,0             AS I_IMPRV_CNT2    --개선활동건수
+              ,0             AS I_IMPRV_CNT3    --개선완료
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+           AND X.RSK_G_C='7'
+        UNION ALL
+        SELECT 0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT             --
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 3, 1, 0)),0) AS IRSK_IMPRV_CNT1   --통합개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 1, 1, 0)),0) AS IRSK_IMPRV_CNT2   --설계개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 2, 1, 0)),0) AS IRSK_IMPRV_CNT2   --운영개선
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C < '3' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT1 -- 개선계획
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '3'  AND C.IMPRV_PROC_APRV_S_C < '7'  THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT2 -- 개선활동
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '7' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT3 -- 개선완료
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND A.RSK_G_C='7'
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인
+          ) BB           
+      ) CC)ZZ
+]]> 
+</select>
+<select id="RBA_10_06_01_01_getSearch07" parameterType="hashMap" resultType="DataObj">
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+       <![CDATA[ 
+      WHERE  VALT_TRN > 0 
+        AND VALT_G = '1'
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+        ]]> 
+)  
+SELECT C71 
+      ,C72
+      ,C73
+      ,C74
+      ,C75
+      ,C76
+      ,C77
+      ,C78
+      ,C79
+      ,C80  -- 개선완료율
+      
+  FROM
+   (
+SELECT TRSK_T_CNT         AS C71 
+      ,KRI_CNT            AS C72
+      ,KCI_CNT            AS C73
+      ,IMPRV_BRNO_CNT     AS C74
+      ,IMPRV_KCI_CNT      AS C75
+      ,IMPRV_BRNO_KCI_CNT AS C76
+      ,T_IMPRV_CNT1       AS C77
+      ,T_IMPRV_CNT2       AS C78
+      ,T_IMPRV_CNT3       AS C79
+      ,DECODE(T_IMPRV_CNT3, 0, 0, ROUND(T_IMPRV_CNT3/IMPRV_BRNO_KCI_CNT * 100, 2))  || ' %' AS C80  -- 개선완료율
+      
+  FROM
+   (
+    SELECT SUM(TRSK_T_CNT)       AS TRSK_T_CNT 
+          ,SUM(KRI_CNT)          AS KRI_CNT          
+          ,SUM(KCI_CNT)          AS KCI_CNT          
+          ,SUM(IMPRV_BRNO_CNT)   AS IMPRV_BRNO_CNT
+          ,SUM(IMPRV_KCI_CNT)    AS IMPRV_KCI_CNT
+          ,SUM(IMPRV_BRNO_KCI_CNT)  AS IMPRV_BRNO_KCI_CNT
+          ,SUM(T_IMPRV_CNT1)     AS T_IMPRV_CNT1          
+          ,SUM(T_IMPRV_CNT2)     AS T_IMPRV_CNT2          
+          ,SUM(T_IMPRV_CNT3)     AS T_IMPRV_CNT3          
+      FROM
+       ( 
+        SELECT COUNT(DISTINCT X.RSK_NO)   AS TRSK_T_CNT                    --등록위험수
+              ,COUNT(DISTINCT KRI.KRI_NO) AS KRI_CNT                       --적용KRI수  
+              ,COUNT(DISTINCT KCI.KCI_NO) AS KCI_CNT                       --적용KCI수
+              ,0                          AS IMPRV_BRNO_CNT                --개선영업점수 
+              ,0                          AS IMPRV_KCI_CNT                 --개선KCI수
+              ,0                          AS IMPRV_BRNO_KCI_CNT            --개선KCI영업점합계수 
+              ,0                          AS T_IMPRV_CNT1                  --개선계획수 
+              ,0                          AS T_IMPRV_CNT2                  --개선활동수 
+              ,0                          AS T_IMPRV_CNT3                  --개선완료수 
+          FROM RBA_RSK_M X  
+               LEFT JOIN RBA_RSK_KRI_MP KRI
+               ON X.RSK_NO = KRI.RSK_NO
+               LEFT JOIN RBA_RSK_KCI_MP KCI
+               ON X.RSK_NO = KCI.RSK_NO
+         WHERE X.RSK_B_C = 'T'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+          <if test="MNG_BRNO != null and MNG_BRNO != '' and MNG_BRNO != '999'">  
+	       AND X.MNG_BRNO = #{MNG_BRNO,jdbcType=VARCHAR}
+		  </if>  		    
+        UNION ALL    
+        SELECT 0 AS TRSK_T_CNT
+              ,0 AS KRI_CNT
+              ,0 AS KCI_CNT
+              ,COUNT(DISTINCT C.MNG_BRNO) AS IMPRV_BRNO_CNT
+              ,COUNT(DISTINCT C.KCI_NO)   AS IMPRV_KCI_CNT                 --개선KCI수
+              ,COUNT(C.KCI_NO)            AS IMPRV_BRNO_KCI_CNT            --개선KCI영업점합계수 
+              <![CDATA[ 
+              ,NVL(SUM(CASE WHEN C.IMPRV_K_C > '0' AND D.IMPRV_PROC_APRV_S_C < '3' THEN 1 ELSE 0 END),0) AS T_IMPRV_CNT1 -- 개선계획
+              ,NVL(SUM(CASE WHEN C.IMPRV_K_C > '0' AND D.IMPRV_PROC_APRV_S_C >= '3'  AND D.IMPRV_PROC_APRV_S_C < '7'  THEN 1 ELSE 0 END),0) AS T_IMPRV_CNT2 -- 개선활동
+              ,NVL(SUM(CASE WHEN C.IMPRV_K_C > '0' AND D.IMPRV_PROC_APRV_S_C >= '7' THEN 1 ELSE 0 END),0) AS T_IMPRV_CNT3 -- 개선완료              
+              ]]>
+          FROM RBA_RSK_M A
+             , RBA_TRSK_VALT_I B
+               LEFT JOIN RBA_TRSK_KCI_VALT_D C   -- 통합위험_KCI_평가상세
+               ON B.RSK_NO = C.RSK_NO
+               AND B.VALT_TRN = C.VALT_TRN
+               AND B.VALT_SER = C.VALT_SER
+               AND B.MNG_BRNO = C.MNG_BRNO 
+               <![CDATA[ 
+               AND C.IMPRV_K_C > '0'             --개선건만
+               ]]>
+               LEFT OUTER JOIN RBA_KCI_IMPRV_V_I D    --KCI 개선내역
+                 ON C.RSK_NO = D.RSK_NO
+                AND C.VALT_TRN = D.VALT_TRN
+                AND C.VALT_SER = D.VALT_SER
+                AND C.MNG_BRNO = D.MNG_BRNO                 
+             , VALT_SCHD Z                
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 통합위험 현재회차에서만 구함. */
+           AND A.LST_VALT_TRN = Z.VALT_TRN
+           AND A.RSK_B_C = 'T'
+           AND A.USYN = '1'
+           AND B.MNG_BRNO != '9999'   -- 공통
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인 
+         <if test="MNG_BRNO != null and MNG_BRNO != '' and MNG_BRNO != '999'">  
+	       AND B.MNG_BRNO = #{MNG_BRNO,jdbcType=VARCHAR}
+		 </if>		 
+          ) BB           
+      ) CC
+    )DD
+       WHERE 1=1
+          <if test="CCD == '20%'">
+           <![CDATA[ 
+           AND C80 <='20%'  
+           ]]>
+          </if>
+           <if test="CCD == '40%'">
+           <![CDATA[ 
+           AND  C80 > '20%'  AND C80 <='40%'   
+           ]]>
+          </if>
+           <if test="CCD == '60%'">
+           <![CDATA[ 
+           AND  C80 > '40%'  AND C80 <='60%'    
+           ]]>
+          </if>
+           <if test="CCD == '80%'">
+           <![CDATA[ 
+           AND  C80 > '60%'  AND C80 <='80%'   
+           ]]>
+          </if>
+           <if test="CCD == '100%'">
+           <![CDATA[ 
+           AND  C80 > '80%'  AND C80 <='100%'    
+           ]]>
+          </if>
+</select>
+<select id="RBA_10_06_02_01_getSearch01" parameterType="hashMap" resultType="DataObj">
+<![CDATA[ 
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+      WHERE  VALT_TRN > 0
+        AND VALT_G = '1'
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+)
+SELECT MNG_BRNO, MNG_BRNO_NM, GET_LOGINID_NAME(MNGR_JKW_NO) AS MNGR_JKW_NO
+      ,CC.IRSK_T_CNT                                                                                -- 위험수
+      ,CC.IRSK_VALT_CNT                                                                             -- 평가위험수
+      ,DECODE(CC.IRSK_T_CNT, 0, 0, ROUND(CC.IRSK_VALT_CNT/CC.IRSK_T_CNT * 100, 2)) AS IRSK_VALT_RT  -- 평가율
+      ,CC.IRSK_H_CNT || '(' ||
+         DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_H_CNT/CC.IRSK_VALT_CNT * 100, 2))  || '%) ' AS IRSK_H_CNT  -- 고위험수
+      ,CC.IRSK_IMPRV_CNT || '(' ||
+         DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_IMPRV_CNT/CC.IRSK_VALT_CNT * 100, 2))  || '%) ' AS IRSK_IMPRV_CNT   -- 개선대상수
+  FROM
+   (
+    SELECT BB.MNG_BRNO
+          ,BB.MNGR_JKW_NO
+          ,FN_CDINFO_VAR('DPT', BB.MNG_BRNO, '') AS MNG_BRNO_NM
+          ,SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_H_CNT)       AS IRSK_H_CNT          
+          ,SUM(IRSK_IMPRV_CNT)   AS IRSK_IMPRV_CNT          
+      FROM
+       ( 
+        SELECT X.MNG_BRNO
+              ,X.MNGR_JKW_NO
+              ,COUNT(RSK_NO) AS IRSK_T_CNT
+              ,0             AS IRSK_VALT_CNT
+              ,0             AS IRSK_H_CNT
+              ,0             AS IRSK_IMPRV_CNT
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.MNG_BRNO ! = '9999'
+        GROUP BY X.MNG_BRNO, X.MNGR_JKW_NO           
+        UNION ALL
+        SELECT A.MNG_BRNO
+              ,A.MNGR_JKW_NO
+              ,0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT 
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 4, 1, 0)),0) AS IRSK_H_CNT           -- 고위험수 (잔여위험4등급)
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' THEN 1 ELSE 0 END),0) AS IRSK_IMPRV_CNT -- 개선추출
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+          GROUP BY A.MNG_BRNO, A.MNGR_JKW_NO          
+          ) BB
+          GROUP BY MNG_BRNO, MNGR_JKW_NO
+       ) CC
+]]> 
+</select>
+<select id="RBA_10_06_02_01_getSearch02" parameterType="hashMap" resultType="DataObj">
+<![CDATA[ 
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+      WHERE  VALT_TRN > 0
+        AND VALT_G = '1'
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+)
+SELECT '위험별' AS GUBUN 
+      ,RSK_G_C, RSK_G_C_NM
+      ,CC.IRSK_T_CNT                                                                                -- 위험수
+      ,CC.IRSK_VALT_CNT                                                                             -- 평가위험수
+      ,DECODE(CC.IRSK_T_CNT, 0, 0, ROUND(CC.IRSK_VALT_CNT/CC.IRSK_T_CNT * 100, 2)) AS IRSK_VALT_RT  -- 평가율
+      ,CC.IRSK_H_CNT || '(' ||
+         DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_H_CNT/CC.IRSK_VALT_CNT * 100, 2))  || '%) ' AS IRSK_H_CNT  -- 고위험수
+      ,CC.IRSK_IMPRV_CNT || '(' ||
+         DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_IMPRV_CNT/CC.IRSK_VALT_CNT * 100, 2))  || '%) ' AS IRSK_IMPRV_CNT   -- 개선대상수
+  FROM
+   (
+    SELECT BB.RSK_G_C
+          ,GET_RBA_RSK_NAME('RSK_G', BB.RSK_G_C) AS RSK_G_C_NM 
+          ,SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_H_CNT)       AS IRSK_H_CNT          
+          ,SUM(IRSK_IMPRV_CNT)   AS IRSK_IMPRV_CNT          
+      FROM
+       ( 
+        SELECT X.RSK_G_C ,
+               COUNT(RSK_NO) AS IRSK_T_CNT
+              ,0             AS IRSK_VALT_CNT
+              ,0             AS IRSK_H_CNT
+              ,0             AS IRSK_IMPRV_CNT
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+        GROUP BY X.RSK_G_C           
+        UNION ALL
+        SELECT A.RSK_G_C
+              ,0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT 
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 4, 1, 0)),0) AS IRSK_H_CNT           -- 고위험수 (잔여위험4등급)
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' THEN 1 ELSE 0 END),0) AS IRSK_IMPRV_CNT -- 개선추출
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'                  
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인
+        GROUP BY A.RSK_G_C    
+          ) BB
+          GROUP BY RSK_G_C
+          ORDER BY RSK_G_C
+       ) CC
+       
+       UNION        
+       
+       
+  ---구분별  (영역)  ,A.RSK_FLD_C, GET_RBA_RSK_NAME('RSK_F', A.RSK_FLD_C) AS RSK_FLD_C_NM (정보보안부분확인필요)
+        
+
+SELECT '구분별' AS GUBUN 
+      ,RSK_FLD_C AS RSK_G_C, RSK_FLD_C_NM AS RSK_G_C_NM
+      ,CC.IRSK_T_CNT                                                                                -- 위험수
+      ,CC.IRSK_VALT_CNT                                                                             -- 평가위험수
+      ,DECODE(CC.IRSK_T_CNT, 0, 0, ROUND(CC.IRSK_VALT_CNT/CC.IRSK_T_CNT * 100, 2)) AS IRSK_VALT_RT  -- 평가율
+      ,CC.IRSK_H_CNT || '(' ||
+         DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_H_CNT/CC.IRSK_VALT_CNT * 100, 2))  || '%) ' AS IRSK_H_CNT  -- 고위험수
+      ,CC.IRSK_IMPRV_CNT || '(' ||
+         DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_IMPRV_CNT/CC.IRSK_VALT_CNT * 100, 2))  || '%) ' AS IRSK_IMPRV_CNT   -- 개선대상수
+  FROM
+   (
+    SELECT BB.RSK_FLD_C
+          ,DECODE( BB.RSK_FLD_C, '7', GET_RBA_RSK_NAME('RSK_G', BB.RSK_FLD_C), GET_RBA_RSK_NAME('RSK_F', BB.RSK_FLD_C)) AS RSK_FLD_C_NM
+          ,SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_H_CNT)       AS IRSK_H_CNT          
+          ,SUM(IRSK_IMPRV_CNT)   AS IRSK_IMPRV_CNT          
+      FROM
+       ( 
+        SELECT DECODE(SUBSTR(X.RSK_FLD_C,1,1),'7',SUBSTR(X.RSK_FLD_C,1,1),  X.RSK_FLD_C) AS RSK_FLD_C
+              ,COUNT(RSK_NO) AS IRSK_T_CNT
+              ,0             AS IRSK_VALT_CNT
+              ,0             AS IRSK_H_CNT
+              ,0             AS IRSK_IMPRV_CNT
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+        GROUP BY X.RSK_FLD_C           
+        UNION ALL
+        SELECT DECODE(SUBSTR(A.RSK_FLD_C,1,1),'7', SUBSTR(A.RSK_FLD_C,1,1), A.RSK_FLD_C)  AS RSK_FLD_C
+              ,0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT 
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 4, 1, 0)),0) AS IRSK_H_CNT           -- 고위험수 (잔여위험4등급)
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' THEN 1 ELSE 0 END),0) AS IRSK_IMPRV_CNT -- 개선추출
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+                  
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인
+         GROUP BY A.RSK_FLD_C      
+          ) BB
+          GROUP BY RSK_FLD_C
+          ORDER BY RSK_FLD_C
+       ) CC
+       
+       UNION 
+            
+  ---구분별  (부문)  A.RSK_BUMUN_C, GET_RBA_RSK_NAME('RSK_B', A.RSK_BUMUN_C) AS RSK_BUMUN_C_NM (정보보안부분확인필요)
+
+SELECT '부문별' AS GUBUN  
+      ,RSK_BUMUN_C AS RSK_G_C, RSK_BUMUN_C_NM AS RSK_G_C_NM
+      ,CC.IRSK_T_CNT                                                                                -- 위험수
+      ,CC.IRSK_VALT_CNT                                                                             -- 평가위험수
+      ,DECODE(CC.IRSK_T_CNT, 0, 0, ROUND(CC.IRSK_VALT_CNT/CC.IRSK_T_CNT * 100, 2)) AS IRSK_VALT_RT  -- 평가율
+      ,CC.IRSK_H_CNT || '(' ||
+         DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_H_CNT/CC.IRSK_VALT_CNT * 100, 2))  || '%) ' AS IRSK_H_CNT  -- 고위험수
+      ,CC.IRSK_IMPRV_CNT || '(' ||
+         DECODE(CC.IRSK_VALT_CNT, 0, 0, ROUND(CC.IRSK_IMPRV_CNT/CC.IRSK_VALT_CNT * 100, 2))  || '%) ' AS IRSK_IMPRV_CNT   -- 개선대상수
+  FROM
+   (
+    SELECT BB.RSK_BUMUN_C
+          ,DECODE( BB.RSK_BUMUN_C, '7', GET_RBA_RSK_NAME('RSK_G', BB.RSK_BUMUN_C), GET_RBA_RSK_NAME('RSK_B', BB.RSK_BUMUN_C)) AS RSK_BUMUN_C_NM
+          ,SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_H_CNT)       AS IRSK_H_CNT          
+          ,SUM(IRSK_IMPRV_CNT)   AS IRSK_IMPRV_CNT          
+      FROM
+       ( 
+        SELECT DECODE(SUBSTR(X.RSK_BUMUN_C,1,1),'7',SUBSTR(X.RSK_BUMUN_C,1,1),  X.RSK_BUMUN_C) AS RSK_BUMUN_C
+              ,COUNT(RSK_NO) AS IRSK_T_CNT
+              ,0             AS IRSK_VALT_CNT
+              ,0             AS IRSK_H_CNT
+              ,0             AS IRSK_IMPRV_CNT
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+        GROUP BY X.RSK_BUMUN_C           
+        UNION ALL
+        SELECT DECODE(SUBSTR(A.RSK_BUMUN_C,1,1),'7',SUBSTR(A.RSK_BUMUN_C,1,1),  A.RSK_BUMUN_C) AS RSK_BUMUN_C
+              ,0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT 
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 4, 1, 0)),0) AS IRSK_H_CNT           -- 고위험수 (잔여위험4등급)
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' THEN 1 ELSE 0 END),0) AS IRSK_IMPRV_CNT -- 개선추출
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인
+          GROUP BY A.RSK_BUMUN_C           
+          ) BB
+          GROUP BY RSK_BUMUN_C
+          ORDER BY RSK_BUMUN_C
+       ) CC
+]]> 
+</select>
+<select id="RBA_10_06_03_01_getSearch01" parameterType="hashMap" resultType="DataObj">
+<![CDATA[ 
+-- 영역별
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+      WHERE  VALT_TRN > 0
+        AND VALT_G = '1'
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+)          
+SELECT '영역별' AS GUBUN,RSK_FLD_C, RSK_FLD_C_NM
+      ,CC.TRSK_T_CTN
+      ,CC.TRSK_VALT_CNT 
+      ,DECODE(CC.TRSK_T_CTN, 0, 0, ROUND(CC.TRSK_VALT_CNT/CC.TRSK_T_CTN * 100, 2))  || '% ' AS TRSK_VALT_RT
+      ,CC.TRSK_H_CNT || '(' ||
+         DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK_H_CNT/CC.TRSK_VALT_CNT * 100, 2))  || '%) ' AS TRSK_H_CNT  -- 고위험수
+  FROM (
+        SELECT BB.RSK_FLD_C 
+              ,DECODE( BB.RSK_FLD_C, '7', GET_RBA_RSK_NAME('RSK_G', BB.RSK_FLD_C), GET_RBA_RSK_NAME('RSK_F', BB.RSK_FLD_C)) AS RSK_FLD_C_NM
+        ,SUM(TRSK_T_CTN)       AS TRSK_T_CTN
+              ,SUM(TRSK_VALT_CNT)    AS TRSK_VALT_CNT
+              ,SUM(TRSK_H_CNT)       AS TRSK_H_CNT  
+         FROM   
+        (  
+        SELECT DECODE(SUBSTR(X.RSK_FLD_C,1,1),'7',SUBSTR(X.RSK_FLD_C,1,1),  X.RSK_FLD_C) AS RSK_FLD_C
+              ,COUNT(RSK_NO) AS TRSK_T_CTN                    --등록위험수
+              ,0             AS TRSK_VALT_CNT                 --평가위험수    
+              ,0             AS TRSK_H_CNT                    --고위험수
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'T'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL  
+        GROUP BY X.RSK_FLD_C             
+        UNION ALL    
+  
+        SELECT DECODE(SUBSTR(A.RSK_FLD_C,1,1),'7', SUBSTR(A.RSK_FLD_C,1,1), A.RSK_FLD_C)  AS RSK_FLD_C
+              ,0 AS TRSK_T_CTN
+              ,COUNT(B.RSK_NO) AS TRSK_VALT_CNT
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 4, 1, 0)),0) AS TRSK_H_CNT           -- 고위험수 (잔여위험4등급)
+          FROM RBA_RSK_M A
+             , RBA_TRSK_VALT_I B
+             , VALT_SCHD Z                
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 통합위험 현재회차에서만 구함. */
+           AND A.LST_VALT_TRN = Z.VALT_TRN
+           AND A.RSK_B_C = 'T'
+           AND A.USYN = '1'
+           AND A.MNG_BRNO = '9999'   -- 공통
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인           
+          GROUP BY A.RSK_FLD_C 
+      ) BB
+      GROUP BY RSK_FLD_C 
+      ORDER BY RSK_FLD_C       
+     ) CC
+       
+       UNION        
+       
+       
+  SELECT '구분별' AS GUBUN,CC.RSK_G_C AS RSK_FLD_C
+      ,GET_RBA_RSK_NAME('RSK_G', CC.RSK_G_C) AS RSK_FLD_C_NM 
+      ,CC.TRSK_T_CTN
+      ,CC.TRSK_VALT_CNT 
+      ,DECODE(CC.TRSK_T_CTN, 0, 0, ROUND(CC.TRSK_VALT_CNT/CC.TRSK_T_CTN * 100, 2))  || '% ' AS TRSK_VALT_RT
+      ,CC.TRSK_H_CNT || '(' ||
+         DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK_H_CNT/CC.TRSK_VALT_CNT * 100, 2))  || '%) ' AS TRSK_H_CNT  -- 고위험수
+  FROM (
+        SELECT BB.RSK_G_C
+              ,GET_RBA_RSK_NAME('RSK_G', BB.RSK_G_C) AS RSK_G_C_NM 
+              ,SUM(TRSK_T_CTN)       AS TRSK_T_CTN
+              ,SUM(TRSK_VALT_CNT)    AS TRSK_VALT_CNT
+              ,SUM(TRSK_H_CNT)       AS TRSK_H_CNT  
+         FROM   
+        (  
+        SELECT X.RSK_G_C 
+              ,COUNT(RSK_NO) AS TRSK_T_CTN                    --등록위험수
+              ,0             AS TRSK_VALT_CNT                 --평가위험수    
+              ,0             AS TRSK_H_CNT                    --고위험수
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'T'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL  
+        GROUP BY X.RSK_G_C             
+        UNION ALL    
+  
+        SELECT A.RSK_G_C
+              ,0 AS TRSK_T_CTN
+              ,COUNT(B.RSK_NO) AS TRSK_VALT_CNT
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 4, 1, 0)),0) AS TRSK_H_CNT           -- 고위험수 (잔여위험4등급)
+          FROM RBA_RSK_M A
+             , RBA_TRSK_VALT_I B
+             , VALT_SCHD Z                
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 통합위험 현재회차에서만 구함. */
+           AND A.LST_VALT_TRN = Z.VALT_TRN
+           AND A.RSK_B_C = 'T'
+           AND A.USYN = '1'
+           AND A.MNG_BRNO = '9999'   -- 공통
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인           
+          GROUP BY A.RSK_G_C
+      ) BB
+      GROUP BY RSK_G_C
+      ORDER BY RSK_G_C      
+     ) CC
+       
+       UNION 
+            
+  SELECT '부문별' AS GUBUN,RSK_BUMUN_C AS RSK_FLD_C, RSK_BUMUN_C_NM AS RSK_FLD_C_NM
+      ,CC.TRSK_T_CTN
+      ,CC.TRSK_VALT_CNT 
+      ,DECODE(CC.TRSK_T_CTN, 0, 0, ROUND(CC.TRSK_VALT_CNT/CC.TRSK_T_CTN * 100, 2))  || '% ' AS TRSK_VALT_RT
+      ,CC.TRSK_H_CNT || '(' ||
+         DECODE(CC.TRSK_VALT_CNT, 0, 0, ROUND(CC.TRSK_H_CNT/CC.TRSK_VALT_CNT * 100, 2))  || '%) ' AS TRSK_H_CNT  -- 고위험수
+  FROM (
+        SELECT BB.RSK_BUMUN_C 
+              ,DECODE( BB.RSK_BUMUN_C, '7', GET_RBA_RSK_NAME('RSK_G', BB.RSK_BUMUN_C), GET_RBA_RSK_NAME('RSK_F', BB.RSK_BUMUN_C)) AS RSK_BUMUN_C_NM
+        ,SUM(TRSK_T_CTN)       AS TRSK_T_CTN
+              ,SUM(TRSK_VALT_CNT)    AS TRSK_VALT_CNT
+              ,SUM(TRSK_H_CNT)       AS TRSK_H_CNT  
+         FROM   
+        (  
+        SELECT DECODE(SUBSTR(X.RSK_BUMUN_C,1,1),'7',SUBSTR(X.RSK_BUMUN_C,1,1),  X.RSK_BUMUN_C) AS RSK_BUMUN_C
+              ,COUNT(RSK_NO) AS TRSK_T_CTN                    --등록위험수
+              ,0             AS TRSK_VALT_CNT                 --평가위험수    
+              ,0             AS TRSK_H_CNT                    --고위험수
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'T'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL  
+        GROUP BY X.RSK_BUMUN_C             
+        UNION ALL    
+  
+        SELECT DECODE(SUBSTR(A.RSK_BUMUN_C,1,1),'7', SUBSTR(A.RSK_BUMUN_C,1,1), A.RSK_BUMUN_C)  AS RSK_BUMUN_C
+              ,0 AS TRSK_T_CTN
+              ,COUNT(B.RSK_NO) AS TRSK_VALT_CNT
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 4, 1, 0)),0) AS TRSK_H_CNT           -- 고위험수 (잔여위험4등급)
+          FROM RBA_RSK_M A
+             , RBA_TRSK_VALT_I B
+             , VALT_SCHD Z                
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 통합위험 현재회차에서만 구함. */
+           AND A.LST_VALT_TRN = Z.VALT_TRN
+           AND A.RSK_B_C = 'T'
+           AND A.USYN = '1'
+           AND A.MNG_BRNO = '9999'   -- 공통
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인           
+          GROUP BY A.RSK_BUMUN_C 
+      ) BB
+      GROUP BY RSK_BUMUN_C 
+      ORDER BY RSK_BUMUN_C       
+     ) CC
+]]> 
+</select>
+<select id="RBA_10_06_04_01_getSearch01" parameterType="hashMap" resultType="DataObj">
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+      WHERE  VALT_TRN > 0
+        AND VALT_G = '1'
+        <![CDATA[ 
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+        ]]>
+)
+SELECT MNG_BRNO
+    ,MNG_BRNO_NM
+     ,IRSK_T_CNT  
+      ,IRSK_VALT_CNT 
+      ,IRSK_IMPRV_CNT1 
+      ,IRSK_IMPRV_CNT2 
+      ,IRSK_IMPRV_CNT3 
+      ,I_IMPRV_CNT1 
+      ,I_IMPRV_CNT2 
+      ,I_IMPRV_CNT3 
+      ,DECODE(I_IMPRV_CNT3, 0, 0, ROUND(I_IMPRV_CNT3/(IRSK_IMPRV_CNT1 + IRSK_IMPRV_CNT2 + IRSK_IMPRV_CNT3 ) * 100, 2))  || ' %' AS I_IMPRV_CNT4  -- 개선완료율
+      
+  FROM
+   (
+    SELECT BB.MNG_BRNO
+          ,FN_CDINFO_VAR('DPT', BB.MNG_BRNO, '') AS MNG_BRNO_NM
+           ,SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_IMPRV_CNT1)  AS IRSK_IMPRV_CNT1          
+          ,SUM(IRSK_IMPRV_CNT2)  AS IRSK_IMPRV_CNT2
+          ,SUM(IRSK_IMPRV_CNT3)  AS IRSK_IMPRV_CNT3
+          ,SUM(I_IMPRV_CNT1)     AS I_IMPRV_CNT1          
+          ,SUM(I_IMPRV_CNT2)     AS I_IMPRV_CNT2          
+          ,SUM(I_IMPRV_CNT3)     AS I_IMPRV_CNT3          
+      FROM
+       ( 
+        SELECT X.MNG_BRNO 
+           ,COUNT(RSK_NO) AS IRSK_T_CNT         --등록위험수
+              ,0             AS IRSK_VALT_CNT      --위험평가건수
+              ,0             AS IRSK_IMPRV_CNT1    --통합개선건수 
+              ,0             AS IRSK_IMPRV_CNT2    --설계개선건수
+              ,0             AS IRSK_IMPRV_CNT3    --운영개선건수
+              ,0             AS I_IMPRV_CNT1    --개선계획건수      
+              ,0             AS I_IMPRV_CNT2    --개선활동건수
+              ,0             AS I_IMPRV_CNT3    --개선완료
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+        <if test="MNG_BRNO != null and MNG_BRNO != '' and MNG_BRNO != '999'">  
+		   AND X.MNG_BRNO = #{MNG_BRNO,jdbcType=VARCHAR}
+		</if>
+       GROUP BY X.MNG_BRNO
+        UNION ALL
+        SELECT A.MNG_BRNO
+              ,0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT             --
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 3, 1, 0)),0) AS IRSK_IMPRV_CNT1   --통합개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 1, 1, 0)),0) AS IRSK_IMPRV_CNT2   --설계개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 2, 1, 0)),0) AS IRSK_IMPRV_CNT2   --운영개선
+              <![CDATA[
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C < '3' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT1 -- 개선계획
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '3'  AND C.IMPRV_PROC_APRV_S_C < '7'  THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT2 -- 개선활동
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '7' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT3 -- 개선완료
+               ]]>
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+           <![CDATA[ 
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+            ]]>
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인      
+         <if test="MNG_BRNO != null and MNG_BRNO != '' and MNG_BRNO != '999'">  
+		   AND B.MNG_BRNO = #{MNG_BRNO,jdbcType=VARCHAR}
+		 </if>
+         GROUP BY A.MNG_BRNO
+          ) BB       
+         GROUP BY MNG_BRNO    
+      ) CC
+   
+</select>
+<select id="RBA_10_06_05_01_getSearch01" parameterType="hashMap" resultType="DataObj">
+-- 전체
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+        <![CDATA[ 
+      WHERE  VALT_TRN > 0
+        AND VALT_G = '1'        
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+        ]]>
+)  
+SELECT MNG_BRNO
+      ,MNG_BRNO_NM
+      ,IMPRV_KCI_CNT      
+      ,IMPRV_BRNO_KCI_CNT 
+      ,T_IMPRV_CNT1       
+      ,T_IMPRV_CNT2      
+      ,T_IMPRV_CNT3      
+      ,T_IMPRV_CNT4  -- 개선완료율
+      
+  FROM
+   (
+
+SELECT MNG_BRNO
+      ,MNG_BRNO_NM
+      ,IMPRV_KCI_CNT      
+      ,IMPRV_BRNO_KCI_CNT 
+      ,T_IMPRV_CNT1       
+      ,T_IMPRV_CNT2      
+      ,T_IMPRV_CNT3      
+      ,DECODE(T_IMPRV_CNT3, 0, 0, ROUND(T_IMPRV_CNT3/IMPRV_BRNO_KCI_CNT * 100, 2)) || ' %'  AS T_IMPRV_CNT4  -- 개선완료율
+      
+  FROM
+   (
+
+        SELECT B.MNG_BRNO
+              ,FN_CDINFO_VAR('DPT', B.MNG_BRNO, '') AS MNG_BRNO_NM
+              ,COUNT(DISTINCT C.KCI_NO)   AS IMPRV_KCI_CNT                 --개선KCI수
+              ,COUNT(C.KCI_NO)            AS IMPRV_BRNO_KCI_CNT            --개선KCI영업점합계수 
+               <![CDATA[ 
+              ,NVL(SUM(CASE WHEN C.IMPRV_K_C > '0' AND D.IMPRV_PROC_APRV_S_C < '3' THEN 1 ELSE 0 END),0) AS T_IMPRV_CNT1 -- 개선계획
+              ,NVL(SUM(CASE WHEN C.IMPRV_K_C > '0' AND D.IMPRV_PROC_APRV_S_C >= '3'  AND D.IMPRV_PROC_APRV_S_C < '7'  THEN 1 ELSE 0 END),0) AS T_IMPRV_CNT2 -- 개선활동
+              ,NVL(SUM(CASE WHEN C.IMPRV_K_C > '0' AND D.IMPRV_PROC_APRV_S_C >= '7' THEN 1 ELSE 0 END),0) AS T_IMPRV_CNT3 -- 개선완료           
+               ]]>
+          FROM RBA_RSK_M A
+             , RBA_TRSK_VALT_I B
+               LEFT JOIN RBA_TRSK_KCI_VALT_D C   -- 통합위험_KCI_평가상세
+               ON B.RSK_NO = C.RSK_NO
+               AND B.VALT_TRN = C.VALT_TRN
+               AND B.VALT_SER = C.VALT_SER
+               AND B.MNG_BRNO = C.MNG_BRNO 
+                <![CDATA[  
+               AND C.IMPRV_K_C > '0'             --개선건만
+                ]]>
+               AND C.MNG_BRNO != '9999'
+               LEFT OUTER JOIN RBA_KCI_IMPRV_V_I D    --KCI 개선내역
+                 ON C.RSK_NO = D.RSK_NO
+                AND C.VALT_TRN = D.VALT_TRN
+                AND C.VALT_SER = D.VALT_SER
+                AND C.MNG_BRNO = D.MNG_BRNO                 
+             , VALT_SCHD Z                
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 통합위험 현재회차에서만 구함. */
+           AND A.LST_VALT_TRN = Z.VALT_TRN
+           AND A.RSK_B_C = 'T'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.MNG_BRNO != '9999'   -- 공통
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인 
+         <if test="MNG_BRNO != null and MNG_BRNO != '' and MNG_BRNO != '999'">  
+		   AND B.MNG_BRNO = #{MNG_BRNO,jdbcType=VARCHAR}
+		 </if>		 
+          GROUP BY B.MNG_BRNO 
+          )B  
+          )C
+          WHERE 1=1
+          <if test="CCD == '20%'">
+           <![CDATA[ 
+           AND T_IMPRV_CNT4 <='20%'  
+           ]]>
+          </if>
+           <if test="CCD == '40%'">
+           <![CDATA[ 
+           AND  T_IMPRV_CNT4 > '20%'  AND T_IMPRV_CNT4 <='40%'   
+           ]]>
+          </if>
+           <if test="CCD == '60%'">
+           <![CDATA[ 
+           AND  T_IMPRV_CNT4 > '40%'  AND T_IMPRV_CNT4 <='60%'    
+           ]]>
+          </if>
+           <if test="CCD == '80%'">
+           <![CDATA[ 
+           AND  T_IMPRV_CNT4 > '60%'  AND T_IMPRV_CNT4 <='80%'   
+           ]]>
+          </if>
+           <if test="CCD == '100%'">
+           <![CDATA[ 
+           AND  T_IMPRV_CNT4 > '80%'  AND T_IMPRV_CNT4 <='100%'    
+           ]]>
+          </if>
+</select>
+<select id="RBA_10_06_06_01_getSearch01" parameterType="hashMap" resultType="DataObj">
+SELECT     GET_CODE_NAME ('R029', A.RSK_B_C) AS RSK_B_C
+          ,GET_RBA_RSK_NAME('RSK_G', A.RSK_G_C) AS RSK_GUBUN
+          ,GET_RBA_RSK_NAME('RSK_F', A.RSK_FLD_C) AS RSK_FLD
+          ,GET_RBA_RSK_NAME('RSK_B', A.RSK_BUMUN_C) AS RSK_BUMUN
+          ,(SELECT DEP_TITLE FROM C_DEP_INFO WHERE DEP_DESC = A.MNG_BRNO) AS JUM_NM
+          , A.DR_DT AS DRDT
+          ,A.RSK_NO        
+          ,A.RSK_NM
+          ,A.RSK_CTNT
+          ,A.MNG_BRNO, FN_CDINFO_VAR('DPT', A.MNG_BRNO, '') AS MNG_BRNO_NM
+          ,A.MNGR_JKW_NO, GET_LOGINID_NAME(A.MNGR_JKW_NO) AS MNGR_JKW_NM
+          ,G.RSK_PROC_NM 
+          ,G.SUB_PROC_NM
+          ,B.FCST_FRQ_VALT_GD, B.FCST_FRQ_VALT_CTNT    --예상빈도평가
+          ,B.TRSR_LOSS_VALT_GD, B.TRSR_LOSS_VALT_CTNT  --재무손실
+          ,B.INDV_RSK_VALT_PNT, B.INDV_RSK_GD          --개인위험평가점수
+          ,TO_CHAR(TO_DATE(B.EFCT_VALT_DT,'YYYYMMDD'),'YYYY-MM-DD') AS EFCT_VALT_DT --영향평가일자   
+          ,A.LST_VALT_TRN, A.LST_VALT_SER              --평가회차/순번  
+          ,A.VALT_JINHG_S_C                            --평가진행상태
+          ,(SELECT VALT_TRN 
+              FROM RBA_RSK_VALT_SCHD
+             WHERE VALT_G = '1'
+               AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN VALT_SDT AND VALT_EDT
+               AND VALT_JUNGJI_YN = '0' 
+               AND ROWNUM = 1) AS CUR_VALT_TRN        -- 현재평가회차
+          ,REL_DATA_CTNT
+      FROM RBA_RSK_M A    -- 개별위험
+           LEFT JOIN RBA_IRSK_VALT_I B   -- 개별위험평가
+             ON A.RSK_NO = B.RSK_NO
+            AND A.LST_VALT_TRN = B.VALT_TRN
+            AND A.LST_VALT_SER = B.VALT_SER
+           JOIN RBA_PROC_M G 
+             ON A.RSK_PROC_NO = G.RSK_PROC_NO
+   <if test="RSK_B_C != null and RSK_B_C != '' and RSK_B_C !='ALL'">
+   AND A.RSK_B_C = #{RSK_B_C,jdbcType=VARCHAR}
+   </if>
+   <if test="MNG_BRNO != null and MNG_BRNO != '' and MNG_BRNO != '999'">  
+     AND A.MNG_BRNO = #{MNG_BRNO,jdbcType=VARCHAR}
+   </if>
+    <if test="OWNER_ID != null and OWNER_ID != '' ">
+   AND A.MNGR_JKW_NO = #{OWNER_ID,jdbcType=VARCHAR}
+   </if>
+    <if test="RSK_G_C != null and RSK_G_C != '' ">
+   AND A.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+   </if>
+    <if test="RSK_FLD_C != null and RSK_FLD_C != '' ">
+   AND A.RSK_FLD_C = #{RSK_FLD_C,jdbcType=VARCHAR}
+   </if>
+    <if test="RSK_BUMUN_C != null and RSK_BUMUN_C != '' ">
+   AND A.RSK_BUMUN_C = #{RSK_BUMUN_C,jdbcType=VARCHAR}
+   </if>
+    <if test="TONGJE_G_C != null and TONGJE_G_C != '' ">
+   AND B.TONGJE_G_C = #{TONGJE_G_C,jdbcType=VARCHAR}
+   </if>
+    <if test="TONGJE_FLD_C != null and TONGJE_FLD_C != '' ">
+   AND B.TONGJE_FLD_C = #{TONGJE_FLD_C,jdbcType=VARCHAR}
+   </if>
+    <if test="TONGJE_BUMUN_C != null and TONGJE_BUMUN_C != '' ">
+   AND B.TONGJE_BUMUN_C = #{TONGJE_BUMUN_C,jdbcType=VARCHAR}
+   </if>
+    ORDER BY A.RSK_B_C, A.RSK_G_C
+</select>
+<select id="RBA_10_06_06_01_getSearch02" parameterType="hashMap" resultType="DataObj">
+SELECT D01, D02, D03, D04, D05, D06, D07, D08, D09, D10, D11, D12
+  FROM
+       (   
+         SELECT SUM(DECODE(RSK_B_C, 'I', CNT,0)) AS D01
+               ,SUM(DECODE(RSK_B_C, 'T', CNT,0)) AS D02
+               ,SUM(DECODE(RSK_B_C, 'I', 1,0)) AS D03
+               ,SUM(DECODE(RSK_B_C, 'T', 1,0)) AS D04
+           FROM (
+                 SELECT RSK_B_C, MNG_BRNO,  COUNT(*) AS CNT
+                   FROM RBA_RSK_M X
+                  WHERE USYN = '1'
+                 <if test="RSK_G_C != null and RSK_G_C != '' ">
+				   AND RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+				 </if>
+                  GROUP BY  RSK_B_C, MNG_BRNO  
+                 ) 
+        ) AA,
+        (SELECT COUNT(DISTINCT RSK_PROC_NO) AS D05 
+           FROM RBA_RSK_M 
+           WHERE USYN = 1 
+           <if test="RSK_G_C != null and RSK_G_C != '' ">
+		   	 AND RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+		   </if>
+        	 AND RSK_B_C = 'I' ) BB,
+        (SELECT COUNT(DISTINCT TONGJE_NO) AS D06 
+           FROM RBA_RSK_M A, RBA_RSK_TONGJE_MP B 
+          WHERE A.USYN = 1
+          <if test="RSK_G_C != null and RSK_G_C != '' ">
+		    AND A.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+		  </if> 
+          	AND A.RSK_B_C = 'I' 
+          	AND A.RSK_NO = B.RSK_NO) CC,
+        (SELECT COUNT(DISTINCT RSK_PROC_NO) AS D07 
+           FROM RBA_RSK_M 
+          WHERE USYN = 1
+           <if test="RSK_G_C != null and RSK_G_C != '' ">
+		   	AND RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+		   </if> 
+            AND RSK_B_C = 'T') DD,
+        (SELECT COUNT(DISTINCT TONGJE_NO) AS D08 
+           FROM RBA_RSK_M A, RBA_RSK_TONGJE_MP B 
+          WHERE A.USYN = 1
+          <if test="RSK_G_C != null and RSK_G_C != '' ">
+		   	AND A.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+		  </if> 
+            AND A.RSK_B_C = 'T' 
+            AND A.RSK_NO = B.RSK_NO) EE,
+        (SELECT SUM(DECODE(RSK_B_C, 'I', CNT,0)) AS D09,
+                SUM(DECODE(RSK_B_C, 'T', CNT,0)) AS D10
+           FROM (SELECT RSK_B_C, COUNT(*) CNT
+                   FROM RBA_KRI_M
+                  WHERE USYN = '1'
+               GROUP BY RSK_B_C )) FF,
+        (SELECT SUM(DECODE(RSK_B_C, 'I', CNT,0)) AS D11,
+                SUM(DECODE(RSK_B_C, 'T', CNT,0)) AS D12
+           FROM (SELECT RSK_B_C, COUNT(*) CNT
+                   FROM RBA_KCI_M
+                  WHERE USYN = '1'     
+               GROUP BY RSK_B_C )) GG	
+</select>
+<select id="RBA_10_06_07_01_getSearch01" parameterType="hashMap" resultType="DataObj">
+SELECT    GET_RBA_RSK_NAME('RSK_G', A.RSK_G_C) AS RSK_GUBUN
+          ,GET_RBA_RSK_NAME('RSK_F', A.RSK_FLD_C) AS RSK_FLD
+          ,GET_RBA_RSK_NAME('RSK_B', A.RSK_BUMUN_C) AS RSK_BUMUN
+          ,(SELECT DEP_TITLE FROM C_DEP_INFO WHERE DEP_DESC = A.MNG_BRNO) AS JUM_NM
+          , A.DR_DT AS DRDT
+          ,A.RSK_NO        
+          ,A.RSK_NM
+          ,A.RSK_CTNT
+          ,A.MNG_BRNO, FN_CDINFO_VAR('DPT', A.MNG_BRNO, '') AS MNG_BRNO_NM
+          ,A.MNGR_JKW_NO, GET_LOGINID_NAME(A.MNGR_JKW_NO) AS MNGR_JKW_NM
+          ,G.RSK_PROC_NM 
+          ,G.SUB_PROC_NM
+          ,B.FCST_FRQ_VALT_GD, B.FCST_FRQ_VALT_CTNT    --예상빈도평가
+          ,B.TRSR_LOSS_VALT_GD, B.TRSR_LOSS_VALT_CTNT  --재무손실
+          ,B.INDV_RSK_VALT_PNT, B.INDV_RSK_GD          --개인위험평가점수
+          ,TO_CHAR(TO_DATE(B.EFCT_VALT_DT,'YYYYMMDD'),'YYYY-MM-DD') AS EFCT_VALT_DT --영향평가일자   
+          ,A.LST_VALT_TRN, A.LST_VALT_SER              --평가회차/순번  
+          ,A.VALT_JINHG_S_C                            --평가진행상태
+          ,(SELECT VALT_TRN 
+              FROM RBA_RSK_VALT_SCHD
+             WHERE VALT_G = '1'
+               AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN VALT_SDT AND VALT_EDT
+               AND VALT_JUNGJI_YN = '0' 
+               AND ROWNUM = 1) AS CUR_VALT_TRN        -- 현재평가회차
+          ,REL_DATA_CTNT
+      FROM RBA_RSK_M A    -- 개별위험
+           LEFT JOIN RBA_IRSK_VALT_I B   -- 개별위험평가
+             ON A.RSK_NO = B.RSK_NO
+            AND A.LST_VALT_TRN = B.VALT_TRN            
+             AND A.LST_VALT_SER = B.VALT_SER
+           JOIN RBA_PROC_M G 
+             ON A.RSK_PROC_NO = G.RSK_PROC_NO
+             AND A.RSK_B_C = 'I' 
+   <if test="MNG_BRNO != null and MNG_BRNO != '' and MNG_BRNO != '999'">  
+     AND A.MNG_BRNO = #{MNG_BRNO,jdbcType=VARCHAR}
+   </if>
+    <if test="OWNER_ID != null and OWNER_ID != '' ">
+   AND A.MNGR_JKW_NO = #{OWNER_ID,jdbcType=VARCHAR}
+   </if>
+    <if test="RSK_G_C != null and RSK_G_C != '' ">
+   AND A.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+   </if>
+    <if test="RSK_FLD_C != null and RSK_FLD_C != '' ">
+   AND A.RSK_FLD_C = #{RSK_FLD_C,jdbcType=VARCHAR}
+   </if>
+    <if test="RSK_BUMUN_C != null and RSK_BUMUN_C != '' ">
+   AND A.RSK_BUMUN_C = #{RSK_BUMUN_C,jdbcType=VARCHAR}
+   </if>
+    <if test="TONGJE_G_C != null and TONGJE_G_C != '' ">
+   AND B.TONGJE_G_C = #{TONGJE_G_C,jdbcType=VARCHAR}
+   </if>
+    <if test="TONGJE_FLD_C != null and TONGJE_FLD_C != '' ">
+   AND B.TONGJE_FLD_C = #{TONGJE_FLD_C,jdbcType=VARCHAR}
+   </if>
+    <if test="TONGJE_BUMUN_C != null and TONGJE_BUMUN_C != '' ">
+   AND B.TONGJE_BUMUN_C = #{TONGJE_BUMUN_C,jdbcType=VARCHAR}
+   </if>
+    ORDER BY A.RSK_B_C, A.RSK_G_C
+</select>
+<select id="RBA_10_06_07_01_getSearch02" parameterType="hashMap" resultType="DataObj">
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+       <![CDATA[
+      WHERE  VALT_TRN > 0
+        AND VALT_G = '1'       
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+        ]]> 
+) 
+
+SELECT AA.MNG_BRNO
+      ,FN_CDINFO_VAR('DPT', AA.MNG_BRNO, '') AS MNG_BRNO_NM
+      , AA.IRSK_T_CNT
+      , NVL(BB.IRSK_VALT_CNT,0) AS IRSK_VALT_CNT
+      , DECODE(AA.IRSK_T_CNT, 0, 0, ROUND(NVL(BB.IRSK_VALT_CNT,0)/AA.IRSK_T_CNT * 100, 2)) AS IRSK_VALT_RT  -- 평가율
+      , NVL(BB.IRSK_TONGJE4_CNT,0) AS IRSK_TONGJE4_CNT
+      , NVL(BB.IRSK_TONGJE3_CNT,0) AS IRSK_TONGJE3_CNT
+       , NVL(BB.IRSK_TONGJE2_CNT,0) AS IRSK_TONGJE2_CNT
+        , NVL(BB.IRSK_TONGJE1_CNT,0) AS IRSK_TONGJE1_CNT
+        , NVL(BB.IRSK_REMDR4_CNT,0) AS IRSK_REMDR4_CNT
+      , NVL(BB.IRSK_REMDR3_CNT,0) AS IRSK_REMDR3_CNT
+       , NVL(BB.IRSK_REMDR2_CNT,0) AS IRSK_REMDR2_CNT
+        , NVL(BB.IRSK_REMDR1_CNT,0) AS IRSK_REMDR1_CNT
+  FROM 
+       (
+       SELECT X.MNG_BRNO  
+             ,COUNT(RSK_NO) AS IRSK_T_CNT
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+       GROUP BY X.MNG_BRNO           
+        ) AA
+   
+       ,
+       (
+        SELECT A.MNG_BRNO
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT 
+              ,NVL(SUM(DECODE(B.MOFC_TONGJE_GD, 4, 1, 0)),0) AS IRSK_TONGJE4_CNT
+              ,NVL(SUM(DECODE(B.MOFC_TONGJE_GD, 3, 1, 0)),0) AS IRSK_TONGJE3_CNT          
+              ,NVL(SUM(DECODE(B.MOFC_TONGJE_GD, 2, 1, 0)),0) AS IRSK_TONGJE2_CNT          
+              ,NVL(SUM(DECODE(B.MOFC_TONGJE_GD, 1, 1, 0)),0) AS IRSK_TONGJE1_CNT          
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 4, 1, 0)),0) AS IRSK_REMDR4_CNT
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 3, 1, 0)),0) AS IRSK_REMDR3_CNT          
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 2, 1, 0)),0) AS IRSK_REMDR2_CNT          
+              ,NVL(SUM(DECODE(B.REMDR_RSK_GD, 1, 1, 0)),0) AS IRSK_REMDR1_CNT          
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+           <![CDATA[
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           ]]>
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9')
+       GROUP BY A.MNG_BRNO
+      ) BB 
+  WHERE AA.MNG_BRNO = BB.MNG_BRNO(+) 
+</select>
+<select id="RBA_10_06_07_01_getSearch03" parameterType="hashMap" resultType="DataObj">
+WITH VALT_SCHD AS (
+     SELECT MAX(VALT_TRN) AS VALT_TRN
+       FROM RBA_RSK_VALT_SCHD
+       <![CDATA[ 
+      WHERE  VALT_TRN > 0
+      ]]>
+        AND VALT_G = '1'
+        <![CDATA[ 
+        AND VALT_SDT <= TO_CHAR(SYSDATE,'YYYYMMDD')
+         ]]>
+)
+SELECT IRSK_T_CNT AS C01 
+      ,IRSK_VALT_CNT AS C02
+      ,IRSK_IMPRV_CNT1 AS C03
+      ,IRSK_IMPRV_CNT2 AS C04
+      ,IRSK_IMPRV_CNT3 AS C05
+      ,I_IMPRV_CNT1 AS C06
+      ,I_IMPRV_CNT2 AS C07
+      ,I_IMPRV_CNT3 AS C08
+      ,DECODE(I_IMPRV_CNT3, 0, 0, ROUND(I_IMPRV_CNT3/(IRSK_IMPRV_CNT1 + IRSK_IMPRV_CNT2 + IRSK_IMPRV_CNT3 )  * 100, 2))  || ' %' AS C09  -- 개선완료율
+      
+  FROM
+   (
+    SELECT SUM(IRSK_T_CNT)       AS IRSK_T_CNT 
+          ,SUM(IRSK_VALT_CNT)    AS IRSK_VALT_CNT          
+          ,SUM(IRSK_IMPRV_CNT1)  AS IRSK_IMPRV_CNT1          
+          ,SUM(IRSK_IMPRV_CNT2)  AS IRSK_IMPRV_CNT2
+          ,SUM(IRSK_IMPRV_CNT3)  AS IRSK_IMPRV_CNT3
+          ,SUM(I_IMPRV_CNT1)     AS I_IMPRV_CNT1          
+          ,SUM(I_IMPRV_CNT2)     AS I_IMPRV_CNT2          
+          ,SUM(I_IMPRV_CNT3)     AS I_IMPRV_CNT3          
+      FROM
+       ( 
+        SELECT COUNT(RSK_NO) AS IRSK_T_CNT         --등록위험수
+              ,0             AS IRSK_VALT_CNT      --위험평가건수
+              ,0             AS IRSK_IMPRV_CNT1    --통합개선건수 
+              ,0             AS IRSK_IMPRV_CNT2    --설계개선건수
+              ,0             AS IRSK_IMPRV_CNT3    --운영개선건수
+              ,0             AS I_IMPRV_CNT1    --개선계획건수      
+              ,0             AS I_IMPRV_CNT2    --개선활동건수
+              ,0             AS I_IMPRV_CNT3    --개선완료
+          FROM RBA_RSK_M X
+         WHERE X.RSK_B_C = 'I'
+           AND X.USYN = 1
+           AND X.GYLJ_DT IS NOT NULL
+           AND X.MNG_BRNO ! = '9999'
+        UNION ALL
+        SELECT 0 as IRSK_T_CNT
+              ,COUNT(B.RSK_NO) AS IRSK_VALT_CNT             --
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 3, 1, 0)),0) AS IRSK_IMPRV_CNT1   --통합개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 1, 1, 0)),0) AS IRSK_IMPRV_CNT2   --설계개선
+              ,NVL(SUM(DECODE(B.IMPRV_K_C, 2, 1, 0)),0) AS IRSK_IMPRV_CNT2   --운영개선
+              <![CDATA[ 
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C < '3' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT1 -- 개선계획
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '3'  AND C.IMPRV_PROC_APRV_S_C < '7'  THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT2 -- 개선활동
+              ,NVL(SUM(CASE WHEN B.IMPRV_K_C > '0' AND C.IMPRV_PROC_APRV_S_C >= '7' THEN 1 ELSE 0 END),0) AS I_IMPRV_CNT3 -- 개선완료
+          		]]>
+          FROM RBA_RSK_M A
+             , RBA_IRSK_VALT_I B
+               LEFT OUTER JOIN RBA_TJ_IMPRV_V_I C
+                 ON B.RSK_NO = C.RSK_NO
+                AND B.VALT_TRN = C.VALT_TRN
+                AND B.VALT_SER = C.VALT_SER
+             , VALT_SCHD Z   
+         WHERE A.RSK_NO = B.RSK_NO       
+           AND A.LST_VALT_TRN = B.VALT_TRN
+           AND A.LST_VALT_SER = B.VALT_SER
+           /* 현재회차 평가건 또는 이전회차 개신진행중 */
+            <![CDATA[ 
+           AND (A.LST_VALT_TRN = Z.VALT_TRN OR (B.IMPRV_K_C > '0' AND NVL(C.IMPRV_PROC_APRV_S_C, 0) < 7))
+           ]]>
+           AND RSK_B_C = 'I'
+           AND A.USYN = '1'
+           AND A.GYLJ_DT IS NOT NULL
+           AND B.VALT_JINHG_S_C IN ('2','9') -- 완료(재평가가능), 완료(개선사항) 확인
+          ) BB           
+      ) CC
+</select>
+<select id="RBA_10_06_08_01_getSearch01" parameterType="hashMap" resultType="DataObj">
+SELECT    (SELECT COUNT(*)  FROM RBA_RSK_KCI_MP WHERE A.RSK_NO = RSK_NO) AS KCI_CNT
+          ,(SELECT COUNT(*)  FROM RBA_RSK_KRI_MP WHERE A.RSK_NO = RSK_NO) AS KRI_CNT
+		  ,GET_RBA_RSK_NAME('RSK_G', A.RSK_G_C) AS RSK_GUBUN
+          ,GET_RBA_RSK_NAME('RSK_F', A.RSK_FLD_C) AS RSK_FLD
+          ,GET_RBA_RSK_NAME('RSK_B', A.RSK_BUMUN_C) AS RSK_BUMUN
+          ,(SELECT DEP_TITLE FROM C_DEP_INFO WHERE DEP_DESC = A.MNG_BRNO) AS JUM_NM
+          , A.DR_DT AS DRDT
+          ,A.RSK_NO        
+          ,A.RSK_NM
+          ,A.RSK_CTNT
+          ,A.MNG_BRNO, FN_CDINFO_VAR('DPT', A.MNG_BRNO, '') AS MNG_BRNO_NM
+          ,A.MNGR_JKW_NO, GET_LOGINID_NAME(A.MNGR_JKW_NO) AS MNGR_JKW_NM
+          ,G.RSK_PROC_NM 
+          ,G.SUB_PROC_NM
+          ,B.FCST_FRQ_VALT_GD, B.FCST_FRQ_VALT_CTNT    --예상빈도평가
+          ,B.TRSR_LOSS_VALT_GD, B.TRSR_LOSS_VALT_CTNT  --재무손실
+          ,B.INDV_RSK_VALT_PNT, B.INDV_RSK_GD          --개인위험평가점수
+          ,TO_CHAR(TO_DATE(B.EFCT_VALT_DT,'YYYYMMDD'),'YYYY-MM-DD') AS EFCT_VALT_DT --영향평가일자   
+          ,A.LST_VALT_TRN, A.LST_VALT_SER              --평가회차/순번  
+          ,A.VALT_JINHG_S_C                            --평가진행상태
+          ,(SELECT VALT_TRN 
+              FROM RBA_RSK_VALT_SCHD
+             WHERE VALT_G = '1'
+               AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN VALT_SDT AND VALT_EDT
+               AND VALT_JUNGJI_YN = '0' 
+               AND ROWNUM = 1) AS CUR_VALT_TRN        -- 현재평가회차
+          ,REL_DATA_CTNT
+      FROM RBA_RSK_M A    -- 개별위험
+           LEFT JOIN RBA_IRSK_VALT_I B   -- 개별위험평가
+             ON A.RSK_NO = B.RSK_NO
+            AND A.LST_VALT_TRN = B.VALT_TRN            
+             AND A.LST_VALT_SER = B.VALT_SER
+           JOIN RBA_PROC_M G 
+             ON A.RSK_PROC_NO = G.RSK_PROC_NO
+             AND A.RSK_B_C = 'T'         
+    <if test="RSK_G_C != null and RSK_G_C != '' ">
+   AND A.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+   </if>
+    <if test="RSK_FLD_C != null and RSK_FLD_C != '' ">
+   AND A.RSK_FLD_C = #{RSK_FLD_C,jdbcType=VARCHAR}
+   </if>
+    <if test="RSK_BUMUN_C != null and RSK_BUMUN_C != '' ">
+   AND A.RSK_BUMUN_C = #{RSK_BUMUN_C,jdbcType=VARCHAR}
+   </if>
+    ORDER BY A.RSK_B_C, A.RSK_G_C
+</select>
+<select id="RBA_10_06_08_01_getSearch02" parameterType="hashMap" resultType="DataObj">
+SELECT     C.KRI_UNTY_RSK_GD
+          ,C.KCI_TONGJE_EFCT_GD
+          ,C.REMDR_RSK_GD_SER
+		  ,GET_RBA_RSK_NAME('RSK_G', A.RSK_G_C) AS RSK_GUBUN
+          ,GET_RBA_RSK_NAME('RSK_F', A.RSK_FLD_C) AS RSK_FLD
+          ,GET_RBA_RSK_NAME('RSK_B', A.RSK_BUMUN_C) AS RSK_BUMUN
+          ,(SELECT DEP_TITLE FROM C_DEP_INFO WHERE DEP_DESC = A.MNG_BRNO) AS JUM_NM
+          , A.DR_DT AS DRDT
+          ,A.RSK_NO        
+          ,A.RSK_NM
+          ,A.RSK_CTNT
+          ,A.MNG_BRNO, FN_CDINFO_VAR('DPT', A.MNG_BRNO, '') AS MNG_BRNO_NM
+          ,A.MNGR_JKW_NO, GET_LOGINID_NAME(A.MNGR_JKW_NO) AS MNGR_JKW_NM
+          ,G.RSK_PROC_NM 
+          ,G.SUB_PROC_NM
+          ,B.FCST_FRQ_VALT_GD, B.FCST_FRQ_VALT_CTNT    --예상빈도평가
+          ,B.TRSR_LOSS_VALT_GD, B.TRSR_LOSS_VALT_CTNT  --재무손실
+          ,B.INDV_RSK_VALT_PNT, B.INDV_RSK_GD          --개인위험평가점수
+          ,TO_CHAR(TO_DATE(B.EFCT_VALT_DT,'YYYYMMDD'),'YYYY-MM-DD') AS EFCT_VALT_DT --영향평가일자   
+          ,A.LST_VALT_TRN, A.LST_VALT_SER              --평가회차/순번  
+          ,A.VALT_JINHG_S_C                            --평가진행상태
+          ,(SELECT VALT_TRN 
+              FROM RBA_RSK_VALT_SCHD
+             WHERE VALT_G = '1'
+               AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN VALT_SDT AND VALT_EDT
+               AND VALT_JUNGJI_YN = '0' 
+               AND ROWNUM = 1) AS CUR_VALT_TRN        -- 현재평가회차
+          ,REL_DATA_CTNT
+      FROM RBA_RSK_M A    -- 개별위험
+           LEFT JOIN RBA_IRSK_VALT_I B   -- 개별위험평가
+             ON A.RSK_NO = B.RSK_NO
+            AND A.LST_VALT_TRN = B.VALT_TRN            
+             AND A.LST_VALT_SER = B.VALT_SER
+           JOIN RBA_PROC_M G 
+             ON A.RSK_PROC_NO = G.RSK_PROC_NO
+             AND A.RSK_B_C = 'T' 
+           JOIN RBA_TRSK_VALT_I C 
+             ON A.RSK_NO = C.RSK_NO
+   <if test="MNG_BRNO != null and MNG_BRNO != '' and MNG_BRNO != '999'">  
+     AND A.MNG_BRNO = #{MNG_BRNO,jdbcType=VARCHAR}
+   </if>   
+    <if test="RSK_G_C != null and RSK_G_C != '' ">
+   AND A.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+   </if>
+    <if test="RSK_FLD_C != null and RSK_FLD_C != '' ">
+   AND A.RSK_FLD_C = #{RSK_FLD_C,jdbcType=VARCHAR}
+   </if>
+    <if test="RSK_BUMUN_C != null and RSK_BUMUN_C != '' ">
+   AND A.RSK_BUMUN_C = #{RSK_BUMUN_C,jdbcType=VARCHAR}
+   </if>
+    ORDER BY A.RSK_B_C, A.RSK_G_C
+</select>
+<select id="RBA_10_06_08_01_getSearch03" parameterType="hashMap" resultType="DataObj">
+  SELECT DISTINCT  KRI.KRI_NO                     
+          ,M.KRI_NM   
+          ,S.KRI_V
+          ,GET_CODE_NAME ('R011', M.UNIT_C) AS UNIT_NM
+          ,S.VALT_PNT
+          ,S.VALT_GD
+          ,S.KRI_GJDT
+          ,M.KRI_CTNT 
+    FROM  RBA_RSK_M X  
+          ,RBA_RSK_KRI_MP KRI
+          ,RBA_KRI_M M
+          ,RBA_TKRI_S S
+    WHERE X.RSK_B_C = 'T'
+      AND X.USYN = 1
+     <if test="RSK_G_C != null and RSK_G_C != '' ">
+   	  AND X.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+     </if>
+      AND X.GYLJ_DT IS NOT NULL
+	  AND X.RSK_NO = KRI.RSK_NO
+      AND KRI.KRI_NO = M.KRI_NO
+      AND KRI.KRI_NO = S.KRI_NO
+      AND S.MNG_BRNO = '9999'
+</select>
+<select id="RBA_10_06_08_01_getSearch04" parameterType="hashMap" resultType="DataObj">
+SELECT DISTINCT  KCI.KCI_NO                         
+        ,M.KCI_NM   
+        ,S.KCI_V
+        ,GET_CODE_NAME ('R026', M.UNIT_C) AS UNIT_NM
+        ,S.VALT_PNT
+        ,S.VALT_GD
+        ,S.KCI_GJDT
+        ,M.KCI_CTNT 
+  FROM  RBA_RSK_M X  
+        ,RBA_RSK_KCI_MP KCI
+        ,RBA_KCI_M M
+        ,RBA_TKCI_S S
+  WHERE X.RSK_B_C = 'T'
+    AND X.USYN = 1
+   <if test="RSK_G_C != null and RSK_G_C != '' ">
+ 	AND X.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+   </if>
+    AND X.GYLJ_DT IS NOT NULL
+    AND  X.RSK_NO = KCI.RSK_NO
+    AND KCI.KCI_NO = M.KCI_NO
+    AND KCI.KCI_NO = S.KCI_NO
+    AND S.MNG_BRNO = '9999'
+</select>
+<select id="RBA_10_06_09_01_getSearch01" parameterType="hashMap" resultType="DataObj">
+(SELECT DISTINCT KRI.KRI_NO
+          ,'KRI'                          AS TYPE                    
+          ,M.KRI_NM   
+          ,S.KRI_V
+          ,GET_CODE_NAME ('R011', M.UNIT_C) AS UNIT_NM
+          
+          ,S.KRI_CALC_HIS
+          ,M.KRI_CTNT 
+                    
+    FROM  RBA_RSK_M X  
+          ,RBA_RSK_KRI_MP KRI
+          ,RBA_KRI_M M
+          ,RBA_IKRI_S S
+    WHERE X.RSK_B_C = 'I'
+      AND X.USYN = 1
+      <if test="RSK_G_C != null and RSK_G_C != '' ">
+ 	  AND X.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+      </if>
+      AND X.GYLJ_DT IS NOT NULL
+      AND X.RSK_NO = KRI.RSK_NO
+      AND KRI.KRI_NO = M.KRI_NO
+      AND KRI.KRI_NO = S.KRI_NO(+)
+                   
+        UNION ALL    
+       SELECT  DISTINCT KCI.KCI_NO  
+       ,'KCI'                          AS TYPE                         
+        ,M.KCI_NM   
+        ,S.KCI_V
+        ,GET_CODE_NAME ('R026', M.UNIT_C) AS UNIT_NM1
+        ,S.KCI_CALC_HIS
+        ,M.KCI_CTNT 
+        
+  FROM  RBA_RSK_M X  
+        ,RBA_RSK_KCI_MP KCI
+        ,RBA_KCI_M M
+        ,RBA_IKCI_S S
+  WHERE X.RSK_B_C = 'I'
+    AND X.USYN = 1
+    <if test="RSK_G_C != null and RSK_G_C != '' ">
+ 	AND X.RSK_G_C = #{RSK_G_C,jdbcType=VARCHAR}
+   </if>
+    AND X.GYLJ_DT IS NOT NULL
+    AND  X.RSK_NO = KCI.RSK_NO
+    AND KCI.KCI_NO = M.KCI_NO
+    AND KCI.KCI_NO = S.KCI_NO(+))      
+    ORDER BY  KRI_NO   ASC  
+ </select>
+</mapper>

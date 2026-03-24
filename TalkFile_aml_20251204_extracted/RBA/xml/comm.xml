@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="comm">
+
+	
+	
+	<insert id="startLog" parameterType="commVO">
+		INSERT INTO SRBA_V_BTCH_H (RBA_BTCH_DT, BAS_YYMM, ING_STEP, RBA_BTCH_SDT,  RBA_BTCH_S_C, DR_DT, DR_TIME)
+		VALUES (#{rbaBtchDt} ,#{basYymm} ,#{ingStep} ,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') ,#{rbaBtchSC} ,TO_CHAR(SYSDATE, 'YYYYMMDD') ,TO_CHAR(SYSDATE, 'HH24MISS'))
+	</insert>
+	
+	
+	<update id="endLog" parameterType="commVO">
+		UPDATE SRBA_V_BTCH_H
+		 	SET RBA_BTCH_EDT = TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS')
+		 	,RBA_BTCH_S_C = NVL(#{rbaBtchSC},RBA_BTCH_S_C)  
+		 	,ERR_CTNT = NVL(#{errCtnt},ERR_CTNT)
+		WHERE BAS_YYMM = #{basYymm}
+		AND RBA_BTCH_DT = #{rbaBtchDt}
+		AND ING_STEP = #{ingStep}
+	</update>
+
+
+</mapper>	

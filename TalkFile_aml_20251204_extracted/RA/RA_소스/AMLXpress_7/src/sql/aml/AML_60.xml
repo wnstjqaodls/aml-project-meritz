@@ -1,0 +1,1578 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="AML_60" >
+
+<select id="AML_60_01_01_01_getSearch1" parameterType="hashMap" resultType="DataObj">
+    SELECT
+           A.RPR_OGN_NM      AS PT01_RPR_OGN_NM              --보고기관명
+          ,A.RPR_RSPSB_P_NM  AS PT01_RPR_RSPSB_P_NM          --보고책임자명
+          ,A.RPR_CHRG_P_NM   AS PT01_RPR_CHRG_P_NM           --보고담당자명
+          ,A.RPR_CHRG_P_TEL_NO AS PT01_RPR_CHRG_P_TEL_NO       --보고담당자전화번호
+     FROM NIC86B A
+     WHERE ROWNUM&lt;2
+</select>
+
+<select id="AML_60_01_01_01_getSearch2" parameterType="hashMap" resultType="DataObj">
+    SELECT                                                                                                        
+           B.DL_P_NM          PT02_01_DL_P_NM                               --거래자명                                 
+          ,B.DL_P_RNM_NO_CCD  PT02_01_DL_P_RNM_NO_CCD                       --거래자실명번호구분코드                          
+          ,B.DL_P_RNMCNO      PT02_01_DL_P_RNMCNO                           --거래자실명확인번호                  
+          ,DECODE(B.DL_P_NTNLT_CD,'KR','01','02') PT02_01_DL_P_NTNLT_CD     --거래자국적코드                              
+          ,B.DL_P_NTNLT_NM    PT02_01_DL_P_NTNLT_NM                         --거래자국적명                               
+          ,C.DL_P_HSE_PST_NO  PT02_01_DL_P_HSE_PST_NO                       --거래자자택우편번호                            
+          ,C.DL_P_HSE_ADDR    PT02_01_DL_P_HSE_ADDR                         --거래자자택주소                              
+          ,C.DL_P_BRTDY       PT02_01_DL_P_BRTDY                            --거래자생년월일                              
+          ,C.DL_P_SEX_CD      PT02_01_DL_P_SEX_CD                           --거래자성별코드                              
+          ,C.DL_P_HSE_TEL_NO  PT02_01_DL_P_HSE_TEL_NO                       --거래자자택전화번호                            
+          ,C.DL_P_MBL_TEL_NO  PT02_01_DL_P_MBL_TEL_NO                       --거래자휴대전화번호                            
+          ,C.RNM_CMBNTN_NO    PT02_01_RNM_CMBNTN_NO                         --실명조합번호                               
+          ,C.DL_P_PSPT_NO     PT02_01_DL_P_PSPT_NO                          --거래자여권번호                              
+          ,C.OCPTN_CCD        PT02_01_OCPTN_CCD                             --직업구분코드                               
+          ,C.OCPTN_CCD_NM     PT02_01_OCPTN_CCD_NM                          --직업구분코드명                              
+          ,C.WP_NM            PT02_01_WP_NM                                 --직장명                                  
+          ,C.DTY_DPRT_NM      PT02_01_DTY_DPRT_NM                           --근무부점명                                
+          ,C.CS_PSTN_CD       PT02_01_CS_PSTN_CD                            --고객직위코드                               
+          ,C.RPRST_P_NM        PT02_01_RPRST_P_NM                           --대표자명                                 
+          ,C.IND_TYP_CD       PT02_01_IND_TYP_CD                            --업종코드                                 
+          ,C.IND_TYP_CD_NM    PT02_01_IND_TYP_CD_NM                         --업종코드명                                
+          ,C.RPRST_P_RNM_NO   PT02_01_RPRST_P_RNM_NO                        --대표자실명번호                              
+          ,C.LG_AMT_ASTS_F    PT02_01_LG_AMT_ASTS_F                          --고액자산여부                               
+      FROM NIC66B A                                                                                           
+          ,NIC70B B                                                                                           
+          ,NIC78B C                                                                                            
+     WHERE A.SSPS_DL_CRT_DT     = B.SSPS_DL_CRT_DT                                                               
+       AND A.DL_P_RNMCNO        = B.DL_P_RNMCNO                                                        
+       AND B.SSPS_DL_CRT_DT     = C.SSPS_DL_CRT_DT(+)                                                           
+       AND B.DL_P_RNMCNO        = C.DL_P_RNMCNO(+)                                                     
+       AND A.SSPS_DL_CRT_DT = #{param_SSPS_DL_CRT_DT}                                                           
+       AND A.SSPS_DL_ID     = #{param_SSPS_DL_ID}                                                                   
+</select>
+
+<select id="AML_60_01_01_01_getSearch3" parameterType="hashMap" resultType="DataObj">
+    SELECT
+           D.DL_DT                                                            --거래일자
+          ,D.DL_SQ                                                            --거래일련번호
+          ,D.DL_TM                                                            --거래시간
+          ,TO_CHAR(TO_DATE(D.DL_DT,'YYYYMMDD'),'YYYY-MM-DD') AS VIEW_DL_DT
+          ,TO_CHAR(TO_DATE(D.DL_TM,'HH24MISS'),'HH24:MI:SS') AS VIEW_DL_TM
+          ,D.DL_CHNNL_CD                                                      --거래채널코드
+          ,D.DL_CHNNL_NM                                                      --거래채널명
+          ,D.DL_WY_CD                                                         --거래방법코드(수단)
+          ,D.DL_WY_NM                                                         --거래방법명
+          ,D.CTR_DL_KND_CD                                                    --CTR거래종류코드
+          ,D.DL_AMT                                                           --거래금액
+          ,TO_CHAR(NVL(D.DL_AMT,0), 'FM999,999,999,990') AS VIEW_DL_AMT
+          ,G.CPRTY_TRSNS_OPN_PRXY_F                                           --상대대체개설대리인여부
+          ,G.CPRTY_TRSNS_AC_NM                                                --상대대체계좌명
+          ,G.CPRTY_TRSNS_AC_RNM_CNFR_CCD                                      --상대대체계좌실명확인구분코드
+          ,G.CPRTY_TRSNS_AC_RNM_NO                                            --상대대체계좌실명번호
+          ,G.CPRTY_TRSNS_AC_OWN_TEL_NO                                        --상대대체계좌소유전화번호
+          ,G.CPRTY_TRSNS_AC_OWN_NTN_CD                                        --상대대체계좌소유국가코드
+          ,DECODE(NVL(H.SSPS_DL_CRT_DT,''),'','2','1') AS VIEW_AC_PRXY_YN
+          ,H.PRXY_NM AS AC_PRXY_NM
+          ,H.PRXY_RNM_NO_CCD AS AC_PRXY_RNM_NO_CCD
+          ,H.PRXY_RNMCNO AS AC_PRXY_RNMCNO
+          ,H.PRXY_TEL_NO AS AC_PRXY_TEL_NO
+          ,DECODE(NVL(H.PRXY_NTNLT_CD,''),'','','KR','01','02') AS AC_PRXY_NTNLT_CD
+          ,H.PRXY_NTNLT_NM AS AC_PRXY_NTNLT_NM
+          ,H.AC_OWN_P_RLTNS_CD AS AC_AC_OWN_P_RLTNS_CD
+          ,CASE H.AC_OWN_P_RLTNS_CD
+                WHEN '1' THEN '03'
+                WHEN '2' THEN '02'
+                WHEN '3' THEN '04'
+                WHEN '4' THEN '05'
+                WHEN '5' THEN '07'
+                WHEN '6' THEN '12'
+                WHEN '7' THEN '08'
+                WHEN '9' THEN '98'
+                ELSE H.AC_OWN_P_RLTNS_CD
+            END AS VIEW_AC_AC_OWN_P_RLTNS_CD                                 --56  계좌대리인 거래자와관계코드
+          ,B.GNL_AC_NO                                                        --종합계좌번호
+          ,B.GDS_NO                                                           --상품번호
+          ,B.GDS_OPN_DT                                                       --상품개설일자
+          ,B.GDS_OPN_BRN_CD                                                   --상품개설지점코드
+          ,B.AC_OPN_BRN_NM                                                    --계좌개설지점명
+          ,B.MN_DL_DPRT_CD                                                    --주거래부점코드
+          ,B.MN_DL_DPRT_NM                                                    --주거래부점명
+          ,B.AC_OPN_BRN_PST_NO                                                --계좌개설지점우편번호
+          ,B.AC_OPN_PRXY_F                                                    --계좌개설대리인여부
+          ,DECODE(NVL(C.SSPS_DL_CRT_DT,''),'','2','1') AS VIEW_PRXY_YN         --계좌대리인여부
+          ,C.PRXY_NM                                                           --대리인명
+          ,C.AGNC_EXTNT_CD                                                     --대리권범위코드
+          ,C.PRXY_RNM_NO_CCD                                                   --대리인실명번호구분코드
+          ,C.PRXY_RNMCNO                                                       --대리인실명확인번호
+          ,C.PRXY_TEL_NO                                                       --대리인전화번호
+          ,DECODE(NVL(C.PRXY_NTNLT_CD,''),'','','KR','01','02') PRXY_NTNLT_CD  --대리인국적코드
+          ,C.PRXY_NTNLT_NM                                                     --대리인국적명
+          ,C.AC_OWN_P_RLTNS_CD                                                 --계좌소유자관계코드
+          ,CASE C.AC_OWN_P_RLTNS_CD
+                WHEN '1' THEN '03'
+                WHEN '2' THEN '02'
+                WHEN '3' THEN '04'
+                WHEN '4' THEN '05'
+                WHEN '5' THEN '07'
+                WHEN '6' THEN '12'
+                WHEN '7' THEN '08'
+                WHEN '9' THEN '98'
+                ELSE C.AC_OWN_P_RLTNS_CD
+            END AS VIEW_AC_OWN_P_RLTNS_CD                                     --56  계좌대리인 거래자와관계코드
+          ,E.CHCK_KND_CD                                                       --수표종류코드
+          ,E.CHCK_STRT_NO                                                      --수표시작번호
+          ,E.CHCK_END_NO                                                       --수표종료번호
+          ,D.CSH_PY_FOGN_NM                                                    --현금지급금융기관명
+          ,D.CSH_PY_FOGN_CD                                                    --현금지급금융기관코드
+          ,D.CSH_PY_BRN_NM                                                     --현금지급지점명
+          ,D.CSH_PY_BRN_CD                                                     --현금지급지점코드
+          ,D.HANDLNG_BRN_PST_NO                                                --취급지점우편번호
+          ,D.HANDLNG_BRN_NM                                                    --취급지점명
+       /* 취소 또는 정정 보고에 관한 정보 */
+       --선택사항이며, 01번 메시지 타입 코드값이 02,03,97,98일경우 필수 항목
+          ,CASE WHEN A.RPR_CCD NOT IN ('01','93')
+                THEN (
+                       SELECT S.CNTNT
+                         FROM NIC66B_W S
+                        WHERE (S.INST_ID, S.WORK_ID) IN (
+                                                         SELECT K.INST_ID, MIN(K.WORK_ID)
+                                                           FROM NIC66B_W K
+                                                          WHERE K.INST_ID = A.INST_ID
+                                                          GROUP BY K.INST_ID
+                                                        )
+                     )
+                ELSE ''
+            END AS VIEW_COMMENT
+      FROM NIC66B A
+          ,NIC71B B
+          ,NIC72B C
+          ,NIC75B D
+          ,NIC76B E
+          ,NIC77B F
+          ,NIC83B G
+          ,NIC98B H
+     WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+       AND A.SSPS_DL_ID     = B.SSPS_DL_ID
+       AND B.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT(+)
+       AND B.SSPS_DL_ID     = C.SSPS_DL_ID(+)
+       AND B.GNL_AC_NO      = C.GNL_AC_NO(+)
+       AND B.GDS_NO         = C.GDS_NO(+)
+       AND B.SSPS_DL_CRT_DT = D.SSPS_DL_CRT_DT
+       AND B.SSPS_DL_ID     = D.SSPS_DL_ID
+       AND B.GNL_AC_NO      = D.GNL_AC_NO
+       AND B.GDS_NO         = D.GDS_NO
+       AND D.SSPS_DL_CRT_DT = E.SSPS_DL_CRT_DT(+)
+       AND D.SSPS_DL_ID     = E.SSPS_DL_ID(+)
+       AND D.GNL_AC_NO      = E.GNL_AC_NO(+)
+       AND D.GDS_NO         = E.GDS_NO(+)
+       AND D.DL_DT          = E.DL_DT(+)
+       AND D.DL_SQ          = E.DL_SQ(+)
+       AND D.SSPS_DL_CRT_DT = F.SSPS_DL_CRT_DT(+)
+       AND D.SSPS_DL_ID     = F.SSPS_DL_ID(+)
+       AND D.GNL_AC_NO      = F.GNL_AC_NO(+)
+       AND D.GDS_NO         = F.GDS_NO(+)
+       AND D.DL_DT          = F.DL_DT(+)
+       AND D.DL_SQ          = F.DL_SQ(+)
+       AND D.SSPS_DL_CRT_DT = G.SSPS_DL_CRT_DT(+)
+       AND D.SSPS_DL_ID     = G.SSPS_DL_ID(+)
+       AND D.GNL_AC_NO      = G.GNL_AC_NO(+)
+       AND D.GDS_NO         = G.GDS_NO(+)
+       AND D.DL_DT          = G.DL_DT(+)
+       AND D.DL_SQ          = G.DL_SQ(+)
+       AND D.SSPS_DL_CRT_DT = H.SSPS_DL_CRT_DT(+)
+       AND D.SSPS_DL_ID     = H.SSPS_DL_ID(+)
+       AND D.GNL_AC_NO      = H.GNL_AC_NO(+)
+       AND D.GDS_NO         = H.GDS_NO(+)
+       AND D.DL_DT          = H.DL_DT(+)
+       AND D.DL_SQ          = H.DL_SQ(+)
+       AND A.SSPS_DL_CRT_DT = #{param_SSPS_DL_CRT_DT}
+       AND A.SSPS_DL_ID     = #{param_SSPS_DL_ID}
+</select>
+
+<select id="AML_60_01_01_01_getSearch4" parameterType="hashMap" resultType="DataObj">
+SELECT
+       NVL(G.CPRTY_TRSNS_AC_NO, ' ')   CPRTY_TRSNS_AC_NO               --상대대체계좌번호
+      ,NVL(G.CPRTY_TRSNS_FOGN_NM, ' ') CPRTY_TRSNS_FOGN_NM             --상대대체금융기관명
+      ,NVL(G.CPRTY_TRSNS_AC_NM, ' ')   CPRTY_TRSNS_AC_NM              --상대대체계좌명
+  FROM NIC66B A
+      ,NIC71B B
+      ,NIC72B C
+      ,NIC75B D
+      ,NIC76B E
+      ,NIC77B F
+      ,NIC83B G
+      ,NIC70B H
+      ,NIC78B I
+      ,NIC79B J
+ WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+   AND A.SSPS_DL_ID     = B.SSPS_DL_ID
+   AND B.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT(+)
+   AND B.SSPS_DL_ID     = C.SSPS_DL_ID(+)
+   AND B.GNL_AC_NO      = C.GNL_AC_NO(+)
+   AND B.GDS_NO         = C.GDS_NO(+)
+   AND B.SSPS_DL_CRT_DT = D.SSPS_DL_CRT_DT
+   AND B.SSPS_DL_ID     = D.SSPS_DL_ID
+   AND B.GNL_AC_NO      = D.GNL_AC_NO
+   AND B.GDS_NO         = D.GDS_NO
+   AND D.SSPS_DL_CRT_DT = E.SSPS_DL_CRT_DT(+)
+   AND D.SSPS_DL_ID     = E.SSPS_DL_ID(+)
+   AND D.GNL_AC_NO      = E.GNL_AC_NO(+)
+   AND D.GDS_NO         = E.GDS_NO(+)
+   AND D.DL_DT          = E.DL_DT(+)
+   AND D.DL_SQ          = E.DL_SQ(+)
+   AND D.SSPS_DL_CRT_DT = F.SSPS_DL_CRT_DT(+)
+   AND D.SSPS_DL_ID     = F.SSPS_DL_ID(+)
+   AND D.GNL_AC_NO      = F.GNL_AC_NO(+)
+   AND D.GDS_NO         = F.GDS_NO(+)
+   AND D.DL_DT          = F.DL_DT(+)
+   AND D.DL_SQ          = F.DL_SQ(+)
+   AND D.SSPS_DL_CRT_DT = G.SSPS_DL_CRT_DT(+)
+   AND D.SSPS_DL_ID     = G.SSPS_DL_ID(+)
+   AND D.GNL_AC_NO      = G.GNL_AC_NO(+)
+   AND D.GDS_NO         = G.GDS_NO(+)
+   AND D.DL_DT          = G.DL_DT(+)
+   AND D.DL_SQ          = G.DL_SQ(+)
+   AND A.SSPS_DL_CRT_DT = H.SSPS_DL_CRT_DT
+   AND A.DL_P_RNMCNO    = H.DL_P_RNMCNO
+   AND H.SSPS_DL_CRT_DT = I.SSPS_DL_CRT_DT(+)
+   AND H.DL_P_RNMCNO    = I.DL_P_RNMCNO(+)
+   AND H.SSPS_DL_CRT_DT = J.SSPS_DL_CRT_DT(+)
+   AND H.DL_P_RNMCNO    = J.DL_P_RNMCNO(+)
+   AND A.SSPS_DL_CRT_DT = #{param_SSPS_DL_CRT_DT}
+   AND A.SSPS_DL_ID = #{param_SSPS_DL_ID}
+</select>
+
+<select id="AML_60_02_01_01_getSearch1" parameterType="hashMap" resultType="DataObj">
+    SELECT
+           A.RPR_OGN_NM      AS PT01_RPR_OGN_NM             --보고기관명
+          ,A.RPR_RSPSB_P_NM  AS PT01_RPR_RSPSB_P_NM         --보고책임자명
+          ,A.RPR_CHRG_P_NM   AS PT01_RPR_CHRG_P_NM          --보고담당자명
+          ,A.RPR_CHRG_P_TEL_NO AS PT01_RPR_CHRG_P_TEL_NO     --보고담당자전화번호
+      FROM NIC86B A
+     WHERE ROWNUM &lt; 2
+</select>
+
+<select id="AML_60_02_01_01_getSearch2" parameterType="hashMap" resultType="DataObj">
+    SELECT
+           B.DL_P_NM          PT02_01_DL_P_NM                               --거래자명                    
+          ,B.DL_P_RNM_NO_CCD  PT02_01_DL_P_RNM_NO_CCD                       --거래자실명번호구분코드             
+          ,B.DL_P_AML_CUST_ID      PT02_01_DL_P_AML_CUST_ID                 --거래자실명확인번호
+          ,DECODE(B.DL_P_NTNLT_CD'KR''01''02') PT02_01_DL_P_NTNLT_CD        --거래자국적코드                 
+          ,B.DL_P_NTNLT_NM    PT02_01_DL_P_NTNLT_NM                         --거래자국적명                  
+          ,C.DL_P_HSE_PST_NO  PT02_01_DL_P_HSE_PST_NO                       --거래자자택우편번호               
+          ,C.DL_P_HSE_ADDR    PT02_01_DL_P_HSE_ADDR                         --거래자자택주소                 
+          ,C.DL_P_BRTDY       PT02_01_DL_P_BRTDY                            --거래자생년월일                 
+          ,C.DL_P_SEX_CD      PT02_01_DL_P_SEX_CD                           --거래자성별코드                 
+          ,C.DL_P_HSE_TEL_NO  PT02_01_DL_P_HSE_TEL_NO                       --거래자자택전화번호               
+          ,C.DL_P_MBL_TEL_NO  PT02_01_DL_P_MBL_TEL_NO                       --거래자휴대전화번호               
+          ,C.RNM_CMBNTN_NO    PT02_01_RNM_CMBNTN_NO                         --실명조합번호                  
+          ,C.DL_P_PSPT_NO     PT02_01_DL_P_PSPT_NO                          --거래자여권번호                 
+          ,C.OCPTN_CCD        PT02_01_OCPTN_CCD                             --직업구분코드                  
+          ,C.OCPTN_CCD_NM     PT02_01_OCPTN_CCD_NM                          --직업구분코드명                 
+          ,C.WP_NM            PT02_01_WP_NM                                 --직장명                     
+          ,C.DTY_DPRT_NM      PT02_01_DTY_DPRT_NM                           --근무부점명                   
+          ,C.CS_PSTN_CD       PT02_01_CS_PSTN_CD                            --고객직위코드                  
+          ,C.RPRST_P_NM       PT02_01_RPRST_P_NM                            --대표자명                    
+          ,C.IND_TYP_CD       PT02_01_IND_TYP_CD                            --업종코드                    
+          ,C.IND_TYP_CD_NM    PT02_01_IND_TYP_CD_NM                         --업종코드명                   
+          ,C.RPRST_P_RNM_NO   PT02_01_RPRST_P_RNM_NO                        --대표자실명번호                 
+          ,C.LG_AMT_ASTS_F    PT02_01_LG_AMT_ASTS_F                         --고액자산여부                  
+          ,B.INDV_CORP_CCD    PT02_01_INDV_CORP_CCD                          --개인법인구분코드                
+      FROM NIC66B A                                                                              
+          ,NIC70B B                                                                              
+          ,NIC78B C                                                                               
+     WHERE A.SSPS_DL_CRT_DT  = B.SSPS_DL_CRT_DT
+       AND A.DL_P_AML_CUST_ID       = B.DL_P_AML_CUST_ID
+       AND B.SSPS_DL_CRT_DT     = C.SSPS_DL_CRT_DT(+)
+       AND B.DL_P_AML_CUST_ID       = C.DL_P_AML_CUST_ID(+)
+       AND B.INDV_CORP_CCD = '1'
+       AND A.SSPS_DL_CRT_DT = #{param_SSPS_DL_CRT_DT}
+       AND A.SSPS_DL_ID = #{param_SSPS_DL_ID}
+</select>
+
+<select id="AML_60_02_01_01_getSearch3" parameterType="hashMap" resultType="DataObj">
+    SELECT * 
+      FROM (
+             SELECT
+                    DENSE_RANK () OVER (ORDER BY D.DL_DT,D.DL_TM)                 PT03_ROWNUM
+                   ,D.DL_DT                  PT03_DL_DT                                                   --거래일자
+                   ,D.DL_SQ                  PT03_DL_SQ                                                   --거래일련번호
+                   ,D.DL_TM                  PT03_DL_TM                                                   --거래시간
+                   ,D.DL_CHNNL_CD            PT03_DL_CHNNL_CD                                             --거래채널코드
+                   ,D.DL_CHNNL_NM            PT03_DL_CHNNL_NM                                             --거래채널명
+                   ,D.HANDLNG_BRN_PST_NO     PT03_HANDLNG_BRN_PST_NO                                      --취급지점우편번호
+                   ,D.HANDLNG_BRN_NM         PT03_HANDLNG_BRN_NM                                          --취급지점명
+                   ,D.DL_WY_CD               PT03_DL_WY_CD                                                --거래방법코드(수단)
+                   ,D.DL_WY_NM               PT03_DL_WY_NM                                                --거래방법명
+                   ,D.DL_TYP_CD              PT03_STR_DL_KND_CD                                           --STR거래종류코드
+                   ,D.DL_KND_NM              PT03_DL_KND_NM                                               --거래종류명
+                   ,B.GDS_NO                 PT03_DL_GDS_CD                                               --거래상품코드
+                   ,D.CRNCY_CD               PT03_CRNCY_CD                                                --통화코드
+                   ,TO_CHAR(NVL(D.DL_AMT,0), 'FM999,999,999,990')                 PT03_DL_AMT             --거래금액
+                   ,TO_CHAR(NVL(D.FCRNCY_DL_AMT,0), 'FM999,999,999,990')          PT03_FCRNCY_DL_AMT      --외화거래금액
+                   ,TO_CHAR(NVL(D.USD_EXCH_AMT,0), 'FM999,999,999,990')           PT03_USD_EXCH_AMT       --달러환산금액
+                   ,E.CHCK_KND_CD            PT03_CHCK_KND_CD                                             --수표종류코드
+                   ,E.CHCK_STRT_NO           PT03_CHCK_STRT_NO                                            --수표시작번호
+                   ,E.CHCK_END_NO            PT03_CHCK_END_NO                                             --수표종료번호
+                   ,E.ISNG_BNK_CD            PT03_ISNG_BNK_CD                                             --발행은행코드
+                   ,E.ISNG_BNK_NM            PT03_ISNG_BNK_NM                                             --발행은행명
+                   ,E.BLL_TYP_AMT            PT03_BLL_TYP_AMT                                             --권종금액
+                   ,E.CHCK_AMT               PT03_CHCK_AMT                                                --수표금액
+                   ,E.CHCK_ISNG_DT           PT03_CHCK_ISNG_DT                                            --수표발행일자
+                   ,E.ENDRS_P_NM             PT03_ENDRS_P_NM                                              --배서자명
+                   ,E.ENDRS_P_KND_CD         PT03_ENDRS_P_KND_CD                                          --배서자종류코드
+                   ,E.ENDRS_P_RNM_NO         PT03_ENDRS_P_RNM_NO                                          --배서자실명번호
+                   ,E.ENDRS_P_TEL_NO         PT03_ENDRS_P_TEL_NO                                          --배서자전화번호
+                   ,E.IO_CCD                 PT03_IO_CCD                                                  --입출구분코드
+                   ,E.ENDRS_P_F              PT03_ENDRS_P_F                                               --배서자여부
+                   ,D.FXCH_DL_OBJ_CD         PT03_FXCH_DL_OBJ_CD                                          --외환거래목적코드
+                   ,D.FXCH_DL_OBJ_CD_NM      PT03_FXCH_DL_OBJ_CD_NM                                       --외환거래목적코드명
+                   ,C.PRXY_NM                PT03_PRXY_NM                                                 --대리인명
+                   ,C.AGNC_EXTNT_CD          PT03_AGNC_EXTNT_CD                                           --대리권범위코드
+                   ,C.PRXY_RNM_NO_CCD        PT03_PRXY_RNM_NO_CCD                                         --대리인실명번호구분코드
+                   ,C.PRXY_RNMCNO            PT03_PRXY_RNMCNO                                             --대리인실명확인번호
+                   ,C.PRXY_TEL_NO            PT03_PRXY_TEL_NO                                             --대리인전화번호
+                   ,DECODE(C.PRXY_NTNLT_CD,'KR','01', '', '', '02')          PT03_PRXY_NTNLT_CD           --대리인국적코드
+                   ,C.PRXY_NTNLT_NM          PT03_PRXY_NTNLT_NM                                           --대리인국적명
+                   ,C.AC_OWN_P_RLTNS_CD      PT03_AC_OWN_P_RLTNS_CD                                       --계좌소유자관계코드
+                   ,CASE WHEN B.SSPS_DL_CRT_DT IS NOT NULL
+                         THEN '1'
+                         ELSE '9'
+                     END AS PT03_B_RL_AC_YN                                                               --관련계좌존재여부
+                   ,CASE WHEN G.SSPS_DL_CRT_DT IS NOT NULL AND K.TRNS_OGN_CD = G.CPRTY_TRSNS_OGN_CD
+                         THEN '1'
+                         WHEN G.SSPS_DL_CRT_DT IS NOT NULL AND K.TRNS_OGN_CD &lt;> G.CPRTY_TRSNS_OGN_CD
+                         THEN '2'
+                         ELSE '9'
+                     END AS PT03_G_RL_AC_YN                                                               --송수취계좌여부
+                   ,DECODE(NVL(C.SSPS_DL_CRT_DT,'NULL'),'NULL','N','Y') AS PT03_PRXY_YN                   --대리인 존재여부
+               FROM NIC66B A
+                   ,NIC71B B
+                   ,NIC72B C
+                   ,NIC75B D
+                   ,NIC76B E
+                   ,NIC77B F
+                   ,NIC83B G
+                   ,NIC86B K
+              WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+                AND A.SSPS_DL_ID     = B.SSPS_DL_ID
+                AND B.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT(+)
+                AND B.SSPS_DL_ID     = C.SSPS_DL_ID(+)
+                AND B.GNL_AC_NO      = C.GNL_AC_NO(+)
+                AND B.GDS_NO         = C.GDS_NO(+)
+                AND B.SSPS_DL_CRT_DT = D.SSPS_DL_CRT_DT
+                AND B.SSPS_DL_ID     = D.SSPS_DL_ID
+                AND B.GNL_AC_NO      = D.GNL_AC_NO
+                AND B.GDS_NO         = D.GDS_NO
+                AND D.SSPS_DL_CRT_DT = E.SSPS_DL_CRT_DT(+)
+                AND D.SSPS_DL_ID     = E.SSPS_DL_ID(+)
+                AND D.GNL_AC_NO      = E.GNL_AC_NO(+)
+                AND D.GDS_NO         = E.GDS_NO(+)
+                AND D.DL_DT          = E.DL_DT(+)
+                AND D.DL_SQ          = E.DL_SQ(+)
+                AND D.SSPS_DL_CRT_DT = F.SSPS_DL_CRT_DT(+)
+                AND D.SSPS_DL_ID     = F.SSPS_DL_ID(+)
+                AND D.GNL_AC_NO      = F.GNL_AC_NO(+)
+                AND D.GDS_NO         = F.GDS_NO(+)
+                AND D.DL_DT          = F.DL_DT(+)
+                AND D.DL_SQ          = F.DL_SQ(+)
+                AND D.SSPS_DL_CRT_DT = G.SSPS_DL_CRT_DT(+)
+                AND D.SSPS_DL_ID     = G.SSPS_DL_ID(+)
+                AND D.GNL_AC_NO      = G.GNL_AC_NO(+)
+                AND D.GDS_NO         = G.GDS_NO(+)
+                AND D.DL_DT          = G.DL_DT(+)
+                AND D.DL_SQ          = G.DL_SQ(+)
+                AND A.SSPS_DL_CRT_DT = #{param_SSPS_DL_CRT_DT}
+                AND A.SSPS_DL_ID = #{param_SSPS_DL_ID}
+              ORDER BY D.DL_DT,D.DL_TM
+           )
+           WHERE PT03_ROWNUM = #{PT03_ROWNUM}
+</select>
+
+<select id="AML_60_02_01_01_getSearch4" parameterType="hashMap" resultType="DataObj">
+    SELECT * 
+      FROM (
+             SELECT
+                    DENSE_RANK () OVER (ORDER BY D.DL_DT,D.DL_TM)    PT04_ROWNUM 
+                   ,B.GNL_AC_NO            PT04_GNL_AC_NO                                                            --종합계좌번호
+                   ,B.GDS_NO               PT04_GDS_NO                                                               --상품번호
+                   ,B.GDS_OPN_DT           PT04_GDS_OPN_DT                                                           --상품개설일자
+                   ,(SELECT RPR_OGN_NM FROM NIC86B WHERE ROWNUM = 1) PT04_RPR_OGN_NM                                 --금융기관명
+                   ,B.AC_OPN_BRN_NM        PT04_AC_OPN_BRN_NM                                                        --계좌개설지점명
+                   ,B.AC_OPN_BRN_PST_NO    PT04_AC_OPN_BRN_PST_NO                                                    --계좌개설지점우편번호
+                   ,B.MN_DL_DPRT_CD        PT04_MN_DL_DPRT_CD                                                        --주거래부점코드
+                   ,B.MN_DL_DPRT_NM        PT04_MN_DL_DPRT_NM                                                        --주거래부점명
+                   ,B.AC_OPN_OBJ_CCD       PT04_AC_OPN_OBJ_CCD                                                       --계좌개설목적구분코드  88
+                   ,B.AC_OPN_PRXY_F        PT04_AC_OPN_PRXY_F                                                        --계좌개설대리인여부       89
+                   ,B.GDS_OPN_BRN_CD       PT04_GDS_OPN_BRN_CD                                                       --상품개설지점코드
+                   ,H.DL_P_NM              PT04_DL_P_NM                                                              --거래자명
+                   ,H.DL_P_RNM_NO_CCD      PT04_DL_P_RNM_NO_CCD                                                      --거래자실명번호구분코드   91
+                   ,H.DL_P_AML_CUST_ID          PT04_DL_P_AML_CUST_ID                                                          --거래자실명확인번호
+                   ,DECODE(H.INDV_CORP_CCD,'1',I.DL_P_BRTDY,'2',J.BSNSG_FNDTN_DT)           PT04_DL_P_BRTDY          --거래자생년월일
+                   ,DECODE(H.DL_P_NTNLT_CD,'KR','01','02')        PT04_DL_P_NTNLT_CD                                 --거래자국적코드
+                   ,H.DL_P_NTNLT_NM        PT04_DL_P_NTNLT_NM                                                        --거래자국적명
+                   ,DECODE(H.INDV_CORP_CCD,'1',I.DL_P_HSE_PST_NO,'2',J.HD_BRNCH_PST_NO)      PT04_DL_P_HSE_PST_NO    --거래자자택우편번호
+                   ,DECODE(H.INDV_CORP_CCD,'1',I.DL_P_HSE_ADDR,'2',J.HD_BRNCH_ADDR)        PT04_DL_P_HSE_ADDR        --거래자자택주소
+                   ,DECODE(H.INDV_CORP_CCD,'1',I.DL_P_HSE_TEL_NO,'2',J.HD_BRNCH_TEL_NO)      PT04_DL_P_HSE_TEL_NO    --거래자자택전화번호
+                   ,DECODE(H.INDV_CORP_CCD,'1',I.DL_P_MBL_TEL_NO,'2','')      PT04_DL_P_MBL_TEL_NO                   --거래자휴대전화번호
+                   ,DECODE(H.INDV_CORP_CCD,'1',I.RPRST_P_NM,'2',K.RPRST_P_NM)           PT04_RPRST_P_NM              --대표자명
+                   ,DECODE(H.INDV_CORP_CCD,'1','01','2',K.RPRST_P_RNM_CNFR_CCD)   PT04_RPRST_P_RNM_NO_CCD            --대표자실명번호구분코 드  99
+                   ,DECODE(H.INDV_CORP_CCD,'1',I.RPRST_P_RNM_NO,'2',K.RPRST_P_RNMCNO)       PT04_RPRST_P_RNMCNO      --대표자실명확인번호
+                   ,DECODE(H.INDV_CORP_CCD,'1','','2',K.RPRST_P_TEL_NO)       PT04_RPRST_P_TEL_NO                    --대표자전화번호
+                   ,DECODE(K.RPRST_P_NTNLT,'KR','01', '', '', '02')     PT04_RPRST_P_NTNLT_CD                        --대표자국적코드     102
+                   ,GET_CODE_NAME('M004',K.RPRST_P_NTNLT)     PT04_RPRST_P_NTNLT_NM                                  --대표자국적명
+                   ,C.PRXY_NM              PT04_PRXY_NM                                                              --대리인명
+                   ,C.AC_OWN_P_RLTNS_CD    PT04_AC_OWN_P_RLTNS_CD                                                    --계좌소유자관계코드     104
+                   ,C.PRXY_RNM_NO_CCD      PT04_PRXY_RNM_NO_CCD                                                      --대리인실명번호구분코드   105
+                   ,C.PRXY_RNMCNO          PT04_PRXY_RNMCNO                                                          --대리인실명확인번호
+                   ,C.PRXY_TEL_NO          PT04_PRXY_TEL_NO                                                          --대리인전화번호
+                   ,DECODE(C.PRXY_NTNLT_CD,'KR','01', '', '', '02')       PT04_PRXY_NTNLT_CD                         --대리인국적코드           108
+                   ,C.PRXY_NTNLT_NM        PT04_PRXY_NTNLT_NM                                                        --대리인국적명
+               FROM NIC66B A
+                   ,NIC71B B
+                   ,NIC72B C
+                   ,NIC75B D
+                   ,NIC76B E
+                   ,NIC77B F
+                   ,NIC83B G
+                   ,NIC70B H
+                   ,NIC78B I
+                   ,NIC79B J
+                   ,(
+                        SELECT A.*
+			              FROM NIC03B_1 A
+			                , ( 
+			                    SELECT AML_CUST_ID
+			                         , MIN(RPRST_P_SQ) AS RPRST_P_SQ
+			                      FROM NIC03B_1
+			                     WHERE RPR_TGT_YN = 'Y'
+			                     GROUP BY AML_CUST_ID
+			                   ) B
+			           WHERE A.AML_CUST_ID = B.AML_CUST_ID  
+			             AND A.RPRST_P_SQ = B.RPRST_P_SQ
+                    ) K
+              WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+                AND A.SSPS_DL_ID     = B.SSPS_DL_ID
+                AND B.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT(+)
+                AND B.SSPS_DL_ID     = C.SSPS_DL_ID(+)
+                AND B.GNL_AC_NO      = C.GNL_AC_NO(+)
+                AND B.GDS_NO         = C.GDS_NO(+)
+                AND B.SSPS_DL_CRT_DT = D.SSPS_DL_CRT_DT
+                AND B.SSPS_DL_ID     = D.SSPS_DL_ID
+                AND B.GNL_AC_NO      = D.GNL_AC_NO
+                AND B.GDS_NO         = D.GDS_NO
+                AND D.SSPS_DL_CRT_DT = E.SSPS_DL_CRT_DT(+)
+                AND D.SSPS_DL_ID     = E.SSPS_DL_ID(+)
+                AND D.GNL_AC_NO      = E.GNL_AC_NO(+)
+                AND D.GDS_NO         = E.GDS_NO(+)
+                AND D.DL_DT          = E.DL_DT(+)
+                AND D.DL_SQ          = E.DL_SQ(+)
+                AND D.SSPS_DL_CRT_DT = F.SSPS_DL_CRT_DT(+)
+                AND D.SSPS_DL_ID     = F.SSPS_DL_ID(+)
+                AND D.GNL_AC_NO      = F.GNL_AC_NO(+)
+                AND D.GDS_NO         = F.GDS_NO(+)
+                AND D.DL_DT          = F.DL_DT(+)
+                AND D.DL_SQ          = F.DL_SQ(+)
+                AND D.SSPS_DL_CRT_DT = G.SSPS_DL_CRT_DT(+)
+                AND D.SSPS_DL_ID     = G.SSPS_DL_ID(+)
+                AND D.GNL_AC_NO      = G.GNL_AC_NO(+)
+                AND D.GDS_NO         = G.GDS_NO(+)
+                AND D.DL_DT          = G.DL_DT(+)
+                AND D.DL_SQ          = G.DL_SQ(+)
+                AND A.SSPS_DL_CRT_DT = H.SSPS_DL_CRT_DT
+                AND A.DL_P_AML_CUST_ID    = H.DL_P_AML_CUST_ID
+                AND H.SSPS_DL_CRT_DT = I.SSPS_DL_CRT_DT(+)
+                AND H.DL_P_AML_CUST_ID    = I.DL_P_AML_CUST_ID(+)
+                AND H.SSPS_DL_CRT_DT = J.SSPS_DL_CRT_DT(+)
+                AND H.DL_P_AML_CUST_ID    = J.DL_P_AML_CUST_ID(+)
+                AND H.DL_P_AML_CUST_ID    = K.AML_CUST_ID(+)
+                AND A.SSPS_DL_CRT_DT = #{param_SSPS_DL_CRT_DT}
+                AND A.SSPS_DL_ID = #{param_SSPS_DL_ID}
+              ORDER BY D.DL_DT,D.DL_TM
+           )
+           WHERE PT04_ROWNUM = #{PT04_ROWNUM}
+</select>
+
+
+<select id="AML_60_04_01_01_getSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT (SELECT K.DPRT_NM 
+              FROM NIC41B K 
+             WHERE K.DPRT_CD = B.MN_DL_BRN_CD) AS MN_DL_BRN_NM
+          ,SUM(DECODE(B.RPR_PRGRS_CCD,0, 1, 0)) AS BRN_PRGRS1       --지점 미처리건
+          ,SUM(DECODE(B.RPR_PRGRS_CCD, 1, 1, 0)) AS BRN_PRGRS2       --지점 처리건
+          ,SUM(DECODE(A.RPR_PRGRS_CCD, 9, 0, 99, 0, 1)) AS PRGRS1      --본점 미처리건
+          ,SUM(CASE WHEN A.RPR_PRGRS_CCD IN (9, 99) 
+                    THEN DECODE (A.OK_CCD, 2, 1, 0)
+                    ELSE 0
+                END) AS PRGRS2                                     --본점 보고제외건
+          ,SUM(CASE WHEN A.RPR_PRGRS_CCD IN (9, 99) 
+                    THEN DECODE (A.OK_CCD, 1, 1, 0)
+                    ELSE 0
+                END) AS PRGRS3                                     --본점 보고건
+          ,COUNT(*) AS PRGRS_ALL                                  --전체건
+      FROM NIC66B A
+          ,NIC73B B
+     WHERE A.SSPS_DL_CRT_DT BETWEEN #{SSPS_DL_CRT_DT_SD} 
+                                AND #{SSPS_DL_CRT_DT_ED}
+       AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+       AND A.SSPS_DL_ID = B.SSPS_DL_ID
+     GROUP BY B.MN_DL_BRN_CD
+</select>
+
+<select id="AML_61_01_01_01_getSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT (SELECT C.DPRT_NM
+              FROM NIC41B C
+             WHERE C.DPRT_CD = B.MN_DL_BRN_CD) AS MN_DL_BRN_NM
+           ,(SELECT D.DPRT_CD
+               FROM NIC41B D
+              WHERE D.DPRT_CD = B.MN_DL_BRN_CD) AS MN_DL_BRN_CD
+           ,SUM(DECODE(B.RPR_PRGRS_CCD, 0, 1, 0)) AS BRN_PRGRS1       --지점 미처리건
+           ,SUM(DECODE(B.RPR_PRGRS_CCD, 1, 1, 0)) AS BRN_PRGRS2       --지점 처리건
+           ,SUM(DECODE(A.RPR_PRGRS_CCD, 9, 0, 99, 0, 1)) AS PRGRS1      --본점 미처리건
+           ,SUM(CASE WHEN A.RPR_PRGRS_CCD IN (9, 99) THEN
+                          DECODE (A.OK_CCD, 2, 1, 0)
+                ELSE 0
+                END) AS PRGRS2                                     --본점 보고제외건
+           ,SUM(CASE WHEN A.RPR_PRGRS_CCD IN (9, 99) THEN
+                          DECODE (A.OK_CCD, 1, 1, 0)
+                ELSE 0
+                END) AS PRGRS3                                     --본점 보고건
+           ,COUNT(*) AS PRGRS_ALL                                  --전체건
+       FROM NIC66B A
+           ,NIC73B B
+      WHERE A.SSPS_DL_CRT_DT BETWEEN #{SSPS_DL_CRT_DT_SD} 
+                                 AND #{SSPS_DL_CRT_DT_ED}
+        AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+        AND A.SSPS_DL_ID = B.SSPS_DL_ID
+      GROUP BY B.MN_DL_BRN_CD
+</select>
+
+<select id="AML_60_04_01_02_getSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT Fn_Cdinfo_Var('DPT',B.MN_DL_BRN_CD,'') AS MN_DL_BRN_NM
+          ,GET_CODE_NAME('A101',A.SSPS_DL_CRT_CCD) AS SSPS_DL_CRT_NM
+          ,GET_SYNARIO_NAME(A.SSPS_TYP_CD) AS SSPS_TYP_NM               --, A.SSPS_TYP_CD
+          ,SUM(DECODE(A.RPR_PRGRS_CCD,'99',1,0)) AS RPR_CNT, COUNT(*) AS TOT_CNT
+      FROM NIC66B A
+          ,NIC73B B
+     WHERE A.SSPS_DL_CRT_DT BETWEEN #{SSPS_DL_CRT_DT_SD} 
+                                AND #{SSPS_DL_CRT_DT_ED}
+       AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+       AND A.SSPS_DL_ID = B.SSPS_DL_ID
+       AND A.SSPS_DL_CRT_CCD IN ('STR','KYC','CTR','CAC')
+     GROUP BY B.MN_DL_BRN_CD
+             ,A.SSPS_DL_CRT_CCD
+             ,A.SSPS_TYP_CD
+     ORDER BY MN_DL_BRN_CD
+</select>
+
+<select id="AML_60_04_01_02_getSearchStr" parameterType="hashMap" resultType="DataObj">
+    SELECT Fn_Cdinfo_Var('DPT', B.MN_DL_BRN_CD,'') AS MN_DL_BRN_NM
+          ,GET_CODE_NAME('A101', A.SSPS_DL_CRT_CCD) AS SSPS_DL_CRT_NM
+          ,GET_SYNARIO_NAME(A.SSPS_TYP_CD) AS SSPS_TYP_NM          --, A.SSPS_TYP_CD
+          ,SUM(DECODE(A.RPR_PRGRS_CCD, '99', 1, 0)) AS RPR_CNT, COUNT(*) AS TOT_CNT
+      FROM NIC66B A
+          ,NIC73B B
+     WHERE A.SSPS_DL_CRT_DT BETWEEN #{SSPS_DL_CRT_DT_SD} AND #{SSPS_DL_CRT_DT_ED}
+       AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+       AND A.SSPS_DL_ID = B.SSPS_DL_ID
+       AND A.SSPS_DL_CRT_CCD IN ('STR','KYC')
+     GROUP BY B.MN_DL_BRN_CD
+             ,A.SSPS_DL_CRT_CCD
+             ,A.SSPS_TYP_CD
+     ORDER BY B.MN_DL_BRN_CD
+</select>
+
+<select id="AML_60_04_01_03_getSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT Fn_Cdinfo_Var('DPT', B.MN_DL_BRN_CD, '') AS MN_DL_BRN_NM
+          ,A.SSPS_DL_CRT_DT, A.SSPS_DL_ID
+          ,GET_CODE_NAME('A101',A.SSPS_DL_CRT_CCD) AS SSPS_DL_CRT_NM
+          ,GET_SYNARIO_NAME(A.SSPS_TYP_CD) AS SSPS_TYP_NM         --, A.SSPS_TYP_CD
+          ,GET_CODE_NAME('A004', A.RSK_GRD_CD) AS RSK_GRD_NM
+          ,DECODE(B.RPR_PRGRS_CCD, '1', 'Y', 'N') AS BRN_YN
+          ,DECODE(A.RPR_PRGRS_CCD, '99', 'Y', 'N') AS RPR_YN
+      FROM NIC66B A
+          ,NIC73B B
+     WHERE A.SSPS_DL_CRT_DT BETWEEN #{SSPS_DL_CRT_DT_SD} 
+                                AND #{SSPS_DL_CRT_DT_ED}
+       AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+       AND A.SSPS_DL_ID = B.SSPS_DL_ID
+       AND A.SSPS_DL_CRT_CCD IN ('STR','KYC','CTR','CAC')
+       AND B.MN_DL_BRN_CD LIKE #{ML_DL_BRN_CD}
+     ORDER BY B.MN_DL_BRN_CD
+          ,A.SSPS_DL_CRT_DT
+          ,A.SSPS_DL_ID
+</select>
+
+<select id="AML_60_02_02_01_getSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT Fn_Cdinfo_Var('DT',TO_CHAR(A.HNDL_DY_TM, 'YYYYMMDD'),'')    HNDL_DT        -- 추출일자
+          ,Fn_Cdinfo_Var('DT', A.SSPS_DL_CRT_DT,'')    RPT_SSPS_DL_CRT_DT                -- 일자
+          ,B.MN_DL_BRN_NM     RPT_SSPS_DL_ANLYS_BRN_NM                                   -- 영업점명
+          --Fn_Cdinfo_Var('AC',C.GNL_ACL_AC_NO||C.GDS_NO,'')     PRT_CS_NM                -- 계좌명
+          ,NVL(E.CS_NM, E.ENG_CS_NM) AS PRT_CS_NM                -- 계좌명
+          ,A.SSPS_TYP_CD                SSPS_TYP_CD                                       -- 시나리오 룰번호
+          ,CASE WHEN A.SSPS_TYP_CD = 'KYC0' THEN '임의 보고'
+                ELSE GET_SYNARIO_NAME(A.SSPS_TYP_CD) 
+            END AS SSPS_TYP_NM                   -- 시나리오 룰
+          ,D.RPR_RSN_CNTNT            RPT_RPR_RSN_CNTNT
+      FROM NIC66B A
+          ,NIC73B B
+          ,NIC71B C
+          ,NIC67B D
+          ,NIC01B E
+     WHERE A.SSPS_DL_CRT_DT BETWEEN #{par_SSPS_DL_CRT_SDT} AND #{par_SSPS_DL_CRT_EDT}
+       AND B.MN_DL_BRN_CD LIKE #{par_SSPS_DL_ANLYS_BRN_CD}
+       AND A.SSPS_DL_CRT_CCD NOT IN ('CTR', 'CAC')
+       AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+       AND A.SSPS_DL_ID = B.SSPS_DL_ID
+       AND A.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT(+)
+       AND A.SSPS_DL_ID = C.SSPS_DL_ID(+)
+       AND A.SSPS_DL_CRT_DT = D.SSPS_DL_CRT_DT(+)
+       AND A.SSPS_DL_ID = D.SSPS_DL_ID(+)
+       AND A.DL_P_AML_CUST_ID = E.AML_CUST_ID
+       AND A.RPR_PRGRS_CCD = '99'
+</select>
+
+<select id="AML_60_02_03_01_getSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT Fn_Cdinfo_Var('DT',TO_CHAR(A.HNDL_DY_TM, 'YYYYMMDD'),'')     HNDL_DT                -- 처리일자
+          ,Fn_Cdinfo_Var('DT', A.SSPS_DL_CRT_DT,'')    RPT_SSPS_DL_CRT_DT                      -- 혐의일자
+          ,B.MN_DL_BRN_NM    RPT_SSPS_DL_ANLYS_BRN_NM                                          -- 영업점명
+           --Fn_Cdinfo_Var('AC',C.GNL_AC_NO||C.GDS_NO,'')                RPT_GNL_AC_NO          -- 계좌번호
+          ,C.GNL_AC_NO AS RPT_GNL_AC_NO 
+           --FN_RPT_CNV('GNL_AC_NO',C.GNL_AC_NO||C.GDS_NO,'')     PRT_CS_NM                     -- 계좌명
+          ,NVL(E.CS_NM, E.ENG_CS_NM) AS PRT_CS_NM                                             -- 계좌명
+          ,A.SSPS_TYP_CD                SSPS_TYP_CD                                            -- 시나리오 룰번호
+          ,CASE WHEN A.SSPS_TYP_CD = 'KYC0' THEN '임의 보고'
+                ELSE GET_SYNARIO_NAME(A.SSPS_TYP_CD) END AS SSPS_TYP_NM                        -- 시나리오 룰
+          ,D.RPR_RSN_CNTNT            RPT_RPR_RSN_CNTNT                                        -- 보고사유
+      FROM NIC66B A 
+          ,NIC73B B 
+          ,NIC71B C 
+          ,NIC67B D 
+          ,NIC01B E
+     WHERE A.SSPS_DL_CRT_DT BETWEEN #{par_SSPS_DL_CTR_SDT} AND #{par_SSPS_DL_CTR_EDT}
+       AND B.MN_DL_BRN_CD  LIKE #{par_SSPS_DL_ANLYS_BRN_CD}
+       AND A.SSPS_DL_CRT_CCD NOT IN ('CTR', 'CAC')
+       AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+       AND A.SSPS_DL_ID = B.SSPS_DL_ID
+       AND A.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT(+)
+       AND A.SSPS_DL_ID = C.SSPS_DL_ID(+)
+       AND A.SSPS_DL_CRT_DT = D.SSPS_DL_CRT_DT(+)
+       AND A.SSPS_DL_ID = D.SSPS_DL_ID(+)
+       AND A.DL_P_RNMCNO = E.RNMCNO
+       AND A.RPR_PRGRS_CCD = '9' AND A.OK_CCD = '2'
+</select>
+
+<select id="AML_60_01_02_01_getSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT Fn_Cdinfo_Var('DT',TO_CHAR(A.HNDL_DY_TM, 'YYYYMMDD'),'')    HNDL_DT                     -- 처리일자
+          ,Fn_Cdinfo_Var('DT', A.SSPS_DL_CRT_DT,'')   RPT_SSPS_DL_CRT_DT                           -- 일자
+          ,A.SSPS_DL_ID AS SSPS_DL_ID  
+          ,B.MN_DL_BRN_NM     RPT_SSPS_DL_ANLYS_BRN_NM                                             -- 영업점명
+           --Fn_Cdinfo_Var('AC',C.GNL_AC_NO||C.GDS_NO,'')                RPT_GNL_AC_NO              -- 계좌번호
+          ,C.GNL_AC_NO AS RPT_GNL_AC_NO 
+          ,FN_RPT_CNV('GNL_AC_NO',C.GNL_AC_NO||C.GDS_NO,'')     PRT_CS_NM                         -- 계좌명
+          ,(SELECT K.CD_NM
+              FROM NIC92B K
+             WHERE K.CD = 'M045' 
+               AND K.CNTNT = C.DL_TYP_CD) RPT_DL_KND_NM     -- 거래유형
+           --C.DL_AMT                   RPT_DL_AMT                                                   -- 거래금액
+          ,TO_CHAR(C.DL_AMT,'FM999,999,999,999,999,999') AS  RPT_DL_AMT 
+          ,D.RPR_RSN_CNTNT            RPT_RPR_RSN_CNTNT                                            -- 보고사유
+      FROM NIC66B A 
+          ,NIC73B B 
+          ,NIC75B C 
+          ,NIC67B D
+      WHERE A.SSPS_DL_CRT_DT BETWEEN #{par_SSPS_DL_CTR_SDT} AND #{par_SSPS_DL_CTR_EDT}
+        AND B.MN_DL_BRN_CD LIKE #{par_SSPS_DL_ANLYS_BRN_CD}
+        AND A.SSPS_DL_CRT_CCD IN  ('CTR', 'CAC')
+        AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+        AND A.SSPS_DL_ID = B.SSPS_DL_ID
+        AND A.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT(+)
+        AND A.SSPS_DL_ID = C.SSPS_DL_ID(+)
+        AND A.SSPS_DL_CRT_DT = D.SSPS_DL_CRT_DT(+)
+        AND A.SSPS_DL_ID = D.SSPS_DL_ID(+)
+        AND A.RPR_PRGRS_CCD = '99'
+</select>
+
+<select id="AML_60_03_08_01_doSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT * 
+      FROM (
+             SELECT G.RULE_ID
+                   ,G.RULE_NAME
+                   ,G.RULE_DESC
+                   ,G.STR_ALERT_CNT /*STR발생건수*/
+                   ,ROUND(G.STR_ALERT_CNT / NVL(G.TOT_CNT, 1) * 100, 1) AS STR_RATE   /*발생비중*/
+                   ,G.STR_91_CNT + G.STR_2_CNT AS STR_9_CNT /*처리건수*/
+                   ,G.STR_91_CNT /*승인건수*/
+                   ,G.STR_2_CNT /*보고제외(이상없음)건수*/
+                   ,G.STR_KOFIU_CNT /*STR KOFIU 보고건수*/
+                   ,ROUND(G.STR_KOFIU_CNT / DECODE(G.STR_ALERT_CNT, 0, 1, G.STR_ALERT_CNT) * 100, 1) AS STR_KOFIU_RATE /*KOFIU 보고비율*/
+                   ,ROUND(G.STR_KOFIU_CNT / DECODE(G.KOFIU_TOT_CNT, 0, 1, NVL(G.KOFIU_TOT_CNT, 1) ) * 100, 1) AS STR_KOFIU_RATE2 /*KOFIU 발생비율*/
+               FROM (
+                      SELECT M.RULE_ID
+                            ,MIN(M.RULE_NAME) AS RULE_NAME
+                            ,MIN(M.RULE_DESC) AS RULE_DESC
+                            ,SUM(DECODE(M.RULE_ID, N.SSPS_TYP_CD, 1, 0)) AS STR_ALERT_CNT /*STR발생건수*/
+                            ,0 AS STR_9_CNT /*처리건수*/
+                            ,SUM(DECODE(M.RULE_ID, N.SSPS_TYP_CD, DECODE(N.OK_CCD, '1', CASE WHEN N.RPR_PRGRS_CCD IN ('9', '99') 
+                                                                                             THEN 1 ELSE 0 END, 0), 0) ) AS STR_91_CNT /*승인건수*/
+                            ,SUM(DECODE(M.RULE_ID, N.SSPS_TYP_CD, DECODE(N.OK_CCD, '2', DECODE(N.RPR_PRGRS_CCD, '9', 1, 0), 0), 0) ) AS STR_2_CNT /*보고제외(이상없음)건수*/
+                            ,SUM(DECODE(M.RULE_ID, N.SSPS_TYP_CD, DECODE(N.RPR_PRGRS_CCD, '99', 1, 0), 0) ) AS STR_KOFIU_CNT /*STR KOFIU 보고건수*/
+                            ,MAX(N.TOT_CNT) AS TOT_CNT
+                            ,MAX(N.KOFIU_TOT_CNT) AS KOFIU_TOT_CNT
+                            ,MIN(M.ASIS_RULE_F) AS ASIS_RULE_F
+                            ,MIN(M.SORT_NO) AS SORT_NO
+                        FROM (
+                        <choose>
+                            <when test="useBRMiner == 'Y'.toString()">
+                                SELECT B.MA01_6 AS RULE_ID
+                                     ,A.BIZ_NM AS RULE_NAME
+                                     ,A.BIZ_DESC AS RULE_DESC
+                                     ,'0' ASIS_RULE_F
+                                     ,B.MA01_6 AS SORT_NO
+                                 FROM C_BIZ A
+                                     ,MMA010TB B
+                                WHERE A.BIZ_ID = B.RT30_1
+                                  AND B.MA01_8 = 'S'
+                            </when>
+                            <otherwise>
+                                SELECT E.SCNR_ID  AS RULE_ID
+                                      ,E.SCNR_NM  AS RULE_NAME
+                                      ,E.SCNR_DESC  AS RULE_DESC
+                                      ,'0' ASIS_RULE_F
+                                      ,E.SCNR_ID AS SORT_NO
+                                  FROM TMS_APPL E
+                            </otherwise>
+                        </choose>
+                                UNION ALL
+                               SELECT 'KYC0'
+                                     ,'임의보고'
+                                     ,'STR임의보고'
+                                     ,'0' ASIS_RULE_F
+                                     ,'R999' AS SORT_NO
+                                 FROM DUAL
+                             ) M
+                            ,(
+                               SELECT K.SSPS_DL_CRT_CCD
+                                     ,K.RPR_PRGRS_CCD
+                                     ,K.SSPS_TYP_CD
+                                     ,K.OK_CCD
+                                     ,COUNT(*) OVER() AS TOT_CNT
+                                     ,SUM(DECODE(K.RPR_PRGRS_CCD, '99', 1, 0) ) OVER() AS KOFIU_TOT_CNT
+                                 FROM NIC66B K
+                                WHERE 1=1
+                                  <if test="ALL_DT != ''">
+                                  AND K.SSPS_DL_CRT_DT BETWEEN #{STR_DT} AND #{END_DT}
+                                  </if>
+                             <if test="DPRT_CD != 'ALL'">
+                                  AND #{DPRT_CD} IN (SELECT I.HANDLNG_BRN_CD 
+                                                       FROM NIC75B I
+                                                      WHERE I.SSPS_DL_CRT_DT = K.SSPS_DL_CRT_DT
+                                                        AND K.SSPS_DL_CRT_CCD = 'STR')
+                             </if>
+                                  AND K.SSPS_DL_CRT_CCD IN ('STR', 'KYC') /* STR */
+                                  /*AND NVL(K.INST_ID, 0) &gt;= 0 */
+                                   AND INST_ID IS NOT NULL
+                             ) N
+                       WHERE M.RULE_ID = N.SSPS_TYP_CD(+)
+                       GROUP BY M.RULE_ID
+                       ORDER BY M.RULE_ID
+                  ) G
+             WHERE 1=1
+             <if test="ALL_DT != ''">
+               AND G.STR_ALERT_CNT >= CASE WHEN 
+                     <choose>
+                            <when test="useBRMiner == 'Y'.toString()">
+                                                (SELECT F.MA04_3
+                                                   FROM MMA040TB F
+                                                  WHERE F.MA04_1 = 94) 
+                            </when>
+                            <otherwise>
+                                                (SELECT F.STD_VAL
+                                                   FROM NIC92B_STD_VAL F
+                                                  WHERE F.STD_ID = 94)
+                            </otherwise>
+                     </choose>
+                                                  
+                                                              > #{END_DT} THEN
+                                                                   CASE WHEN G.ASIS_RULE_F = '0' THEN 1 ELSE 0 END
+                                                                        WHEN G.ASIS_RULE_F = '1' THEN 1 ELSE 0 END
+             </if>
+             ORDER BY G.ASIS_RULE_F DESC
+                     ,G.SORT_NO
+           )
+     UNION ALL
+    SELECT '합계'
+          ,''
+          ,''
+          ,COUNT(T.SSPS_TYP_CD) AS STR_ALERT_CNT /*STR발생건수*/
+          ,100 AS STR_RATE /*발생비중*/
+          ,SUM(DECODE(T.OK_CCD, '1', CASE WHEN T.RPR_PRGRS_CCD IN ('9', '99') THEN 1 ELSE 0 END, 0) ) 
+            + SUM(DECODE(T.OK_CCD, '2', DECODE(T.RPR_PRGRS_CCD, '9', 1, 0), 0) ) AS STR_9_CNT /*처리건수*/
+          ,SUM(DECODE(T.OK_CCD, '1', CASE WHEN T.RPR_PRGRS_CCD IN ('9', '99') THEN 1 ELSE 0 END, 0) ) AS STR_91_CNT /*승인건수*/
+          ,SUM(DECODE(T.OK_CCD, '2', DECODE(T.RPR_PRGRS_CCD, '9', 1, 0), 0) ) AS STR_2_CNT /*보고제외(이상없음)건수*/
+          ,SUM(DECODE(T.RPR_PRGRS_CCD, '99', 1, 0) ) AS STR_KOFIU_CNT /*STR KOFIU 보고건수*/
+          ,ROUND(SUM(DECODE(T.RPR_PRGRS_CCD, '99', 1, 0) ) / COUNT(T.SSPS_TYP_CD) * 100, 1) AS STR_KOFIU_RATE /*KOFIU 보고비율*/
+          ,100 AS STR_KOFIU_RATE2 /*KOFIU 발생비율*/
+      FROM NIC66B T
+     WHERE 1=1
+       <if test="ALL_DT != ''">
+       AND T.SSPS_DL_CRT_DT BETWEEN #{STR_DT} AND #{END_DT}
+       </if>
+       <if test="DPRT_CD != 'ALL'">
+       AND #{DPRT_CD} IN (SELECT S.HANDLNG_BRN_CD 
+                            FROM NIC75B S
+                           WHERE S.SSPS_DL_CRT_DT = T.SSPS_DL_CRT_DT
+                             AND T.SSPS_DL_CRT_CCD = 'STR')
+       </if>
+       AND T.SSPS_DL_CRT_CCD IN ('STR', 'KYC')  /* STR */
+       /* AND NVL(T.INST_ID, 0) &gt;= 0  */ 
+       AND INST_ID IS NOT NULL
+</select>
+
+<select id="AML_60_01_04_01_doSearch" parameterType="hashMap" resultType="DataObj">
+    SELECT A.RPR_YR
+          ,A.QUARTER
+          ,NVL(B.CTR_CNT,0) AS CTR_CNT 
+          ,NVL(B.STR_CNT,0) AS STR_CNT 
+          ,NVL(B.TOT_CNT,0) AS TOT_CNT
+      FROM ( 
+             SELECT (#{STARTDATE} + LEVEL - 1) AS RPR_YR
+                   ,1 AS QUARTER
+                   ,0 AS CTR_CNT 
+                   ,0 AS STR_CNT 
+                   ,0 AS TOT_CNT 
+               FROM DUAL
+            CONNECT BY LEVEL &lt;= (#{ENDDATE} - #{STARTDATE})+1
+              UNION ALL
+             SELECT (#{STARTDATE} + LEVEL - 1) AS RPR_YR
+                   ,2 AS QUARTER
+                   ,0 AS CTR_CNT 
+                   ,0 AS STR_CNT 
+                   ,0 AS TOT_CNT FROM DUAL
+            CONNECT BY LEVEL &lt;= (#{ENDDATE} - #{STARTDATE})+1
+              UNION ALL
+             SELECT (#{STARTDATE} + LEVEL - 1) AS RPR_YR
+                   ,3 AS QUARTER
+                   ,0 AS CTR_CNT 
+                   ,0 AS STR_CNT 
+                   ,0 AS TOT_CNT 
+               FROM DUAL
+            CONNECT BY LEVEL &lt;= (#{ENDDATE} - #{STARTDATE})+1
+              UNION ALL
+             SELECT (#{STARTDATE} + LEVEL - 1) AS RPR_YR
+                   ,4 AS QUARTER
+                   ,0 AS CTR_CNT 
+                   ,0 AS STR_CNT 
+                   ,0 AS TOT_CNT 
+               FROM DUAL
+            CONNECT BY LEVEL &lt;= (#{ENDDATE} - #{STARTDATE})+1
+           ) A
+          ,(
+             SELECT
+                    X.RPR_YR
+                   ,TO_CHAR(TO_DATE(X.RPR_DT),'Q') AS QUARTER
+                   ,SUM(DECODE(X.CTR_STR_CCD,'C', 1, 0)) AS CTR_CNT
+                   ,SUM(DECODE(X.CTR_STR_CCD,'S', 1, 0)) AS STR_CNT
+                   ,COUNT(*) AS TOT_CNT
+               FROM NIC80B X 
+                   ,NIC66B Y
+              WHERE X.RPR_YR BETWEEN #{STARTDATE} AND #{ENDDATE}
+                AND X.SSPS_DL_CRT_DT = Y.SSPS_DL_CRT_DT
+                AND X.SSPS_DL_ID = Y.SSPS_DL_ID
+                AND Y.RPR_PRGRS_CCD ='99'
+                AND Y.OK_CCD = '1'
+              GROUP BY X.RPR_YR , TO_CHAR(TO_DATE(X.RPR_DT),'Q')
+           ) B
+     WHERE A.RPR_YR=B.RPR_YR(+)
+       AND A.QUARTER=B.QUARTER(+)
+     ORDER BY A.RPR_YR, A.QUARTER
+</select>
+
+<!-- 삼성증권 -->
+<select id="AML_60_02_01_01_getUserRelation" parameterType="hashMap" resultType="DataObj">
+SELECT 
+    MIN(RELATIONROLECODE) AS RELATIONROLECODE, RNMCNO
+FROM (  
+	SELECT
+	  '01' AS RELATIONROLECODE,
+	  C.RNMCNO AS RNMCNO
+	   FROM NIC70B A ,
+	        NIC66B B ,
+	        NIC71B C
+	 WHERE  A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+	   AND A.DL_P_RNMCNO = B.DL_P_RNMCNO
+	   AND B.SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+	   AND B.SSPS_DL_ID = #{SSPS_DL_ID}
+	   AND B.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT
+	   AND B.SSPS_DL_ID = C.SSPS_DL_ID   
+	UNION
+	SELECT
+	  '03' AS RELATIONROLECODE,
+	  A.PRXY_RNMCNO AS RNMCNO
+	   FROM NIC98B A ,
+	        NIC75B C ,
+	        NIC01B D
+	 WHERE A.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT
+	   AND A.SSPS_DL_ID = C.SSPS_DL_ID
+	   AND A.GNL_AC_NO = C.GNL_AC_NO
+	   AND A.DL_DT = C.DL_DT
+	   AND A.DL_SQ = C.DL_SQ
+	   AND A.PRXY_RNMCNO = D.RNMCNO
+	   AND TRIM(A.PRXY_RNMCNO) IS NOT NULL
+	   AND C.SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+	   AND C.SSPS_DL_ID = #{SSPS_DL_ID}
+	UNION
+	SELECT
+	  '09' RELATIONROLECODE,
+	  B.PRXY_RNMCNO AS RNMCNO
+	   FROM NIC71B A ,
+	        NIC72B B ,
+	        NIC75B C ,
+	        NIC01B D
+	 WHERE  A.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT
+	   AND A.SSPS_DL_ID = C.SSPS_DL_ID
+	   AND A.GNL_AC_NO = C.GNL_AC_NO
+	   AND A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+	   AND A.SSPS_DL_ID = B.SSPS_DL_ID
+	   AND A.GNL_AC_NO = B.GNL_AC_NO
+	   AND B.PRXY_RNMCNO = D.RNMCNO
+	   AND TRIM(B.PRXY_CS_NO) IS NOT NULL
+	   AND TRIM(B.PRXY_RNM_NO_CCD) IS NOT NULL
+	   AND C.SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+	   AND C.SSPS_DL_ID = #{SSPS_DL_ID}
+	UNION
+	SELECT
+	  '11' AS RELATIONROLECODE, -- 거래역할코드
+	  D.RNMCNO
+	   FROM NIC17B A ,
+	        NIC83B B ,
+	        NIC75B C ,
+	        NIC01B D ,
+	        NIC02B E
+	  WHERE A.ACNT_NO = B.CPRTY_TRSNS_AC_NO
+	    AND B.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT
+	    AND B.SSPS_DL_ID = C.SSPS_DL_ID
+	    AND B.GNL_AC_NO = C.GNL_AC_NO
+	    AND B.DL_DT = C.DL_DT
+	    AND B.DL_SQ = C.DL_SQ
+	    AND A.RNMCNO = D.RNMCNO
+	    AND D.RNMCNO = E.RNMCNO
+	    AND TRIM(A.RNMCNO) IS NOT NULL
+	    AND TRIM(D.CS_NO) IS NOT NULL
+	   AND C.SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+	   AND C.SSPS_DL_ID = #{SSPS_DL_ID}
+	UNION
+	SELECT
+	  '12' AS RELATIONROLECODE,
+	  A.PRXY_RNMCNO AS RNMCNO
+	   FROM NIC17B E ,
+	        NIC18B A ,
+	        NIC83B B ,
+	        NIC75B C ,
+	        NIC01B D 
+	  WHERE E.ACNT_NO = B.CPRTY_TRSNS_AC_NO
+	    AND E.GNL_AC_NO = A.GNL_AC_NO
+	    AND B.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT
+	    AND B.SSPS_DL_ID = C.SSPS_DL_ID
+	    AND B.GNL_AC_NO = C.GNL_AC_NO
+	    AND B.DL_DT = C.DL_DT
+	    AND B.DL_SQ = C.DL_SQ
+	    AND A.PRXY_RNMCNO = D.RNMCNO
+	    AND TRIM(A.PRXY_RNMCNO) IS NOT NULL
+	   AND C.SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+	   AND C.SSPS_DL_ID = #{SSPS_DL_ID}
+)GROUP BY RNMCNO
+</select>
+
+
+<select id="AML_60_04_01_01_doSearchSTR" parameterType="hashMap" resultType="DataObj">
+WITH UPDATE_DATE AS (
+	SELECT BRS320.RULE_ID, MAX(BRS340.RS34_Y) AS RS34_Y
+	  FROM BRS340TB BRS340,
+	  (SELECT  BRS320.RS31_1
+             , SUBSTR(BRS320.RS32_2, INSTR(BRS320.RS32_2, '_') + 1) AS RULE_ID
+             , BRS320.RS32_2
+          FROM BRS320TB BRS320
+         WHERE 1 = 1
+           AND (BRS320.RS32_2 LIKE '혐의거래자#_%' ESCAPE '#'
+                OR BRS320.RS32_2 LIKE '혐의거래내역#_%' ESCAPE '#'
+                OR BRS320.RS32_2 LIKE '기준DATA#_%' ESCAPE '#')
+      ) BRS320
+	WHERE BRS340.RS31_1 = BRS320.RS31_1
+	  AND BRS340.RS34_U = 2
+ GROUP BY BRS320.RULE_ID )
+SELECT A.*, TO_CHAR(TO_DATE(B.RS34_Y,'YYYYMMDDHH24MISS'),'YYYY-MM-DD HH24:MI:SS') AS RS34_Y FROM (
+		SELECT * FROM (
+        SELECT RULE_ID
+            , RULE_NAME
+            , RULE_DESC
+            , TR_ALERT_CNT /*STR발생건수*/
+            , ROUND(TR_ALERT_CNT / NVL(TOT_CNT,1) * 100,1) AS TR_RATE /*발생비중*/
+            , TR_91_CNT + TR_2_CNT AS TR_9_CNT /*처리건수*/
+            , TR_0_CNT /*미처리*/
+            , TR_91_CNT /*승인건수*/
+            , TR_2_CNT /*보고제외(이상없음)건수*/
+            , TR_KOFIU_CNT /*STR KOFIU 보고건수*/
+            , ROUND(TR_KOFIU_CNT / DECODE(TR_ALERT_CNT,0,1,TR_ALERT_CNT) * 100,1) AS TR_KOFIU_RATE /*KOFIU 보고비율*/
+            , ROUND(TR_KOFIU_CNT / DECODE(KOFIU_TOT_CNT,0,1,NVL(KOFIU_TOT_CNT,1)) * 100,1) AS TR_KOFIU_RATE2 /*KOFIU 발생비율*/
+          FROM (  
+         
+             SELECT T1.RULE_ID
+                   , MIN(T1.RULE_NAME) AS RULE_NAME
+                   , MIN(T1.RULE_DESC) AS RULE_DESC
+                   , SUM(DECODE(T1.RULE_ID,T2.SSPS_TYP_CD,1,0)) AS TR_ALERT_CNT /*STR발생건수*/ 
+                   , 0 AS TR_9_CNT /*처리건수*/ 
+                   , SUM(CASE WHEN T2.RPR_PRGRS_CCD NOT IN ('9','99') THEN 1 ELSE 0 END) AS TR_0_CNT /*미처리*/                  
+                   , SUM(DECODE(T1.RULE_ID,T2.SSPS_TYP_CD,DECODE(T2.OK_CCD,'1',CASE WHEN T2.RPR_PRGRS_CCD IN ('9','99') THEN 1 ELSE 0 END,0),0)) AS TR_91_CNT /*승인건수*/
+                   , SUM(DECODE(T1.RULE_ID,T2.SSPS_TYP_CD,DECODE(T2.OK_CCD,'2',DECODE(T2.RPR_PRGRS_CCD,'9',1,0),0),0)) AS TR_2_CNT /*보고제외(이상없음)건수*/
+                   , SUM(DECODE(T1.RULE_ID,T2.SSPS_TYP_CD,DECODE(T2.RPR_PRGRS_CCD,'99',1,0),0)) AS TR_KOFIU_CNT /*STR KOFIU 보고건수*/   
+                   , MAX(T2.TOT_CNT) AS TOT_CNT
+                   , MAX(T2.KOFIU_TOT_CNT) AS KOFIU_TOT_CNT
+                   , MIN(T1.ASIS_RULE_F) AS ASIS_RULE_F
+                   , MIN(T1.SORT_NO) AS SORT_NO
+               FROM (
+                  SELECT MA01_6 AS RULE_ID 
+                       , BIZ_NM AS RULE_NAME
+                       , BIZ_DESC AS RULE_DESC
+                       , '0' ASIS_RULE_F 
+                       , MA01_6 AS SORT_NO
+                    FROM C_BIZ  A, MMA010TB B 
+                   WHERE BIZ_ID=RT30_1
+                   AND B.MA01_8 = 'S'
+                UNION ALL
+                   SELECT 'KYC0'
+                        , '임의보고'
+                        , 'STR임의보고'
+                        , '0' ASIS_RULE_F
+                        , 'R999' AS SORT_NO
+                     FROM DUAL
+                ) T1
+              , (
+                  SELECT SSPS_DL_CRT_CCD
+                     , RPR_PRGRS_CCD
+                     , SSPS_TYP_CD
+                     , OK_CCD
+                     , COUNT(*) OVER() AS TOT_CNT
+                     , SUM(DECODE(RPR_PRGRS_CCD,'99',1,0)) OVER() AS KOFIU_TOT_CNT
+                    FROM NIC66B AA
+                   WHERE NVL(INST_ID,0) &gt;= 0
+                     	 AND SSPS_DL_CRT_CCD IN ('STR','KYC') /* STR */
+                   <if test="stDate != ''">
+                     	 AND AA.SSPS_DL_CRT_DT BETWEEN #{stDate} AND #{edDate}
+                   </if>
+            	   <if test="branchCode != '99999'">
+                         AND #{branchCode} IN 
+	                                     (SELECT MN_DL_BRN_CD FROM NIC73B 
+		                           WHERE SSPS_DL_CRT_DT = AA.SSPS_DL_CRT_DT
+			                         AND SSPS_DL_ID = AA.SSPS_DL_ID
+			                         AND SSPS_DL_CRT_CCD = 'STR')
+            	   </if>   
+              ) T2
+             WHERE T1.RULE_ID = T2.SSPS_TYP_CD
+             GROUP BY T1.RULE_ID  
+             ORDER BY T1.RULE_ID
+         )
+        WHERE 
+        1=1 
+        <if test="stDate != ''">
+        AND TR_ALERT_CNT >= CASE WHEN (SELECT MA04_3 FROM MMA040TB WHERE MA04_1 = 94) > #{edDate} THEN
+                                    CASE WHEN ASIS_RULE_F = '0' THEN 1 ELSE 0 END                                    
+                               WHEN ASIS_RULE_F = '1' THEN 1 ELSE 0 END
+        </if>
+        ORDER BY ASIS_RULE_F DESC, SORT_NO
+      )
+     UNION ALL
+        SELECT '합계'
+             , '' 
+             , ''
+             , COUNT(SSPS_TYP_CD) AS TR_ALERT_CNT /*STR발생건수*/ 
+             , 100 AS TR_RATE /*발생비중*/
+             , SUM(DECODE(OK_CCD,'1',CASE WHEN RPR_PRGRS_CCD IN ('9','99') THEN 1 ELSE 0 END,0)) + SUM(DECODE(OK_CCD,'2',DECODE(RPR_PRGRS_CCD,'9',1,0),0)) AS TR_9_CNT /*처리건수*/
+             , SUM(CASE WHEN RPR_PRGRS_CCD NOT IN ('9','99') THEN 1 ELSE 0 END) AS TR_0_CNT /*미처리*/
+             , SUM(DECODE(OK_CCD,'1',CASE WHEN RPR_PRGRS_CCD IN ('9','99') THEN 1 ELSE 0 END,0)) AS TR_91_CNT /*승인건수*/
+             , SUM(DECODE(OK_CCD,'2',DECODE(RPR_PRGRS_CCD,'9',1,0),0)) AS TR_2_CNT /*보고제외(이상없음)건수*/
+             , SUM(DECODE(RPR_PRGRS_CCD,'99',1,0)) AS TR_KOFIU_CNT /*STR KOFIU 보고건수*/ 
+             , ROUND(SUM(DECODE(RPR_PRGRS_CCD,'99',1,0)) / COUNT(SSPS_TYP_CD) * 100,1) AS TR_KOFIU_RATE /*KOFIU 보고비율*/
+             , 100 AS TR_KOFIU_RATE2 /*KOFIU 발생비율*/
+          FROM NIC66B AA
+         WHERE NVL(INST_ID,0) &gt;= 0
+               AND SSPS_DL_CRT_CCD IN ('STR','KYC')  /* STR */
+         <if test="stDate != ''">
+               AND AA.SSPS_DL_CRT_DT BETWEEN #{stDate} AND #{edDate}
+         </if>
+         <if test="branchCode != '99999'">
+               AND #{branchCode} IN 
+		                         (SELECT MN_DL_BRN_CD FROM NIC73B 
+		                           WHERE SSPS_DL_CRT_DT = AA.SSPS_DL_CRT_DT
+			                         AND SSPS_DL_ID = AA.SSPS_DL_ID
+			                         AND SSPS_DL_CRT_CCD = 'STR')
+         </if>
+         ) A
+         , UPDATE_DATE B
+	WHERE 1=1
+		AND A.RULE_ID = B.RULE_ID(+)
+	<if test="SSPS_TYP_CD != '' and SSPS_TYP_CD != 'ALL'">
+       AND A.RULE_ID IN
+                        <foreach collection="SSPS_TYP_CD_ARRAY" item="SSPS_TYP_CD_ARRAY" index="indexs" open="(" separator="," close=")">
+                            #{SSPS_TYP_CD_ARRAY}
+                        </foreach>
+    </if>
+     
+</select>
+
+<select id="AML_60_04_01_01_doSearchCTR" parameterType="hashMap" resultType="DataObj">
+SELECT * FROM (
+SELECT RULE_ID
+    , RULE_NAME
+    , RULE_DESC
+    , TR_ALERT_CNT /*CTR발생건수*/
+    , 100 AS TR_RATE   /*발생비중*/
+    , TR_91_CNT + TR_2_CNT AS TR_9_CNT /*처리건수*/
+    , TR_0_CNT
+    , TR_91_CNT /*승인건수*/
+    , TR_2_CNT /*보고제외(이상없음)건수*/
+    , TR_KOFIU_CNT /*CTR KOFIU 보고건수*/
+    , ROUND(TR_KOFIU_CNT / DECODE(TR_ALERT_CNT,0,1,TR_ALERT_CNT) * 100,1) AS TR_KOFIU_RATE /*KOFIU 보고비율*/
+    , 100 AS TR_KOFIU_RATE2 /*KOFIU 발생비율*/
+  FROM (  
+ 
+     SELECT 'CTR' as RULE_ID
+           , '동일인 당일 현금 영수/지급' AS RULE_NAME
+           , '20,000,000(이천만원)' AS RULE_DESC
+           , SUM(1) AS TR_ALERT_CNT /*CTR발생건수*/ 
+           , 0 AS TR_9_CNT /*처리건수*/
+           , SUM(CASE WHEN T2.RPR_PRGRS_CCD NOT IN ('9','99') THEN 1 ELSE 0 END) AS TR_0_CNT /*미처리*/
+           , SUM(DECODE(T2.OK_CCD,'1',CASE WHEN T2.RPR_PRGRS_CCD IN ('9','99') THEN 1 ELSE 0 END,0)) AS TR_91_CNT /*승인건수*/
+           , SUM(DECODE(T2.OK_CCD,'2',DECODE(T2.RPR_PRGRS_CCD,'9',1,0),'0')) AS TR_2_CNT /*보고제외(이상없음)건수*/
+           , SUM(DECODE(T2.RPR_PRGRS_CCD,'99',1,0)) AS TR_KOFIU_CNT /*CTR KOFIU 보고건수*/   
+       FROM (
+          SELECT SSPS_DL_CRT_CCD
+               , RPR_PRGRS_CCD
+               , SSPS_TYP_CD
+               , OK_CCD -- 0:미확인 1:보고 2:보고제외
+           FROM NIC66B AA
+           WHERE NVL(INST_ID,0) &gt;= 0
+           <if test="stDate != ''">
+           		 AND AA.SSPS_DL_CRT_DT BETWEEN #{stDate} AND #{edDate}
+           </if>
+           <if test="branchCode != '99999'">
+           		 AND #{branchCode} IN 
+	                               (SELECT MN_DL_BRN_CD FROM NIC73B 
+		                             WHERE SSPS_DL_CRT_DT = AA.SSPS_DL_CRT_DT
+			                           AND SSPS_DL_ID = AA.SSPS_DL_ID
+			                           AND SSPS_DL_CRT_CCD = 'STR')
+           </if>
+           		 AND SSPS_DL_CRT_CCD IN ('CTR','CAC') /* CTR */
+           GROUP BY SSPS_DL_CRT_CCD
+               , RPR_PRGRS_CCD
+               , SSPS_TYP_CD
+               , OK_CCD
+        ) T2
+    )
+)
+</select>
+
+<select id="AML_60_04_01_01_doSearchSub" parameterType="hashMap" resultType="DataObj">
+SELECT * FROM (
+       SELECT MN_DL_BRN_CD
+            , MN_DL_BRN_NM
+            , TR_ALERT_CNT /*발생건수*/
+            , ROUND(TR_ALERT_CNT / NVL(TOT_CNT,1) * 100,2) AS TR_RATE /*발생비중*/
+            , TR_91_CNT + TR_2_CNT AS TR_9_CNT /*처리건수*/
+            , TR_0_CNT /*미처리*/
+            , TR_91_CNT /*승인건수*/
+            , TR_2_CNT /*보고제외(이상없음)건수*/
+            , TR_KOFIU_CNT /*KOFIU 보고건수*/
+            , ROUND(TR_KOFIU_CNT / DECODE(TR_ALERT_CNT,0,1,TR_ALERT_CNT) * 100,2) AS TR_KOFIU_RATE /*KOFIU 보고비율*/
+            , ROUND(TR_KOFIU_CNT / DECODE(KOFIU_TOT_CNT,0,1,NVL(KOFIU_TOT_CNT,1)) * 100,1) AS TR_KOFIU_RATE2 /*KOFIU 발생비율*/
+          FROM (  
+             SELECT T2.MN_DL_BRN_CD
+                   , MIN(T2.MN_DL_BRN_NM) AS MN_DL_BRN_NM
+                   , SUM(1) AS TR_ALERT_CNT /*발생건수*/
+                   , 0 AS TR_9_CNT /*처리건수*/
+                   , SUM(CASE WHEN T2.RPR_PRGRS_CCD NOT IN ('9','99') THEN 1 ELSE 0 END) AS TR_0_CNT /*미처리*/
+                   , SUM(DECODE(T2.OK_CCD,'1',CASE WHEN T2.RPR_PRGRS_CCD IN ('9','99') THEN 1 ELSE 0 END,0)) AS TR_91_CNT /*승인건수*/
+                   , SUM(DECODE(T2.OK_CCD,'2',DECODE(T2.RPR_PRGRS_CCD,'9',1,0),'0')) AS TR_2_CNT /*보고제외(이상없음)건수*/
+                   , SUM(DECODE(T2.RPR_PRGRS_CCD,'99',1,0)) AS TR_KOFIU_CNT /*KOFIU 보고건수*/
+                   , MAX(T2.TOT_CNT) AS TOT_CNT
+                   , MAX(T2.KOFIU_TOT_CNT) AS KOFIU_TOT_CNT
+               FROM (
+                  SELECT AA.SSPS_DL_CRT_CCD
+                       , AA.RPR_PRGRS_CCD
+                       , AA.SSPS_TYP_CD
+                       , AA.OK_CCD
+                       , AA.SSPS_DL_CRT_DT
+                       , AA.SSPS_DL_ID
+                       , COUNT(*) OVER() AS TOT_CNT
+                       , SUM(DECODE(AA.RPR_PRGRS_CCD,'99',1,0)) OVER() AS KOFIU_TOT_CNT
+                       , BB.MN_DL_BRN_CD
+                       , BB.MN_DL_BRN_NM
+                    FROM NIC66B AA, NIC73B BB
+                   WHERE AA.SSPS_DL_CRT_DT = BB.SSPS_DL_CRT_DT
+                     AND AA.SSPS_DL_ID = BB.SSPS_DL_ID
+                     AND NVL(INST_ID,0) >= 0
+                  <choose>
+                    <when test="selStrCtr == 'STR'">
+                     AND SSPS_DL_CRT_CCD IN ('STR','KYC') /* STR */
+                    </when>
+                    <when test="selStrCtr == 'CTR'">
+                     AND SSPS_DL_CRT_CCD IN ('CTR','CAC') /* CTR */
+                    </when>
+                  </choose>
+                  <if test="branchCode != '99999'">
+                     AND BB.MN_DL_BRN_CD = #{branchCode}
+                  </if>
+                  <if test="SSPS_TYP_CD != '' and SSPS_TYP_CD != 'CTR'">
+                     AND SSPS_TYP_CD = #{SSPS_TYP_CD}
+                  </if>
+                  <if test="stDate != ''">
+                     AND AA.SSPS_DL_CRT_DT BETWEEN #{stDate} AND #{edDate}
+                  </if>
+              ) T2
+             GROUP BY T2.MN_DL_BRN_CD
+             ORDER BY T2.MN_DL_BRN_CD
+         )
+        ORDER BY MN_DL_BRN_CD
+      )
+      UNION ALL
+         SELECT ''
+             , '합계'
+             , SUM(1) AS TR_ALERT_CNT /*발생건수*/ 
+             , 100 AS TR_RATE /*발생비중*/
+             , SUM(DECODE(AA.OK_CCD,'1',CASE WHEN AA.RPR_PRGRS_CCD IN ('9','99') THEN 1 ELSE 0 END,0)) + SUM(DECODE(AA.OK_CCD,'2',DECODE(AA.RPR_PRGRS_CCD,'9',1,0),0)) AS TR_9_CNT /*처리건수*/
+             , SUM(CASE WHEN AA.RPR_PRGRS_CCD NOT IN ('9','99') THEN 1 ELSE 0 END) AS TR_0_CNT /*미처리*/
+             , SUM(DECODE(AA.OK_CCD,'1',CASE WHEN AA.RPR_PRGRS_CCD IN ('9','99') THEN 1 ELSE 0 END,0)) AS TR_91_CNT /*승인건수*/
+             , SUM(DECODE(AA.OK_CCD,'2',DECODE(AA.RPR_PRGRS_CCD,'9',1,0),0)) AS TR_2_CNT /*보고제외(이상없음)건수*/
+             , SUM(DECODE(AA.RPR_PRGRS_CCD,'99',1,0)) AS TR_KOFIU_CNT /*STR KOFIU 보고건수*/ 
+             , ROUND(SUM(DECODE(AA.RPR_PRGRS_CCD,'99',1,0)) / SUM(1) * 100,1) AS TR_KOFIU_RATE /*KOFIU 보고비율*/
+             , 100 AS TR_KOFIU_RATE2 /*KOFIU 발생비율*/
+          FROM NIC66B AA, NIC73B BB
+         WHERE  AA.SSPS_DL_CRT_DT = BB.SSPS_DL_CRT_DT
+             AND AA.SSPS_DL_ID = BB.SSPS_DL_ID
+             AND NVL(INST_ID,0) >= 0
+          <choose>
+            <when test="selStrCtr == 'STR'">
+             AND SSPS_DL_CRT_CCD IN ('STR','KYC') /* STR */
+            </when>
+            <when test="selStrCtr == 'CTR'">
+             AND SSPS_DL_CRT_CCD IN ('CTR','CAC') /* CTR */
+            </when>
+          </choose>
+          <if test="branchCode != '99999'">
+             AND BB.MN_DL_BRN_CD = #{branchCode}
+          </if>
+          <if test="SSPS_TYP_CD != '' and SSPS_TYP_CD != 'CTR'">
+             AND SSPS_TYP_CD = #{SSPS_TYP_CD}
+          </if>
+          <if test="stDate != ''">
+             AND AA.SSPS_DL_CRT_DT BETWEEN #{stDate} AND #{edDate}
+          </if>
+</select>
+
+<!-- 2018.12.04 CTR 보고서 쿼리 변경 -->
+<select id="AML_60_01_01_01_getCTRSearch" parameterType="hashMap" resultType="DataObj">
+SELECT /* 문서시작 */
+		'CTRSTART' AS CTR00,             --문서시작
+		A.RPR_CCD AS CTR01,                --메시지타입
+
+
+		/* 표제부에 관한 정보 */
+		TRIM(A.RPR_DOC_NO_DL_YR||'-'||LPAD(A.RPR_DOC_NO_FNL_SQ,8,'0')) AS RPR_DOC_NO,  --2  문서번호(YYYY
+		A.RPR_DT,                            -- 보고일자
+		CASE WHEN A.RPR_CCD NOT IN ('01','99')
+		         THEN TRIM(B.RPR_DOC_NO_DL_YR||'-'||LPAD(B.RPR_DOC_NO_FNL_SQ,8,'0'))
+		    ELSE ''
+		END AS PRE_RPR_DOC_NO, -- 종전문서번호
+		LPAD(A.RNM_PR_DL_SQ,3,'0') || '/'|| (
+		                                    SELECT LPAD(COUNT(*),3,'0')
+		                                      FROM NIC66B
+		                                     WHERE SSPS_DL_CRT_DT = A.SSPS_DL_CRT_DT
+		                                       AND DL_P_RNMCNO = A.DL_P_RNMCNO
+		                                       AND SSPS_DL_CRT_CCD = A.SSPS_DL_CRT_CCD
+		                                       AND OK_CCD != 2
+		                                   )
+		  AS TOT_TRAN_SQ, -- 거래순번
+		TRIM(A.RPR_DOC_NO_DL_YR||'-'||LPAD(A.DOC_SQ,8,'0')) AS BSC_RPR_DOC_NO,  -- 기본문서번호
+
+		/* I. 보고기관에 관한 정보 */
+		Z.RPR_OGN_NM AS RPR_OGN_NM,							-- 보고기관명
+		Z.TRNS_OGN_CD AS TRNS_OGN_CD,							-- 보고기관코드
+		Z.RPR_RSPSB_P_NM AS RPR_RSPSB_P_NM,				-- 보고책임자명
+		Z.RPR_CHRG_P_NM AS RPR_CHRG_P_NM,					-- 보고담당자명
+		Z.RPR_CHRG_P_TEL_NO AS RPR_CHRG_P_TEL_NO,	-- 보고담당자전화번호
+
+		/* II 거래자에 관한 정보 */
+		/* II-1 공통사항 */
+		C.DL_P_NM AS DL_P_NM,										-- 거래자명
+		C.DL_P_RNM_NO_CCD,											-- 거래자실명번호구분
+		GET_CODE_NAME('M002',C.DL_P_RNM_NO_CCD) AS DL_P_RNM_NO_NM,	-- 거래자실명번호구분명
+		C.CS_NO,																													-- 거래자실명번호
+		C.DL_P_NTNLT_CD,																									-- 거래자국적코드
+		GET_CODE_NAME('M004',C.DL_P_NTNLT_CD) AS DL_P_NTNLT_NM,				-- 거래자국적명
+
+		/* II-2 개인인 경우 */
+		D.DL_P_HSE_PST_NO,																-- 거래자우편번호
+		D.DL_P_HSE_BSC_ADDR,														-- 거래자주소(기본주소)
+		D.DL_P_HSE_DNG_ADDR,														-- 거래자주소(
+		D.DL_P_BRTDY,																		-- 거래자생년월일
+		DECODE(D.DL_P_SEX_CD,'1','3','2','4') AS DL_P_SEX_CD,		-- 성별
+		D.DL_P_HSE_NATI,																	-- 거래자자택국가번호
+		D.DL_P_HSE_AREA,																	-- 거래자자택지역번호
+		D.DL_P_HSE_ECNO,																-- 거래자자택국번
+		D.DL_P_HSE_NO,																	-- 거래자자택번호
+		D.DL_P_MBL_NATI,																	-- 거래자핸드폰번호
+		D.DL_P_MBL_AREA,																-- 거래자핸드폰번호
+		D.DL_P_MBL_ECNO,																-- 거래자핸드폰번호
+		D.DL_P_MBL_NO,																	-- 거래자핸드폰번호
+		D.RNM_CMBNTN_NO,															-- 실명조합번호
+		D.DL_P_PSPT_NO,																	-- 여권번호
+		CASE WHEN LENGTH(D.OCPTN_CCD) = 1 THEN DECODE(D.OCPTN_CCD,'4','99','0'||D.OCPTN_CCD)
+				ELSE D.OCPTN_CCD END AS OCPTN_CCD,					-- 거래자직업구분
+		D.WP_NM,																				-- 거래자직장(회사)명
+		D.IND_TYP_CD,																		-- 거래자직장업종코드
+
+		/* II-3 법인인 경우 */
+		E.RPRST_P_NM1,														-- 대표자명
+		'99' AS RPRST_RNM_NO_CCD,									-- 대표자실명번호구분
+		'기타' AS RPRST_RNM_NO_NM,								-- 대표자실명번호구분명
+		E.RPRST_P_BRDY1,														-- 대표자실명번호
+		E.RPRST_P_NTNLT_CD1,												-- 대표자국적코드
+		GET_CODE_NAME('M004',E.RPRST_P_NTNLT_CD1) 
+			AS RPRST_P_NTNLT_NM,										-- 대표자국적명
+		E.BSNSG_FNDTN_DT,													-- 사업체설립일
+		E.IND_TYP_CD AS BSNSG_IND_TYP_CD,					-- 업종코드
+		E.CORP_RGST_NO,														-- 법인등록번호
+		E.HD_BRNCH_PST_NO,												-- 사업체본점우편번호
+		E.BSNS_CMPNY_PST_NO,											-- 사업체사업장우편번호
+		E.HD_BRNCH_BSC_ADDR,											-- 사업체본점주소
+		E.HD_BRNCH_DNG_ADDR,										-- 사업체본점주소
+		E.BSNS_CMPNY_BSC_ADDR,										-- 사업체사업장주소
+		E.BSNS_CMPNY_DNG_ADDR,									-- 사업체사업장주소
+		E.HD_BRNCH_NATI,													-- 사업체본점국가번호
+		E.HD_BRNCH_AREA,													-- 사업체본점지역번호
+		E.HD_BRNCH_ECNO,													-- 사업체본점국번
+		E.HD_BRNCH_NO,														-- 사업체본점번호
+		E.BSNS_CMPNY_NATI,												-- 사업체사업장국가번호
+		E.BSNS_CMPNY_AREA,												-- 사업체사업장지역번호
+		E.BSNS_CMPNY_ECNO,												-- 사업체사업장국번
+		E.BSNS_CMPNY_NO,													-- 사업체사업장번호
+
+		/* III 현금거래 내역에 관한 정보 */
+		/* III-1 공통사항 */
+		G.DL_DT||LPAD(DL_TM,6,'0') AS DL_DT,						-- 거래발생일시
+		G.HANDLNG_BRN_NM,													-- 거래영업점명
+		G.HANDLNG_BRN_PST_NO,											-- 거래영업점우편번호
+		G.DL_CHNNL_CD AS DL_CHNNL_CD_TEMP,				-- 거래채널
+		DECODE(G.DL_CHNNL_CD,'01','01','02','02','99') AS DL_CHNNL_CD,							-- 거래채널
+		DECODE(G.DL_CHNNL_CD,'01','창구거래','02','자동화기기거래','기타')AS DL_CHNNL_NM,		-- 거래채널
+		'01' AS DL_WY_CD,														-- 거래수단
+		'현금' AS DL_WY_NM,													-- 거래수단
+		G.CSH,																				-- 거래금액
+		G.CTR_DL_KND_CD,														-- 거래종류
+		GET_CODE_NAME('M062',G.CTR_DL_KND_CD) AS CTR_DL_KND_NM,						-- 거래종류
+		DECODE(NVL(H.SSPS_DL_CRT_DT,''),'','2','1') AS AC_PRXY_YN,									-- 거래대리인존재여부
+		DECODE(NVL(H.SSPS_DL_CRT_DT,''),'','존재안함','존재') AS VIEW_AC_PRXY_YN,		-- 거래대리인존재여부
+		H.PRXY_NM,																	-- 거래대리인명
+		H.PRXY_RNM_NO_CCD,													-- 거래대리인실명번호구분
+		GET_CODE_NAME('M002', H.PRXY_RNM_NO_CCD) AS PRXY_RNM_NO_NM,			-- 거래대리인 실명확인 구분
+		H.PRXY_CS_NO,																-- 거래대리인실명번호
+		H.PRXY_NATI,																	-- 거래대리인연락처국가번호
+		H.PRXY_AREA,																-- 거래대리인연락처지역번호
+		H.PRXY_ECNO,																-- 거래대리인연락처국번
+		H.PRXY_NO,																	-- 거래대리인연락처번호
+		H.PRXY_NTNLT_CD,														-- 거래대리인국적코드
+		GET_CODE_NAME('M004',H.PRXY_NTNLT_CD) AS PRXY_NTNLT_NM,						-- 거래대리인국적명
+
+		H.AC_OWN_P_RLTNS_CD AS AC_OWN_P_RLTNS_CD_TEMP,									-- 거래대리인거래자와관계코드
+		NVL((SELECT TRNSFRM_CD FROM NIC95B WHERE CD='L058'
+			AND CD_VL9 = H.AC_OWN_P_RLTNS_CD), '98') AS AC_OWN_P_RLTNS_CD,		-- 거래대리인거래자와관계코드
+		NVL((SELECT TRNSFRM_CD_EXPL FROM NIC95B WHERE CD='L058'
+			AND CD_VL9 = H.AC_OWN_P_RLTNS_CD), '알수없음') AS AC_OWN_P_RLTNS_NM,	-- 거래대리인거래자와관계명
+
+		/* III-2 계좌거래의 경우 */
+		L.ACNT_NO,															-- 관련계좌번호
+		L.AC_OPN_BRN_NM,												-- 계좌개설점
+		L.AC_OPN_BRN_PST_NO,										-- 계좌개설점우편번호
+		L.AC_OPN_DT,														-- 계좌개설일
+		DECODE(NVL(I.SSPS_DL_CRT_DT,''),'','2','1') AS PRXY_YN,	-- 계좌대리인존재여부
+		DECODE(NVL(I.SSPS_DL_CRT_DT,''),'','존재안함','존재') AS VIEW_PRXY_YN,	-- 계좌대리인존재여부
+		I.PRXY_NM AS GNL_PRXY_NM,							-- 계좌대리인명
+		I.PRXY_RNM_NO_CCD AS GNL_PRXY_RNM_NO_CCD,	-- 계좌대리인실명번호구분
+		GET_CODE_NAME('M002', I.PRXY_RNM_NO_CCD) AS GNL_PRXY_RNM_NO_NM,
+		I.PRXY_CS_NO AS GNL_PRXY_CS_NO,					-- 계좌대리인실명번호
+		I.PRXY_CNTY_NATI_CRYP,										-- 계좌대리인연락처국가번호
+		I.PRXY_CNTY_AREA_CRYP,										-- 계좌대리인연락처지역번호
+		I.PRXY_CNTY_ECNO_CRYP,									-- 계좌대리인연락처국번
+		I.PRXY_CNTY_NO_CRYP,										-- 계좌대리인연락처번호
+		I.PRXY_NTNLT_CD AS GNL_PRXY_NTNLT_CD,		-- 계좌대리인국적코드
+		GET_CODE_NAME('M004',I.PRXY_NTNLT_CD) AS GNL_PRXY_NTNLT_NM,	-- 계좌대리인국적명
+
+		I.AC_OWN_P_RLTNS_CD AS GNL_RLTNS_TEMP,	-- 계좌대리인관계코드
+		NVL((SELECT TRNSFRM_CD FROM NIC95B WHERE CD='L058'
+			AND CD_VL9 = I.AC_OWN_P_RLTNS_CD), '98') AS GNL_RLTNS_CD,
+		NVL((SELECT TRNSFRM_CD_EXPL FROM NIC95B WHERE CD='L058'
+			AND CD_VL9 = I.AC_OWN_P_RLTNS_CD), '알수없음') AS GNL_RLTNS_NM,
+
+		/* III-3 유가증권거래의 경우 */
+		J.CHCK_KND_CD,					-- 관련유가증권종류
+		GET_CODE_NAME('M052', J.CHCK_KND_CD) AS CHCK_KND_NM,	-- 관련유가증권종류
+		J.CHCK_STRT_NO,					-- 관련유가증권시작번호
+		J.CHCK_END_NO,					-- 관련유가증권끝번호
+
+		/* III-4 자기앞수표거래의 경우 */
+		J.BNK_NM,								-- 현금지급은행명
+		J.BNK_CD,								-- 현금지급은행기관코드
+		J.BRN_NM,								-- 현금지급영업점명
+		J.BRN_PST_NO,						-- 현금지급영업점우편번호
+
+		/* IV 수취인 계좌에 관한 정보 */
+		K.CPRTY_TRSNS_AC_NO,		-- 수취인계좌번호
+		K.CPRTY_TRSNS_FOGN_NM,	-- 수취금융기관명
+		K.CPRTY_TRSNS_OGN_CD,	-- 수취금융기관코드
+		K.CPRTY_TRSNS_AC_NM,		-- 수취인성명
+
+		/* 취소 또는 정정 보고에 관한 정보 */
+	   CASE WHEN A.RPR_CCD NOT IN ('01','93')
+		      THEN (
+		                SELECT CNTNT
+		                  FROM NIC66B_W
+		                 WHERE (INST_ID,WORK_ID) IN (
+		                                                 SELECT INST_ID,MIN(WORK_ID)
+		                                                   FROM NIC66B_W
+		                                                  WHERE INST_ID = A.INST_ID
+		                                                  GROUP BY INST_ID
+		                                             )
+		           )
+		 ELSE ''
+		END AS VIEW_COMMENT,
+		'CTREND' AS CTR83
+FROM NIC66B A,
+     NIC84B B,
+     NIC70B C,
+     NIC78B D,
+     NIC79B E,
+     NIC71B F,
+     NIC75B G,
+     NIC98B H,
+     NIC72B I,
+     (
+      SELECT B.SSPS_DL_CRT_DT,
+             B.SSPS_DL_ID,
+             B.GNL_AC_NO,
+             B.GDS_NO,
+             B.DL_DT,
+             B.DL_SQ,
+             C.CHCK_KND_CD,
+             C.CHCK_STRT_NO,
+             C.CHCK_END_NO,
+             DECODE(C.CHCK_KND_CD, '05', Z.RPR_OGN_NM, '') AS BNK_NM,
+             DECODE(C.CHCK_KND_CD, '05', Z.TRNS_OGN_CD, '') AS BNK_CD,
+             DECODE(C.CHCK_KND_CD, '05', B.HANDLNG_BRN_NM, '') AS BRN_NM,
+             DECODE(C.CHCK_KND_CD, '05', B.HANDLNG_BRN_PST_NO, '') AS BRN_PST_NO
+        FROM NIC71B A,
+             NIC75B B,
+             NIC76B C,
+             NIC86B Z
+       WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+         AND A.SSPS_DL_ID = B.SSPS_DL_ID
+         AND A.GNL_AC_NO = B.GNL_AC_NO
+         AND B.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT(+)
+         AND B.SSPS_DL_ID = C.SSPS_DL_ID(+)
+         AND B.GNL_AC_NO = C.GNL_AC_NO(+)
+         AND B.DL_DT = C.DL_DT(+)
+         AND B.DL_SQ = C.DL_SQ(+)
+         AND B.CTR_DL_KND_CD IN ('25','26')
+         AND A.SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+         AND A.SSPS_DL_ID = #{SSPS_DL_ID}
+     ) J,--수표정보
+     (
+      SELECT B.SSPS_DL_CRT_DT,
+             B.SSPS_DL_ID,
+             B.GNL_AC_NO,
+             B.GDS_NO,
+             B.DL_DT,
+             B.DL_SQ,
+             NVL(C.CPRTY_TRSNS_AC_NO,A.ACNT_NO) AS CPRTY_TRSNS_AC_NO,
+             NVL(C.CPRTY_TRSNS_FOGN_NM,Z.RPR_OGN_NM) AS CPRTY_TRSNS_FOGN_NM,
+             NVL(C.CPRTY_TRSNS_OGN_CD,Z.TRNS_OGN_CD) AS CPRTY_TRSNS_OGN_CD,
+             NVL(C.CPRTY_TRSNS_AC_NM,A.CS_NM) AS CPRTY_TRSNS_AC_NM
+        FROM NIC71B A,
+             NIC75B B,
+             NIC83B C,
+             NIC86B Z
+       WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+         AND A.SSPS_DL_ID = B.SSPS_DL_ID
+         AND A.GNL_AC_NO = B.GNL_AC_NO
+         AND B.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT(+)
+         AND B.SSPS_DL_ID = C.SSPS_DL_ID(+)
+         AND B.GNL_AC_NO = C.GNL_AC_NO(+)
+         AND B.DL_DT = C.DL_DT(+)
+         AND B.DL_SQ = C.DL_SQ(+)
+         AND B.CTR_DL_KND_CD IN ('21','22')
+         AND A.SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+         AND A.SSPS_DL_ID = #{SSPS_DL_ID}
+     ) K,
+
+     (
+      SELECT A.*
+        FROM NIC71B A,
+             NIC75B B
+       WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+         AND A.SSPS_DL_ID = B.SSPS_DL_ID
+         AND A.GNL_AC_NO = B.GNL_AC_NO
+         AND B.CTR_DL_KND_CD IN ('11','12')
+         AND A.SSPS_DL_CRT_DT = #{SSPS_DL_CRT_DT}
+         AND A.SSPS_DL_ID = #{SSPS_DL_ID}
+     ) L,
+
+     NIC86B Z
+WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT(+)
+ AND A.SSPS_DL_ID = B.SSPS_DL_ID(+)
+
+ AND A.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT
+ AND A.DL_P_RNMCNO = C.DL_P_RNMCNO
+
+ AND C.SSPS_DL_CRT_DT = D.SSPS_DL_CRT_DT(+)
+ AND C.DL_P_RNMCNO = D.DL_P_RNMCNO(+)
+ AND C.SSPS_DL_CRT_DT = E.SSPS_DL_CRT_DT(+)
+ AND C.DL_P_RNMCNO = E.DL_P_RNMCNO(+)
+
+ AND A.SSPS_DL_CRT_DT = F.SSPS_DL_CRT_DT
+ AND A.SSPS_DL_ID = F.SSPS_DL_ID
+
+ AND F.SSPS_DL_CRT_DT = G.SSPS_DL_CRT_DT
+ AND F.SSPS_DL_ID = G.SSPS_DL_ID
+ AND F.GNL_AC_NO = G.GNL_AC_NO
+
+ AND F.SSPS_DL_CRT_DT = L.SSPS_DL_CRT_DT(+)
+ AND F.SSPS_DL_ID = L.SSPS_DL_ID(+)
+ AND F.GNL_AC_NO = L.GNL_AC_NO(+)
+
+ AND G.SSPS_DL_CRT_DT = H.SSPS_DL_CRT_DT(+)
+ AND G.SSPS_DL_ID = H.SSPS_DL_ID(+)
+ AND G.GNL_AC_NO = H.GNL_AC_NO(+)
+ AND G.DL_DT = H.DL_DT(+)
+ AND G.DL_SQ = H.DL_SQ(+)
+
+ AND F.SSPS_DL_CRT_DT = I.SSPS_DL_CRT_DT(+)
+ AND F.SSPS_DL_ID = I.SSPS_DL_ID(+)
+ AND F.GNL_AC_NO = I.GNL_AC_NO(+)
+
+ AND G.SSPS_DL_CRT_DT = J.SSPS_DL_CRT_DT(+)
+ AND G.SSPS_DL_ID = J.SSPS_DL_ID(+)
+ AND G.GNL_AC_NO = J.GNL_AC_NO(+)
+ AND G.DL_DT = J.DL_DT(+)
+ AND G.DL_SQ = J.DL_SQ(+)
+
+ AND G.SSPS_DL_CRT_DT = K.SSPS_DL_CRT_DT(+)
+ AND G.SSPS_DL_ID = K.SSPS_DL_ID(+)
+ AND G.GNL_AC_NO = K.GNL_AC_NO(+)
+ AND G.DL_DT = K.DL_DT(+)
+ AND G.DL_SQ = K.DL_SQ(+)
+
+ AND A.SSPS_DL_CRT_DT =  #{SSPS_DL_CRT_DT}
+ AND A.SSPS_DL_ID = #{SSPS_DL_ID}
+</select>
+
+<!-- 삼성증권 end -->
+
+</mapper>

@@ -1,0 +1,2238 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="RBA_90">
+
+	<!-- START RBA_90_01_01 -->
+	<select id="RBA_90_01_01_01_getSearch" parameterType="hashMap" resultType="DataObj">
+		SELECT @rownum := @rownum + 1 AS CNT
+		      ,A.RPT_GJDT
+		      ,A.BT_BAS_DT
+		      ,A.BT_JOB_ENDT
+		      ,A.DR_DT
+		      ,CASE B.RPT_YN WHEN 1 THEN '1' ELSE '2' END  AS RPT_YN
+		  FROM JRBA_RPT_BAS_M A
+			   LEFT JOIN JRBA_RPT_RST_M B ON A.RPT_GJDT = B.RPT_GJDT
+	             , (SELECT @rownum := 0) r  
+		 WHERE A.RPT_GJDT BETWEEN #{startDate, jdbcType=VARCHAR} AND #{endDate, jdbcType=VARCHAR}	   
+		 ORDER BY A.RPT_GJDT DESC
+	</select>
+
+	<select id="RBA_getRPT_GJDT"  parameterType="hashMap" resultType="DataObj">
+		SELECT RPT_GJDT AS CODE,
+		   DATE_FORMAT(DATE_FORMAT(RPT_GJDT,'%Y%m%d'), '%Y-%m-%d') AS NAME
+		FROM JRBA_RPT_BAS_M
+		WHERE 1=1
+	  	<if test ="filterComboVal != null and filterComboVal != ''">
+	  		AND RPT_GJDT  != #{filterComboVal,jdbcType=VARCHAR}
+	  	</if>    
+	 	GROUP BY RPT_GJDT
+	 	ORDER BY RPT_GJDT DESC
+	</select>
+
+	<select id="RBA_90_01_01_02_deleteCon" parameterType="hashMap" resultType="DataObj">
+		SELECT COUNT(*) AS CNT 
+		FROM JRBA_RPT_BAS_M A
+		    LEFT JOIN JRBA_RPT_RST_M B ON A.RPT_GJDT = B.RPT_GJDT    
+		WHERE A.RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+		AND (B.RPT_YN = 1 OR A.BT_JOB_ENDT IS NOT NULL)	      
+	</select>
+	
+	<select id="RBA_90_01_01_02_deleteCon2" parameterType="hashMap" resultType="DataObj">
+		SELECT COUNT(*) AS CNT2 
+		  FROM JRBA_JIPYO_M A
+		       LEFT OUTER JOIN JRBA_JIPYO_V B
+		         ON A.RPT_GJDT = B.RPT_GJDT
+		 WHERE A.RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+		   AND ITEM_S_C = '2'   -- 확정일때만      
+	</select>
+	
+	<select id="RBA_90_01_01_02_saveCon" parameterType="hashMap" resultType="DataObj">
+		SELECT COUNT(*) AS CNT 
+		FROM JRBA_RPT_BAS_M A    
+		WHERE A.RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}    
+	</select>
+
+	<update id="RBA_90_01_01_02_delete_jrba_rpt_bas_m" parameterType="hashMap">
+		DELETE FROM JRBA_RPT_BAS_M 
+		WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+	</update>
+	
+	<insert  id="RBA_90_01_01_02_insert_jrba_rpt_bas_m" parameterType="hashMap" >
+		INSERT INTO JRBA_RPT_BAS_M
+			(
+		    	RPT_GJDT
+		 	  , BIGO_CTNT
+		 	  , BT_JOB_ENDT
+		 	  , DR_DT
+		 	  , DR_TIME
+		 	  , DR_OP_JKW_NO
+		 	  , CHG_DT
+		 	  , CHG_TIME
+		 	  , CHG_OP_JKW_NO
+			)
+		SELECT 
+			    #{RPT_GJDT, jdbcType=VARCHAR}    -- PARAM
+		      , ''
+		      , ''
+		      , DATE_FORMAT(SYSDATE(),'%Y%m%d')
+		      , DATE_FORMAT(SYSDATE(),'%H%i%s')
+			  , #{DR_OP_JKW_NO, jdbcType=VARCHAR}                -- PARAM
+			  , DATE_FORMAT(SYSDATE(),'%Y%m%d')
+		      , DATE_FORMAT(SYSDATE(),'%H%i%s')
+		      , #{CHG_OP_JKW_NO, jdbcType=VARCHAR} -- PARAM       
+		FROM DUAL  
+	</insert>
+
+	<update id="RBA_90_01_01_02_delete_jrba_grp_c" parameterType="hashMap">
+		DELETE FROM JRBA_GRP_C 
+		WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+	</update>
+	
+	
+	<insert  id="RBA_90_01_01_02_insert_jrba_grp_c" parameterType="hashMap" >
+		INSERT INTO JRBA_GRP_C(RPT_GJDT, GRP_CD, GRP_NM, BIGO_CTNT, UPD_YN
+			, DR_DT, DR_TIME, DR_OP_JKW_NO
+			, CHG_DT, CHG_TIME, CHG_OP_JKW_NO)
+		SELECT #{RPT_GJDT, jdbcType=VARCHAR}, GRP_CD, GRP_NM, BIGO_CTNT, UPD_YN
+			, DATE_FORMAT(SYSDATE(),'%Y%m%d') DR_DT, DATE_FORMAT(SYSDATE(),'%H%i%s') DR_TIME, #{DR_OP_JKW_NO, jdbcType=VARCHAR} DR_OP_JKW_NO
+			, DATE_FORMAT(SYSDATE(),'%Y%m%d') CHG_DT, DATE_FORMAT(SYSDATE(),'%H%i%s') CHG_TIME, #{DR_OP_JKW_NO, jdbcType=VARCHAR} CHG_OP_JKW_NO 
+		FROM JRBA_GRP_C
+		WHERE RPT_GJDT = #{COPY_RPT_GJDT, jdbcType=VARCHAR}
+	</insert>
+
+	<update id="RBA_90_01_01_02_delete_jrba_dtl_c" parameterType="hashMap">
+		DELETE FROM JRBA_DTL_C 
+		WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+	</update>
+	
+	<insert  id="RBA_90_01_01_02_insert_jrba_dtl_c" parameterType="hashMap" >
+		INSERT INTO JRBA_DTL_C(RPT_GJDT, GRP_CD, DTL_CD, DTL_NM, SNO, USYN, HRNK_RBA_RSK_C, HRNK_RBA_RSK_C_V
+			, DR_DT, DR_TIME, DR_OP_JKW_NO
+			, CHG_DT, CHG_TIME, CHG_OP_JKW_NO)
+		SELECT #{RPT_GJDT, jdbcType=VARCHAR}, GRP_CD, DTL_CD, DTL_NM, SNO, USYN, HRNK_RBA_RSK_C, HRNK_RBA_RSK_C_V
+			, DATE_FORMAT(SYSDATE(),'%Y%m%d') DR_DT, DATE_FORMAT(SYSDATE(),'%H%i%s') DR_TIME, #{DR_OP_JKW_NO, jdbcType=VARCHAR} DR_OP_JKW_NO
+			, DATE_FORMAT(SYSDATE(),'%Y%m%d') CHG_DT, DATE_FORMAT(SYSDATE(),'%H%i%s') CHG_TIME, #{DR_OP_JKW_NO, jdbcType=VARCHAR} CHG_OP_JKW_NO 
+		FROM JRBA_DTL_C
+		WHERE RPT_GJDT = #{COPY_RPT_GJDT, jdbcType=VARCHAR}	
+	</insert>
+	
+	<update id="RBA_90_01_01_02_delete_jrba_jipyo_m" parameterType="hashMap">
+		DELETE FROM JRBA_JIPYO_M 
+		WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+	</update>
+	
+	<insert  id="RBA_90_01_01_02_insert_jrba_jipyo_m" parameterType="hashMap" >
+		INSERT INTO JRBA_JIPYO_M(RPT_GJDT, JIPYO_IDX, JIPYO_C, RSK_CATG, RSK_FAC, JIPYO_NM, JIPYO_DESC, JIPYO_BIGO_CTNT
+			, EST_BAS_SCOP, CAL_FRML, INP_ITEM, INP_UNIT_C, ANEX_CTNT, FRMG_MABD_C, VALT_G, ALLT_PNT
+			, WEGHT, BAS_V, CAL_METH, IN_V_TP_C, CNCT_JIPYO_C_I, MNG_BRNO, JIPYO_USYN, JIPYO_ID, IN_METH_C
+			, DR_DT, DR_TIME, DR_OP_JKW_NO
+			, CHG_DT, CHG_TIME, CHG_OP_JKW_NO)
+		SELECT #{RPT_GJDT, jdbcType=VARCHAR}, JIPYO_IDX, JIPYO_C, RSK_CATG, RSK_FAC, JIPYO_NM, JIPYO_DESC, JIPYO_BIGO_CTNT
+			, EST_BAS_SCOP, CAL_FRML, INP_ITEM, INP_UNIT_C, ANEX_CTNT, FRMG_MABD_C, VALT_G, ALLT_PNT
+			, WEGHT, BAS_V, CAL_METH, IN_V_TP_C, CNCT_JIPYO_C_I, MNG_BRNO, JIPYO_USYN, JIPYO_ID, IN_METH_C
+			, DATE_FORMAT(SYSDATE(),'%Y%m%d') DR_DT, DATE_FORMAT(SYSDATE(),'%H%i%s') DR_TIME, #{DR_OP_JKW_NO, jdbcType=VARCHAR} DR_OP_JKW_NO
+			, DATE_FORMAT(SYSDATE(),'%Y%m%d') CHG_DT, DATE_FORMAT(SYSDATE(),'%H%i%s') CHG_TIME, #{DR_OP_JKW_NO, jdbcType=VARCHAR} CHG_OP_JKW_NO 
+		FROM JRBA_JIPYO_M
+		WHERE RPT_GJDT = #{COPY_RPT_GJDT, jdbcType=VARCHAR}
+	</insert>	
+
+	<update id="RBA_90_01_01_02_delete_jrba_jipyo_bas_i" parameterType="hashMap">
+		DELETE FROM JRBA_JIPYO_BAS_I 
+		WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+	</update>
+	
+	<insert  id="RBA_90_01_01_02_insert_jrba_jipyo_bas_i" parameterType="hashMap" >
+		INSERT INTO JRBA_JIPYO_BAS_I(RPT_GJDT, SNO, JIPYO_IDX, JIPYO_CMPR_CAL_C, CMPR_V, CAL_PNT
+		    , DR_DT, DR_TIME, DR_OP_JKW_NO
+		    , CHG_DT, CHG_TIME, CHG_OP_JKW_NO)
+		SELECT #{RPT_GJDT, jdbcType=VARCHAR}, SNO, JIPYO_IDX, JIPYO_CMPR_CAL_C, CMPR_V, CAL_PNT
+			, DATE_FORMAT(SYSDATE(),'%Y%m%d') DR_DT, DATE_FORMAT(SYSDATE(),'%H%i%s') DR_TIME, #{DR_OP_JKW_NO, jdbcType=VARCHAR} DR_OP_JKW_NO
+			, DATE_FORMAT(SYSDATE(),'%Y%m%d') CHG_DT, DATE_FORMAT(SYSDATE(),'%H%i%s') CHG_TIME, #{DR_OP_JKW_NO, jdbcType=VARCHAR} CHG_OP_JKW_NO 
+		FROM JRBA_JIPYO_BAS_I
+		WHERE RPT_GJDT = #{COPY_RPT_GJDT, jdbcType=VARCHAR}
+	</insert>	
+
+	<update id="RBA_90_01_01_02_delete_jrba_rpt_rst_m" parameterType="hashMap">
+		DELETE FROM JRBA_RPT_RST_M 
+		WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+	</update>
+	
+	<insert  id="RBA_90_01_01_02_insert_jrba_rpt_rst_m" parameterType="hashMap" >
+		INSERT INTO JRBA_RPT_RST_M(RPT_GJDT, RPT_YN
+		    , DR_DT, DR_TIME, DR_OP_JKW_NO
+		    , CHG_DT, CHG_TIME, CHG_OP_JKW_NO
+		    , GYLJ_ROLE_ID)
+		SELECT #{RPT_GJDT, jdbcType=VARCHAR}, 0
+			, DATE_FORMAT(SYSDATE(),'%Y%m%d') DR_DT, DATE_FORMAT(SYSDATE(),'%H%i%s') DR_TIME, #{DR_OP_JKW_NO, jdbcType=VARCHAR} DR_OP_JKW_NO
+			, DATE_FORMAT(SYSDATE(),'%Y%m%d') CHG_DT, DATE_FORMAT(SYSDATE(),'%H%i%s') CHG_TIME, #{DR_OP_JKW_NO, jdbcType=VARCHAR} CHG_OP_JKW_NO 
+			, (SELECT GYLJ_ROLE_ID FROM C_GYLJ_D WHERE GYLJ_LINE_G_C  = 'W99' AND SNO = 1) AS GYLJ_ROLE_ID
+		FROM DUAL
+	</insert>
+	
+	<update id="RBA_90_01_01_02_delete_jrba_jipyo_v" parameterType="hashMap">
+	    DELETE FROM JRBA_JIPYO_V 
+	     WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+	</update>
+	
+	<update  id="RBA_90_01_01_01_doUpdate_JRBA_RPT_BAS_M" parameterType="hashMap" >
+		UPDATE JRBA_RPT_BAS_M
+		   SET BT_BAS_DT = #{DATA_BAS_DT, jdbcType=VARCHAR} 
+		 WHERE RPT_GJDT=#{RPT_GJDT, jdbcType=VARCHAR}
+	</update>
+
+	<!-- END RBA_90_01_01 -->
+
+
+	<!-- START RBA_90_01_02 -->
+	<select id="RBA_90_01_02_01_getSearch" parameterType="hashMap" resultType="DataObj">
+	SELECT 
+	    '0' SELECTED
+	    , A.RPT_GJDT
+	    , CONCAT(SUBSTR(A.RPT_GJDT, 1, 4), '-', SUBSTR(A.RPT_GJDT, 5, 2), '-', SUBSTR(A.RPT_GJDT, 7, 2)) AS VIEW_RPT_GJDT
+	    , A.JIPYO_IDX
+	    , A.JIPYO_C
+	    , CD01.DTL_NM AS JIPYO_C_NM
+	    , A.RSK_CATG
+	    , A.RSK_FAC
+	    , (CASE WHEN A.JIPYO_C='O' THEN CD02.DTL_NM ELSE CD04.DTL_NM END) AS RSK_CATG_NM
+	    , (CASE WHEN A.JIPYO_C='O' THEN CD03.DTL_NM ELSE CD05.DTL_NM END) AS RSK_FAC_NM
+	    , A.JIPYO_NM
+	    , A.JIPYO_DESC
+	    , A.JIPYO_BIGO_CTNT
+	    , A.EST_BAS_SCOP
+	    , A.CAL_FRML
+	    , A.INP_ITEM
+	    , A.ANEX_CTNT
+	    , A.FRMG_MABD_C
+	    , CD08.DTL_NM AS FRMG_MABD_C_NM
+	    , A.VALT_G
+	    , CD06.DTL_NM AS VALT_G_NM
+	    , A.ALLT_PNT
+	    , A.WEGHT
+	    , A.BAS_V
+	    , A.CAL_METH
+	    , A.MNG_BRNO
+	    , A.JIPYO_USYN
+	    , (CASE WHEN A.JIPYO_USYN=1 THEN 'Y' ELSE 'N' END) JIPYO_USYN_NM 
+	    , A.CHG_DT
+	    , A.CHG_TIME
+	    , A.CHG_OP_JKW_NO
+	    , B.USER_NM AS CHG_OP_JKW_NM
+	    , C.DPRT_CD
+	    , C.DPRT_NM
+	    , A.IN_METH_C
+	    , CD07.DTL_NM AS IN_METH_C_NM 
+	    , BASM.JIPYO_FIX_YN
+        , BASM.JIPYO_FIX_DT
+        , BASM.JIPYO_FIX_JKW_NO
+        , A.IN_V_TP_C
+        , CD09.DTL_NM AS IN_V_TP_C_NM
+        , A.INP_UNIT_C
+        , CD10.DTL_NM AS INP_UNIT_C_NM
+        , A.CNCT_JIPYO_C_I
+	FROM JRBA_JIPYO_M A
+	  LEFT JOIN JRBA_RPT_BAS_M BASM ON A.RPT_GJDT=BASM.RPT_GJDT
+	  LEFT JOIN JRBA_DTL_C CD01 ON A.RPT_GJDT=CD01.RPT_GJDT AND CD01.GRP_CD = 'A001' AND A.JIPYO_C=CD01.DTL_CD
+	  LEFT JOIN JRBA_DTL_C CD02 ON A.RPT_GJDT=CD02.RPT_GJDT AND CD02.GRP_CD = 'A002' AND A.RSK_CATG=CD02.DTL_CD
+	  LEFT JOIN JRBA_DTL_C CD03 ON A.RPT_GJDT=CD03.RPT_GJDT AND CD03.GRP_CD = 'A003' AND A.RSK_FAC=CD03.DTL_CD
+	  LEFT JOIN JRBA_DTL_C CD04 ON A.RPT_GJDT=CD04.RPT_GJDT AND CD04.GRP_CD = 'A004' AND A.RSK_CATG=CD04.DTL_CD 
+	  LEFT JOIN JRBA_DTL_C CD05 ON A.RPT_GJDT=CD05.RPT_GJDT AND CD05.GRP_CD = 'A005' AND A.RSK_FAC=CD05.DTL_CD
+	  LEFT JOIN JRBA_DTL_C CD06 ON A.RPT_GJDT=CD06.RPT_GJDT AND CD06.GRP_CD = 'A007' AND A.VALT_G=CD06.DTL_CD
+	  LEFT JOIN JRBA_DTL_C CD07 ON A.RPT_GJDT=CD07.RPT_GJDT AND CD07.GRP_CD = 'A013' AND A.IN_METH_C=CD07.DTL_CD
+	  LEFT JOIN JRBA_DTL_C CD08 ON A.RPT_GJDT=CD08.RPT_GJDT AND CD08.GRP_CD = 'A006' AND A.FRMG_MABD_C=CD08.DTL_CD
+      LEFT JOIN JRBA_DTL_C CD09 ON A.RPT_GJDT=CD09.RPT_GJDT AND CD09.GRP_CD = 'A008' AND A.IN_V_TP_C=CD09.DTL_CD
+      LEFT JOIN JRBA_DTL_C CD10 ON A.RPT_GJDT=CD10.RPT_GJDT AND CD10.GRP_CD = 'A012' AND A.INP_UNIT_C=CD10.DTL_CD
+      LEFT JOIN C_USER B ON A.CHG_OP_JKW_NO=B.LOGIN_ID      
+	  LEFT OUTER JOIN NIC41B C  ON A.MNG_BRNO     = C.DPRT_CD
+	WHERE 1=1
+	AND A.RPT_GJDT =  #{RPT_GJDT, jdbcType=VARCHAR}
+	<if test="CHECK_JIPYO_IDX != null and CHECK_JIPYO_IDX != ''" >
+	   AND A.JIPYO_IDX = #{CHECK_JIPYO_IDX, jdbcType=VARCHAR} 	-- 지표번호
+	</if>
+	<if test="JIPYO_IDX != null and JIPYO_IDX != ''" >
+	   AND A.JIPYO_IDX LIKE CONCAT('%' , #{JIPYO_IDX, jdbcType=VARCHAR} , '%')	-- 지표번호
+	</if>
+	<if test="JIPYO_NM != null and JIPYO_NM != ''" >
+	   AND A.JIPYO_NM LIKE CONCAT('%' , #{JIPYO_NM, jdbcType=VARCHAR} , '%') -- 지표명
+	</if>
+	<if test="JIPYO_C != null and JIPYO_C != ''" >
+	   AND A.JIPYO_C = #{JIPYO_C, jdbcType=VARCHAR} -- 위험구분
+	</if>
+	<if test="RSK_CATG != null and RSK_CATG != ''" >
+	   AND A.RSK_CATG = #{RSK_CATG, jdbcType=VARCHAR} -- 카테고리
+	</if>
+	<if test="RSK_FAC != null and RSK_FAC != ''" >
+	   AND A.RSK_FAC =  #{RSK_FAC, jdbcType=VARCHAR} -- 항목
+	</if>
+	<if test="VALT_G != null and VALT_G != ''" >
+		AND A.VALT_G = #{VALT_G, jdbcType=NUMERIC} -- 평가구분
+	</if>
+	<if test="JIPYO_USYN != null and JIPYO_USYN != '' and JIPYO_USYN != 'ALL'" >
+		AND A.JIPYO_USYN =  #{JIPYO_USYN, jdbcType=NUMERIC} -- 사용여부
+	</if>
+	<if test="IN_METH_C != null and IN_METH_C != '' and IN_METH_C != 'ALL'" >
+		AND A.IN_METH_C =  #{IN_METH_C, jdbcType=VARCHAR} -- 입력방식
+	</if>
+	<if test="MNG_BRNO != null and MNG_BRNO != ''" >
+		AND A.MNG_BRNO =  #{MNG_BRNO, jdbcType=VARCHAR} -- 관리점번호
+	</if>
+ORDER BY A.JIPYO_IDX
+	</select>	
+	
+	<select id="RBA_90_01_02_01_doDetail"  parameterType="hashMap" resultType="DataObj">
+		SELECT 
+		     A.RPT_GJDT
+		    , CONCAT(SUBSTR(A.RPT_GJDT, 1, 4), '-', SUBSTR(A.RPT_GJDT, 5, 2), '-', SUBSTR(A.RPT_GJDT, 7, 2)) AS VIEW_RPT_GJDT
+		    , A.JIPYO_IDX
+		    , A.JIPYO_C
+		    , CD01.DTL_NM AS JIPYO_C_NM
+		    , A.RSK_CATG
+		    , A.RSK_FAC
+		    , (CASE WHEN A.JIPYO_C='O' THEN CD02.DTL_NM ELSE CD04.DTL_NM END) AS RSK_CATG_NM
+		    , (CASE WHEN A.JIPYO_C='O' THEN CD03.DTL_NM ELSE CD05.DTL_NM END) AS RSK_FAC_NM
+		    , A.JIPYO_NM
+		    , A.JIPYO_DESC
+		    , A.JIPYO_BIGO_CTNT
+		    , A.EST_BAS_SCOP
+		    , A.CAL_FRML
+		    , A.INP_ITEM
+		    , A.ANEX_CTNT
+		    , A.FRMG_MABD_C
+		    , CD08.DTL_NM AS FRMG_MABD_C_NM
+		    , A.VALT_G
+		    , CD06.DTL_NM AS VALT_G_NM
+		    , A.ALLT_PNT
+		    , A.WEGHT
+		    , A.BAS_V
+		    , A.CAL_METH
+		    , A.JIPYO_USYN
+		    , (CASE WHEN A.JIPYO_USYN=1 THEN 'Y' ELSE 'N' END) JIPYO_USYN_NM 
+		    , A.IN_METH_C
+		    , CD07.DTL_NM AS IN_METH_C_NM 
+		    , A.IN_V_TP_C
+	        , CD09.DTL_NM AS IN_V_TP_C_NM
+	        , A.INP_UNIT_C
+	        , CD10.DTL_NM AS INP_UNIT_C_NM
+	        , A.CNCT_JIPYO_C_I
+		FROM JRBA_JIPYO_M A
+		  LEFT JOIN JRBA_RPT_BAS_M BASM ON A.RPT_GJDT=BASM.RPT_GJDT
+		  LEFT JOIN JRBA_DTL_C CD01 ON A.RPT_GJDT=CD01.RPT_GJDT AND CD01.GRP_CD = 'A001' AND A.JIPYO_C=CD01.DTL_CD
+		  LEFT JOIN JRBA_DTL_C CD02 ON A.RPT_GJDT=CD02.RPT_GJDT AND CD02.GRP_CD = 'A002' AND A.RSK_CATG=CD02.DTL_CD
+		  LEFT JOIN JRBA_DTL_C CD03 ON A.RPT_GJDT=CD03.RPT_GJDT AND CD03.GRP_CD = 'A003' AND A.RSK_FAC=CD03.DTL_CD
+		  LEFT JOIN JRBA_DTL_C CD04 ON A.RPT_GJDT=CD04.RPT_GJDT AND CD04.GRP_CD = 'A004' AND A.RSK_CATG=CD04.DTL_CD 
+		  LEFT JOIN JRBA_DTL_C CD05 ON A.RPT_GJDT=CD05.RPT_GJDT AND CD05.GRP_CD = 'A005' AND A.RSK_FAC=CD05.DTL_CD
+		  LEFT JOIN JRBA_DTL_C CD06 ON A.RPT_GJDT=CD06.RPT_GJDT AND CD06.GRP_CD = 'A007' AND A.VALT_G=CD06.DTL_CD
+		  LEFT JOIN JRBA_DTL_C CD07 ON A.RPT_GJDT=CD07.RPT_GJDT AND CD07.GRP_CD = 'A013' AND A.IN_METH_C=CD07.DTL_CD
+		  LEFT JOIN JRBA_DTL_C CD08 ON A.RPT_GJDT=CD08.RPT_GJDT AND CD08.GRP_CD = 'A006' AND A.FRMG_MABD_C=CD08.DTL_CD
+	      LEFT JOIN JRBA_DTL_C CD09 ON A.RPT_GJDT=CD09.RPT_GJDT AND CD09.GRP_CD = 'A008' AND A.IN_V_TP_C=CD09.DTL_CD
+	      LEFT JOIN JRBA_DTL_C CD10 ON A.RPT_GJDT=CD10.RPT_GJDT AND CD10.GRP_CD = 'A012' AND A.INP_UNIT_C=CD10.DTL_CD
+		WHERE 1=1
+		AND A.RPT_GJDT =  #{RPT_GJDT, jdbcType=VARCHAR}
+		<if test="CHECK_JIPYO_IDX != null and CHECK_JIPYO_IDX != ''" >
+		   AND A.JIPYO_IDX = #{CHECK_JIPYO_IDX, jdbcType=VARCHAR} 	-- 지표번호
+		</if>
+		<if test="JIPYO_IDX != null and JIPYO_IDX != ''" >
+		   AND A.JIPYO_IDX LIKE CONCAT('%' , #{JIPYO_IDX, jdbcType=VARCHAR} , '%')	-- 지표번호
+		</if>
+		<if test="JIPYO_NM != null and JIPYO_NM != ''" >
+		   AND A.JIPYO_NM LIKE CONCAT('%' , #{JIPYO_NM, jdbcType=VARCHAR} , '%' ) -- 지표명
+		</if>
+		<if test="JIPYO_C != null and JIPYO_C != ''" >
+		   AND A.JIPYO_C = #{JIPYO_C, jdbcType=VARCHAR} -- 위험구분
+		</if>
+		<if test="RSK_CATG != null and RSK_CATG != ''" >
+		   AND A.RSK_CATG = #{RSK_CATG, jdbcType=VARCHAR} -- 카테고리
+		</if>
+		<if test="RSK_FAC != null and RSK_FAC != ''" >
+		   AND A.RSK_FAC =  #{RSK_FAC, jdbcType=VARCHAR} -- 항목
+		</if>
+		<if test="VALT_G != null and VALT_G != ''" >
+			AND A.VALT_G = #{VALT_G, jdbcType=NUMERIC} -- 평가구분
+		</if>
+		<if test="JIPYO_USYN != null and JIPYO_USYN != '' and JIPYO_USYN != 'ALL'" >
+			AND A.JIPYO_USYN =  #{JIPYO_USYN, jdbcType=NUMERIC} -- 사용여부
+		</if>
+		<if test="IN_METH_C != null and IN_METH_C != '' and IN_METH_C != 'ALL'" >
+			AND A.IN_METH_C =  #{IN_METH_C, jdbcType=VARCHAR} -- 입력방식
+		</if>
+		<if test="MNG_BRNO != null and MNG_BRNO != ''" >
+			AND A.MNG_BRNO =  #{MNG_BRNO, jdbcType=VARCHAR} -- 관리점번호
+		</if>
+	ORDER BY A.JIPYO_IDX
+	</select>
+	
+	<select id="RBA_90_01_02_01_getSearch2"  parameterType="hashMap" resultType="DataObj">
+		SELECT
+			RPT_GJDT          
+			,BIGO_CTNT         
+			,BT_BAS_DT         
+			,BT_JOB_ENDT       
+			,JIPYO_FIX_YN      
+			,JIPYO_FIX_DT      
+			,JIPYO_FIX_JKW_NO  
+			,DR_DT             
+			,DR_TIME           
+			,DR_OP_JKW_NO      
+			,CHG_DT            
+			,CHG_TIME          
+			,CHG_OP_JKW_NO     
+		FROM JRBA_RPT_BAS_M
+		WHERE 1=1
+		AND RPT_GJDT =  #{RPT_GJDT, jdbcType=VARCHAR}
+	</select>
+
+	<update id="RBA_90_01_02_01_MNG_BRNO_SAVE" parameterType="hashMap">
+		UPDATE JRBA_JIPYO_M SET
+			MNG_BRNO 		= #{MNG_BRNO,jdbcType=VARCHAR}
+		WHERE RPT_GJDT 		= #{RPT_GJDT, jdbcType=VARCHAR}
+			AND JIPYO_IDX 		= #{JIPYO_IDX, jdbcType=VARCHAR}
+	</update>
+
+	<select id="RBA_90_01_02_01_select_confirm_status" parameterType="hashMap" resultType="DataObj">
+		SELECT IFNULL(JIPYO_FIX_YN, 0) JIPYO_FIX_YN
+		FROM JRBA_RPT_BAS_M
+		WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+	</select>
+	
+	<update id="RBA_90_01_02_01_confirm" parameterType="hashMap">
+		UPDATE JRBA_RPT_BAS_M
+		SET JIPYO_FIX_YN= 1,
+			JIPYO_FIX_DT = DATE_FORMAT(SYSDATE(),'%Y%m%d'),
+			JIPYO_FIX_JKW_NO = #{CHG_OP_JKW_NO}
+		WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+	</update>
+
+	<update id="RBA_90_01_02_01_confirm_cancel" parameterType="hashMap">
+		UPDATE JRBA_RPT_BAS_M
+		SET JIPYO_FIX_YN= 0,
+			JIPYO_FIX_DT = DATE_FORMAT(SYSDATE(),'%Y%m%d'),
+			JIPYO_FIX_JKW_NO = #{CHG_OP_JKW_NO}
+		WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+	</update>
+	
+	<update id="RBA_90_01_02_02_merge_jrba_jipyo_m" parameterType="hashMap">
+           INSERT INTO JRBA_JIPYO_M 
+	        (
+			RPT_GJDT,
+			JIPYO_IDX,
+			JIPYO_NM,
+			JIPYO_C,
+			RSK_CATG,
+			RSK_FAC,
+			INP_ITEM,
+			FRMG_MABD_C,
+			ALLT_PNT,
+			VALT_G,
+			IN_V_TP_C,
+			WEGHT,
+			CNCT_JIPYO_C_I,
+			INP_UNIT_C,
+			BAS_V,
+			IN_METH_C,
+			JIPYO_USYN,
+			JIPYO_DESC,
+			CAL_FRML,
+			JIPYO_BIGO_CTNT,
+			EST_BAS_SCOP,
+			CAL_METH,
+			ANEX_CTNT,	
+			JIPYO_ID,		
+			DR_DT,
+			DR_TIME,
+			DR_OP_JKW_NO,
+			CHG_DT,
+			CHG_TIME,
+			CHG_OP_JKW_NO
+		)
+		VALUES
+		(
+			#{RPT_GJDT, jdbcType=VARCHAR},
+			#{JIPYO_IDX, jdbcType=VARCHAR},
+			#{JIPYO_NM, jdbcType=VARCHAR},
+			#{JIPYO_C, jdbcType=VARCHAR},
+			#{RSK_CATG, jdbcType=VARCHAR},
+			#{RSK_FAC, jdbcType=VARCHAR},
+			#{INP_ITEM, jdbcType=VARCHAR},
+			#{FRMG_MABD_C, jdbcType=VARCHAR},
+			#{ALLT_PNT, jdbcType=INTEGER},
+			#{VALT_G, jdbcType=INTEGER},
+			#{IN_V_TP_C, jdbcType=VARCHAR},
+			#{WEGHT, jdbcType=INTEGER},
+			#{CNCT_JIPYO_C_I, jdbcType=VARCHAR},
+			#{INP_UNIT_C, jdbcType=VARCHAR},
+			#{BAS_V, jdbcType=VARCHAR},
+			#{IN_METH_C, jdbcType=VARCHAR},
+			#{JIPYO_USYN, jdbcType=VARCHAR},
+			#{JIPYO_DESC, jdbcType=VARCHAR},
+			#{CAL_FRML, jdbcType=VARCHAR},
+			#{JIPYO_BIGO_CTNT, jdbcType=VARCHAR},
+			#{EST_BAS_SCOP, jdbcType=VARCHAR},
+			#{CAL_METH, jdbcType=VARCHAR},
+			#{ANEX_CTNT, jdbcType=VARCHAR},
+			#{JIPYO_ID, jdbcType=VARCHAR},
+			DATE_FORMAT(SYSDATE(),'%Y%m%d'),
+			DATE_FORMAT(SYSDATE(),'%H%i%s'),
+			#{DR_OP_JKW_NO, jdbcType=VARCHAR},
+			DATE_FORMAT(SYSDATE(),'%Y%m%d'),
+			DATE_FORMAT(SYSDATE(),'%H%i%s'),
+			#{CHG_OP_JKW_NO, jdbcType=VARCHAR}
+		)
+           ON DUPLICATE KEY 
+            UPDATE
+			JIPYO_NM = #{JIPYO_NM, jdbcType=VARCHAR},
+			JIPYO_C = #{JIPYO_C, jdbcType=VARCHAR},
+			RSK_CATG = #{RSK_CATG, jdbcType=VARCHAR},
+			RSK_FAC = #{RSK_FAC, jdbcType=VARCHAR},
+			INP_ITEM = #{INP_ITEM, jdbcType=VARCHAR},
+			FRMG_MABD_C = #{FRMG_MABD_C, jdbcType=VARCHAR},
+			ALLT_PNT = #{ALLT_PNT, jdbcType=INTEGER},						
+			VALT_G = #{VALT_G, jdbcType=INTEGER},
+			IN_V_TP_C = #{IN_V_TP_C, jdbcType=VARCHAR},
+			WEGHT = #{WEGHT, jdbcType=INTEGER},
+			CNCT_JIPYO_C_I = #{CNCT_JIPYO_C_I, jdbcType=VARCHAR},			
+			INP_UNIT_C = #{INP_UNIT_C, jdbcType=VARCHAR},
+			BAS_V = #{BAS_V, jdbcType=VARCHAR},
+			IN_METH_C = #{IN_METH_C, jdbcType=VARCHAR},
+			JIPYO_USYN = #{JIPYO_USYN, jdbcType=VARCHAR},
+			JIPYO_DESC = #{JIPYO_DESC, jdbcType=VARCHAR},
+			CAL_FRML = #{CAL_FRML, jdbcType=VARCHAR},
+			JIPYO_BIGO_CTNT = #{JIPYO_BIGO_CTNT, jdbcType=VARCHAR},
+			EST_BAS_SCOP = #{EST_BAS_SCOP, jdbcType=VARCHAR},
+			CAL_METH = #{CAL_METH, jdbcType=VARCHAR},
+			ANEX_CTNT = #{ANEX_CTNT, jdbcType=VARCHAR},
+			CHG_DT = DATE_FORMAT(SYSDATE(),'%Y%m%d'),
+			CHG_TIME = DATE_FORMAT(SYSDATE(),'%H%i%s'),
+			CHG_OP_JKW_NO = #{CHG_OP_JKW_NO, jdbcType=VARCHAR}
+	</update>
+
+	<delete id="RBA_90_01_02_02_delete_jrba_jipyo_m" parameterType="hashMap">
+		DELETE FROM JRBA_JIPYO_M
+		WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+			AND JIPYO_IDX = #{JIPYO_IDX, jdbcType=VARCHAR}
+	</delete>
+
+	<select id="RBA_90_01_02_02_select_jrba_jipyo_v" parameterType="hashMap" resultType="DataObj">
+		SELECT JIPYO_IDX
+		FROM JRBA_JIPYO_V
+		WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+			AND JIPYO_IDX = #{JIPYO_IDX, jdbcType=VARCHAR} 
+	
+	</select>
+	
+	<!-- END RBA_90_01_02 -->
+
+
+<select id="RBA_90_01_03_01_doSearch"  parameterType="hashMap" resultType="DataObj">
+SELECT A.JIPYO_IDX                          																								-- 지표번호
+      ,A.JIPYO_NM                           																								-- 위험지표명
+      ,A.INP_ITEM                           																								-- 입력항목
+      ,A.VALT_G                             																								-- 평가구분코드 HIDDEN
+      ,(SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A007' AND DTL_CD=A.VALT_G) AS VALT_G_NM             			-- 평가구분명
+      ,A.INP_UNIT_C                         																								-- 입력단위코드 HIDDEN
+      ,(SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A012' AND DTL_CD=A.INP_UNIT_C) AS INP_UNIT_C_NM     			-- 입력단위명
+      ,A.ALLT_PNT                           																								-- 배점
+      ,A.IN_V_TP_C                          																								-- 입력값타입('A008', N:숫자, C:코드, T:텍스트)
+      ,B.IN_V                               																								-- 입력값
+      ,(CASE WHEN A.JIPYO_C = 'I' THEN ''
+		             WHEN A.JIPYO_C = 'O' AND A.VALT_G IN ('1', '4') AND B.IN_V IS NOT NULL THEN TRIM(TRAILING '.' FROM TRIM(FORMAT(B.RPT_PNT, 2))) 
+		             WHEN A.JIPYO_C = 'O' AND A.VALT_G ='2' AND B.MAX_IN_V <![CDATA[>]]> 0 THEN TRIM(TRAILING '.' FROM TRIM(FORMAT(B.RPT_PNT, 2))) 
+		             ELSE '' END
+		       ) AS RPT_PNT         																								-- 지표점수
+      ,CASE WHEN IFNULL(B.ATTCH_FILE_NO, 0) = 0 THEN 'N'
+	    	ELSE 'Y'
+       END AS ATTCH_FILE_YN			-- 증빙파일 
+      ,B.ATTCH_FILE_NO				-- 첨부파일번호 
+      ,IFNULL(B.ITEM_S_C, '0') AS ITEM_S_C     																								-- 항목상태 HIDDEN ('A010', 0:미확정, 1:저장, 2:확정)
+      ,(SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A010' AND DTL_CD=IFNULL(B.ITEM_S_C,0)) AS ITEM_S_C_NM  			-- 항목상태명
+      ,A.CAL_FRML   			 																											-- 산출식
+      ,A.CAL_METH   																														-- 산출방법
+      ,A.JIPYO_C    																														-- 위험구분코드 HIDDEN
+      ,(SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A001' AND DTL_CD=A.JIPYO_C) AS JIPYO_C_NM   					-- 위험구분코드명
+      ,A.RSK_CATG   																														-- 카테고리코드 HIDDEN
+      ,CASE WHEN A.JIPYO_C='I' THEN (SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A004' AND DTL_CD=A.RSK_CATG) -- 고유위험인 경우
+            WHEN A.JIPYO_C='O' THEN (SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A002' AND DTL_CD=A.RSK_CATG) -- 운영위험인 경우
+       END  AS RSK_CATG_NM   																												-- 위험구분코드명
+      ,A.RSK_FAC    																														-- 항목코드 HIDDEN
+      ,CASE WHEN A.JIPYO_C='I' THEN (SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A005' AND DTL_CD=A.RSK_FAC)  -- 고유위험인 경우
+            WHEN A.JIPYO_C='O' THEN (SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A003' AND DTL_CD=A.RSK_FAC)  -- 운영위험인 경우
+       END  AS RSK_FAC_NM   																												-- 위험구분코드명
+      ,A.CHG_DT     																														-- 변경일
+      ,A.CHG_OP_JKW_NO  																													-- 변경자
+      ,CASE WHEN IN_V_TP_C='C' -- 입력값이 '코드'
+		    THEN (
+                   SELECT REGEXP_REPLACE(CONCAT(GROUP_CONCAT(DTL_CD, '##'), '@@', GROUP_CONCAT(CONCAT('[' , DTL_CD , '] ' , DTL_NM), '##')) ,'([^,]+)(,\1)+','\1' ) 
+                     FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD=A.CNCT_JIPYO_C_I
+                    GROUP BY RPT_GJDT, GRP_CD 
+                    ORDER BY DTL_CD
+		         )
+	   END  AS CD_LST	-- 입력값타입이 코드인경우 사용될 코드리스트
+      ,IFNULL(B.MAX_IN_V,0) AS MAX_IN_V
+      ,A.CNCT_JIPYO_C_I				-- 연결지표코드정보 
+      ,IFNULL(CASE WHEN IN_V_TP_C='C' -- 입력값이 '코드'
+            	THEN ( SELECT CONCAT('[',DTL_CD,'] ',DTL_NM) FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD=A.CNCT_JIPYO_C_I AND DTL_CD=(SELECT IN_V FROM JRBA_JIPYO_V WHERE JIPYO_IDX=A.JIPYO_IDX AND RPT_GJDT=#{LAST_RPT_GJDT, jdbcType=VARCHAR}) )
+       	   ELSE ( SELECT IN_V FROM JRBA_JIPYO_V WHERE JIPYO_IDX=A.JIPYO_IDX AND RPT_GJDT=#{LAST_RPT_GJDT, jdbcType=VARCHAR} ) 
+       	   END, '-')	AS LAST_IN_V	-- 직전기준보고일 데이터
+      ,( CASE TRIM(B.BIGO_CTNT) WHEN '' THEN 'N' ELSE 'Y' END) AS BIGO_CTNT_F	-- 비고내용 저장여부
+      ,B.BIGO_CTNT		-- 비고내용
+  FROM JRBA_JIPYO_M A
+       LEFT OUTER JOIN JRBA_JIPYO_V B
+       ON A.RPT_GJDT  = B.RPT_GJDT
+       AND A.JIPYO_IDX = B.JIPYO_IDX
+ WHERE A.JIPYO_USYN = '1'    		--지표사용여부 (0:부, 1:여)
+   AND A.RPT_GJDT  = #{RPT_GJDT, jdbcType=VARCHAR}
+ <if test="CHECK_JIPYO_IDX != null and CHECK_JIPYO_IDX != ''" >
+   AND A.JIPYO_IDX = #{CHECK_JIPYO_IDX, jdbcType=VARCHAR} 	-- 지표번호
+ </if>
+ <if test="JIPYO_IDX != null and JIPYO_IDX != ''" >
+   AND A.JIPYO_IDX LIKE CONCAT('%' , #{JIPYO_IDX, jdbcType=VARCHAR} , '%')	-- 지표번호
+ </if>
+ <if test="JIPYO_NM != null and JIPYO_NM != ''" >
+   AND A.JIPYO_NM LIKE CONCAT('%' , #{JIPYO_NM, jdbcType=VARCHAR} , '%') -- 지표명
+ </if>
+ <if test="JIPYO_C != null and JIPYO_C != ''" >
+   AND A.JIPYO_C	  = #{JIPYO_C, jdbcType=VARCHAR}
+ </if>
+ <if test="RSK_CATG != null and RSK_CATG != ''" >
+   AND A.RSK_CATG  = #{RSK_CATG, jdbcType=VARCHAR}
+ </if>
+ <if test="RSK_FAC != null and RSK_FAC != ''" >
+   AND A.RSK_FAC   = #{RSK_FAC, jdbcType=VARCHAR}
+ </if>
+ <if test="VALT_G != null and VALT_G != ''" >
+   AND A.VALT_G    = #{VALT_G, jdbcType=VARCHAR}
+ </if>
+ <if test="ITEM_S_C != null and ITEM_S_C != ''" >
+ 	<choose>
+ 		<when test="ITEM_S_C == 0">	<!-- 항목상태: 미확정 -->
+			AND A.JIPYO_IDX NOT IN (SELECT JIPYO_IDX 
+		                       		  FROM JRBA_JIPYO_V
+		                       		 WHERE RPT_GJDT  = #{RPT_GJDT, jdbcType=VARCHAR})
+ 		</when>
+ 		<otherwise>
+		   AND B.ITEM_S_C  = #{ITEM_S_C, jdbcType=VARCHAR}
+ 		</otherwise>
+ 	</choose>
+ </if>
+ <if test="MNG_BRNO != null and MNG_BRNO != '' and MNG_BRNO != '999'" >
+   AND A.MNG_BRNO  = #{MNG_BRNO, jdbcType=VARCHAR}
+ </if>
+ <if test="IN_METH_C != null and IN_METH_C != '' and IN_METH_C != 'ALL'" >
+   AND A.IN_METH_C =  #{IN_METH_C, jdbcType=VARCHAR} -- 입력방식
+ </if>
+ORDER BY A.JIPYO_IDX
+</select>
+
+
+<select id="RBA_90_01_03_01_doSearchExcel"  parameterType="hashMap" resultType="DataObj">
+SELECT A.JIPYO_IDX                          																								-- 지표번호
+      ,A.JIPYO_NM                           																								-- 위험지표명
+      ,A.INP_ITEM                           																								-- 입력항목
+      ,A.VALT_G                             																								-- 평가구분코드 HIDDEN
+      ,(SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A007' AND DTL_CD=A.VALT_G) AS VALT_G_NM             			-- 평가구분명
+      ,A.INP_UNIT_C                         																								-- 입력단위코드 HIDDEN
+      ,(SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A012' AND DTL_CD=A.INP_UNIT_C) AS INP_UNIT_C_NM     			-- 입력단위명
+      ,A.ALLT_PNT                           																								-- 배점
+      ,A.IN_V_TP_C                          																								-- 입력값타입('A008', N:숫자, C:코드, T:텍스트)
+      ,B.IN_V        
+      ,IFNULL(CASE WHEN IN_V_TP_C='C' -- 입력값이 '코드'
+            	THEN ( SELECT CONCAT('[',DTL_CD,'] ',DTL_NM) FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD=A.CNCT_JIPYO_C_I AND DTL_CD=B.IN_V )
+       	   ELSE FORMAT(B.IN_V,0) 
+       	   END, '-')	AS A_IN_V                             																								-- 입력값
+      ,(CASE WHEN A.JIPYO_C = 'I' THEN ''
+		             WHEN A.JIPYO_C = 'O' AND A.VALT_G IN ('1', '4') AND B.IN_V IS NOT NULL THEN TRIM(TRAILING '.' FROM TRIM(FORMAT(B.RPT_PNT, 2))) 
+		             WHEN A.JIPYO_C = 'O' AND A.VALT_G ='2' AND B.MAX_IN_V <![CDATA[>]]> 0 THEN TRIM(TRAILING '.' FROM TRIM(FORMAT(B.RPT_PNT, 2))) 
+		             ELSE '' END
+		       ) AS RPT_PNT         																								-- 지표점수
+      ,CASE WHEN IFNULL(B.ATTCH_FILE_NO, 0) = 0 THEN 'N'
+	    	ELSE 'Y'
+       END AS ATTCH_FILE_YN			-- 증빙파일 
+      ,B.ATTCH_FILE_NO				-- 첨부파일번호 
+      ,IFNULL(B.ITEM_S_C, '0') AS ITEM_S_C     																								-- 항목상태 HIDDEN ('A010', 0:미확정, 1:저장, 2:확정)
+      ,(SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A010' AND DTL_CD=IFNULL(B.ITEM_S_C,0)) AS ITEM_S_C_NM  			-- 항목상태명
+      ,A.CAL_FRML   			 																											-- 산출식
+      ,A.CAL_METH   																														-- 산출방법
+      ,A.JIPYO_C    																														-- 위험구분코드 HIDDEN
+      ,(SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A001' AND DTL_CD=A.JIPYO_C) AS JIPYO_C_NM   					-- 위험구분코드명
+      ,A.RSK_CATG   																														-- 카테고리코드 HIDDEN
+      ,CASE WHEN A.JIPYO_C='I' THEN (SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A004' AND DTL_CD=A.RSK_CATG) -- 고유위험인 경우
+            WHEN A.JIPYO_C='O' THEN (SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A002' AND DTL_CD=A.RSK_CATG) -- 운영위험인 경우
+       END  AS RSK_CATG_NM   																												-- 위험구분코드명
+      ,A.RSK_FAC    																														-- 항목코드 HIDDEN
+      ,CASE WHEN A.JIPYO_C='I' THEN (SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A005' AND DTL_CD=A.RSK_FAC)  -- 고유위험인 경우
+            WHEN A.JIPYO_C='O' THEN (SELECT DTL_NM FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD='A003' AND DTL_CD=A.RSK_FAC)  -- 운영위험인 경우
+       END  AS RSK_FAC_NM   																												-- 위험구분코드명
+      ,A.CHG_DT     																														-- 변경일
+      ,A.CHG_OP_JKW_NO  																													-- 변경자
+      ,CASE WHEN IN_V_TP_C='C' -- 입력값이 '코드'
+		    THEN (
+                   SELECT REGEXP_REPLACE(CONCAT(GROUP_CONCAT(DTL_CD, '##'), '@@', GROUP_CONCAT(CONCAT('[' , DTL_CD , '] ' , DTL_NM), '##')) ,'([^,]+)(,\1)+','\1' ) 
+                     FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD=A.CNCT_JIPYO_C_I
+                    GROUP BY RPT_GJDT, GRP_CD 
+                    ORDER BY DTL_CD
+		         )
+	   END  AS CD_LST	-- 입력값타입이 코드인경우 사용될 코드리스트
+      ,IFNULL(B.MAX_IN_V,0) AS MAX_IN_V
+      ,A.CNCT_JIPYO_C_I				-- 연결지표코드정보 
+      ,IFNULL(CASE WHEN IN_V_TP_C='C' -- 입력값이 '코드'
+            	THEN ( SELECT CONCAT('[',DTL_CD,'] ',DTL_NM) FROM JRBA_DTL_C WHERE RPT_GJDT=A.RPT_GJDT AND GRP_CD=A.CNCT_JIPYO_C_I AND DTL_CD=(SELECT IN_V FROM JRBA_JIPYO_V WHERE JIPYO_IDX=A.JIPYO_IDX AND RPT_GJDT=#{LAST_RPT_GJDT, jdbcType=VARCHAR}) )
+       	   ELSE ( SELECT IN_V FROM JRBA_JIPYO_V WHERE JIPYO_IDX=A.JIPYO_IDX AND RPT_GJDT=#{LAST_RPT_GJDT, jdbcType=VARCHAR} ) 
+       	   END, '-')	AS LAST_IN_V	-- 직전기준보고일 데이터
+      ,( CASE TRIM(B.BIGO_CTNT) WHEN '' THEN 'N' ELSE 'Y' END) AS BIGO_CTNT_F	-- 비고내용 저장여부
+      ,B.BIGO_CTNT		-- 비고내용
+  FROM JRBA_JIPYO_M A
+       LEFT OUTER JOIN JRBA_JIPYO_V B
+       ON A.RPT_GJDT  = B.RPT_GJDT
+       AND A.JIPYO_IDX = B.JIPYO_IDX
+ WHERE A.JIPYO_USYN = '1'    		--지표사용여부 (0:부, 1:여)
+   AND A.RPT_GJDT  = #{RPT_GJDT, jdbcType=VARCHAR}
+ <if test="CHECK_JIPYO_IDX != null and CHECK_JIPYO_IDX != ''" >
+   AND A.JIPYO_IDX = #{CHECK_JIPYO_IDX, jdbcType=VARCHAR} 	-- 지표번호
+ </if>
+ <if test="JIPYO_IDX != null and JIPYO_IDX != ''" >
+   AND A.JIPYO_IDX LIKE CONCAT('%' , #{JIPYO_IDX, jdbcType=VARCHAR} , '%')	-- 지표번호
+ </if>
+ <if test="JIPYO_NM != null and JIPYO_NM != ''" >
+   AND A.JIPYO_NM LIKE CONCAT('%' , #{JIPYO_NM, jdbcType=VARCHAR} , '%') -- 지표명
+ </if>
+ <if test="JIPYO_C != null and JIPYO_C != ''" >
+   AND A.JIPYO_C	  = #{JIPYO_C, jdbcType=VARCHAR}
+ </if>
+ <if test="RSK_CATG != null and RSK_CATG != ''" >
+   AND A.RSK_CATG  = #{RSK_CATG, jdbcType=VARCHAR}
+ </if>
+ <if test="RSK_FAC != null and RSK_FAC != ''" >
+   AND A.RSK_FAC   = #{RSK_FAC, jdbcType=VARCHAR}
+ </if>
+ <if test="VALT_G != null and VALT_G != ''" >
+   AND A.VALT_G    = #{VALT_G, jdbcType=VARCHAR}
+ </if>
+ <if test="ITEM_S_C != null and ITEM_S_C != ''" >
+ 	<choose>
+ 		<when test="ITEM_S_C == 0">	<!-- 항목상태: 미확정 -->
+			AND A.JIPYO_IDX NOT IN (SELECT JIPYO_IDX 
+		                       		  FROM JRBA_JIPYO_V
+		                       		 WHERE RPT_GJDT  = #{RPT_GJDT, jdbcType=VARCHAR})
+ 		</when>
+ 		<otherwise>
+		   AND B.ITEM_S_C  = #{ITEM_S_C, jdbcType=VARCHAR}
+ 		</otherwise>
+ 	</choose>
+ </if>
+ <if test="MNG_BRNO != null and MNG_BRNO != '' and MNG_BRNO != '999'" >
+   AND A.MNG_BRNO  = #{MNG_BRNO, jdbcType=VARCHAR}
+ </if>
+ <if test="IN_METH_C != null and IN_METH_C != '' and IN_METH_C != 'ALL'" >
+   AND A.IN_METH_C =  #{IN_METH_C, jdbcType=VARCHAR} -- 입력방식
+ </if>
+ORDER BY A.JIPYO_IDX
+</select>
+
+<select id="RBA_90_01_03_01_doAutoImportBtBasDt"  parameterType="hashMap" resultType="DataObj">
+SELECT '0' AS SELECTED
+	  ,@rownum := @rownum + 1 AS CNT
+      ,A.RPT_GJDT
+      ,A.BT_BAS_DT 
+      ,A.BT_JOB_ENDT
+      ,A.DR_DT
+  FROM JRBA_RPT_BAS_M A, (SELECT @rownum := 0) r 
+  WHERE A.RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+  ORDER BY A.RPT_GJDT DESC
+</select>
+
+<select id="RBA_90_01_03_01_doAutoImport"  parameterType="hashMap" resultType="DataObj">
+     SELECT 
+        DISTINCT MMI.JIPYO_IDX
+        ,MMI.BAS_YYMM
+        ,MMI.IN_V
+        ,MMI.DR_DT
+        ,MMI.DR_TIME
+        ,JIPYOV.MAX_IN_V
+        ,JIPYOV.ITEM_S_C
+    FROM JRBA_JIPYO_MM_I MMI
+    INNER JOIN JRBA_JIPYO_M JIPYOM ON ( JIPYOM.JIPYO_IDX = MMI.JIPYO_IDX )
+    LEFT OUTER JOIN JRBA_JIPYO_V  JIPYOV ON (JIPYOM.RPT_GJDT = JIPYOV.RPT_GJDT AND MMI.JIPYO_IDX = JIPYOV.JIPYO_IDX )
+    WHERE 1=1 
+        AND MMI.BAS_YYMM = #{BAS_YYMM, jdbcType=VARCHAR}
+        AND JIPYOM.RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+        AND JIPYOM.IN_METH_C = '1' -- (1:자동 , 2:수동)
+    ORDER BY MMI.JIPYO_IDX
+</select>
+
+<update  id="RBA_90_01_03_01_doAutoImportUpdate" parameterType="hashMap" >
+ UPDATE JRBA_RPT_BAS_M SET
+ 	BT_JOB_ENDT = DATE_FORMAT(SYSDATE(),'%Y%m%d')
+ WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+</update>
+
+<select id="RBA_90_01_03_01_calculateJipyoScore"  parameterType="hashMap" resultType="DataObj">
+SELECT IFNULL(MAX(CAST( CAL_PNT AS UNSIGNED )), 0) AS CAL_PNT
+  FROM JRBA_JIPYO_BAS_I,
+      ( 
+        SELECT  #{RPT_GJDT, jdbcType=VARCHAR}  AS V_GJDT
+               ,#{JIPYO_IDX, jdbcType=VARCHAR} AS V_JIPYO
+               ,#{IN_V, jdbcType=VARCHAR}      AS V_VAL
+         FROM DUAL      
+      ) S_VAL
+ WHERE RPT_GJDT = V_GJDT
+   AND (JIPYO_IDX, JIPYO_CMPR_CAL_C, CMPR_V) IN 
+                              (SELECT JIPYO_IDX, JIPYO_CMPR_CAL_C,  
+			                              CASE WHEN JIPYO_IDX = 'O.1.01.04' THEN MIN(TO_NUMBER(CMPR_V))
+			                              ELSE MAX(TO_NUMBER(CMPR_V)) END 
+                                 FROM ( SELECT 
+                                            JIPYO_IDX
+                                            ,CMPR_V
+                                            ,JIPYO_CMPR_CAL_C
+                                            <![CDATA[
+                                            ,CASE WHEN JIPYO_CMPR_CAL_C = '>=' THEN (CASE WHEN CAST( V_VAL AS UNSIGNED ) >= CMPR_V THEN CAL_PNT END)
+                                                  WHEN JIPYO_CMPR_CAL_C = '<=' THEN (CASE WHEN CAST( V_VAL AS UNSIGNED ) <= CMPR_V THEN CAL_PNT END)
+                                                  WHEN JIPYO_CMPR_CAL_C = '>'  THEN (CASE WHEN CAST( V_VAL AS UNSIGNED ) >  CMPR_V THEN CAL_PNT END)
+                                                  WHEN JIPYO_CMPR_CAL_C = '<'  THEN (CASE WHEN CAST( V_VAL AS UNSIGNED ) <  CMPR_V THEN CAL_PNT END)
+                                                  WHEN JIPYO_CMPR_CAL_C = '='  THEN (CASE WHEN CAST( V_VAL AS UNSIGNED ) =  CMPR_V THEN CAL_PNT END)
+                                             ELSE 0 END AS RESULT
+                                             ]]>
+                                         FROM JRBA_JIPYO_BAS_I
+                                              , (
+                                                  SELECT  #{RPT_GJDT, jdbcType=VARCHAR}  AS V_GJDT
+                                                         ,#{JIPYO_IDX, jdbcType=VARCHAR} AS V_JIPYO
+                                                         ,#{IN_V, jdbcType=VARCHAR}      AS V_VAL
+                                                    FROM DUAL                                               
+                                              ) S_VAL
+                                        WHERE RPT_GJDT = V_GJDT
+                                          AND JIPYO_IDX = V_JIPYO
+                                      ) A
+                                WHERE RESULT IS NOT NULL
+                               GROUP BY JIPYO_IDX, JIPYO_CMPR_CAL_C
+                              )
+</select>
+
+<update  id="RBA_90_01_03_01_doSave" parameterType="hashMap" >
+           INSERT INTO JRBA_JIPYO_V 
+	    (
+	    RPT_GJDT
+	    ,JIPYO_IDX
+	    ,IN_V
+	    ,RPT_PNT
+	    ,ITEM_S_C
+	    ,DR_DT
+	    ,DR_TIME
+	    ,DR_OP_JKW_NO
+	    ,CHG_DT
+	    ,CHG_TIME
+	    ,CHG_OP_JKW_NO
+	    )
+	VALUES
+	    (
+	    #{RPT_GJDT, jdbcType=VARCHAR}
+	    ,#{JIPYO_IDX, jdbcType=VARCHAR}
+	    ,#{IN_V, jdbcType=VARCHAR}
+	    ,#{RPT_PNT, jdbcType=VARCHAR}
+	    ,#{ITEM_S_C, jdbcType=VARCHAR}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	    )
+            ON DUPLICATE KEY 
+            UPDATE
+	       IN_V 	 		= #{IN_V, jdbcType=VARCHAR}
+           ,RPT_PNT  		= #{RPT_PNT, jdbcType=VARCHAR}
+           ,ITEM_S_C 		= #{ITEM_S_C, jdbcType=VARCHAR}
+           ,CHG_DT 	 		= DATE_FORMAT(SYSDATE(),'%Y%m%d')
+           ,CHG_TIME 		= DATE_FORMAT(SYSDATE(),'%H%i%s')
+           ,CHG_OP_JKW_NO 	= #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+</update>
+
+
+<update  id="RBA_90_01_03_01_doSave2" parameterType="hashMap" >
+           INSERT INTO JRBA_FIU_JIPYO_V 
+	    (
+	    RPT_GJDT
+	    ,JIPYO_IDX
+	    ,IN_V
+	    ,RPT_PNT
+	    ,ITEM_S_C
+	    ,DR_DT
+	    ,DR_TIME
+	    ,DR_OP_JKW_NO
+	    ,CHG_DT
+	    ,CHG_TIME
+	    ,CHG_OP_JKW_NO
+	    )
+	VALUES
+	    (
+	    #{RPT_GJDT, jdbcType=VARCHAR}
+	    ,#{JIPYO_IDX, jdbcType=VARCHAR}
+	    ,#{IN_V, jdbcType=VARCHAR}
+	    ,#{RPT_PNT, jdbcType=VARCHAR}
+	    ,#{ITEM_S_C, jdbcType=VARCHAR}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	    )
+            ON DUPLICATE KEY 
+            UPDATE
+	       IN_V 	 		= #{IN_V, jdbcType=VARCHAR}
+           ,RPT_PNT  		= #{RPT_PNT, jdbcType=VARCHAR}
+           ,ITEM_S_C 		= #{ITEM_S_C, jdbcType=VARCHAR}
+           ,CHG_DT 	 		= DATE_FORMAT(SYSDATE(),'%Y%m%d')
+           ,CHG_TIME 		= DATE_FORMAT(SYSDATE(),'%H%i%s')
+           ,CHG_OP_JKW_NO 	= #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+</update>
+  
+	
+<update id="RBA_90_01_03_01_doConfirm" parameterType="hashMap" >
+UPDATE JRBA_JIPYO_V
+   SET ITEM_S_C 		= #{ITEM_S_C, jdbcType=VARCHAR}
+       ,CHG_DT 			= DATE_FORMAT(SYSDATE(),'%Y%m%d')
+       ,CHG_TIME 		= DATE_FORMAT(SYSDATE(),'%H%i%s')
+       ,CHG_OP_JKW_NO 	= #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+ WHERE RPT_GJDT 		= #{RPT_GJDT, jdbcType=VARCHAR}
+   AND JIPYO_IDX 		= #{JIPYO_IDX, jdbcType=VARCHAR}
+</update>
+
+<update  id="RBA_90_01_03_01_doConfirm2" parameterType="hashMap" >
+UPDATE JRBA_FIU_JIPYO_V
+   SET ITEM_S_C 		= #{ITEM_S_C, jdbcType=VARCHAR}
+       ,CHG_DT 			= DATE_FORMAT(SYSDATE(),'%Y%m%d')
+       ,CHG_TIME 		= DATE_FORMAT(SYSDATE(),'%H%i%s')
+       ,CHG_OP_JKW_NO 	= #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+ WHERE RPT_GJDT 		= #{RPT_GJDT, jdbcType=VARCHAR}
+   AND JIPYO_IDX 		= #{JIPYO_IDX, jdbcType=VARCHAR}
+</update>
+
+<select id="RBA_90_01_03_01_checkFixJipyo"  parameterType="hashMap" resultType="DataObj">
+SELECT A.JIPYO_FIX_YN   					-- 지표확정여부 (0:미확정, 1:확정)
+      ,IFNULL(B.GYLJ_S_C, '0') AS GYLJ_S_C		-- 지표결재상태코드 ('A014', 0:미결재, 12:승인요청, 22:반려, 3:완료)
+      ,IFNULL(A.BT_BAS_DT, '0') AS BT_BAS_DT
+  FROM JRBA_RPT_BAS_M A
+      ,JRBA_RPT_RST_M B
+ WHERE A.RPT_GJDT = B.RPT_GJDT
+   AND A.RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR} 
+</select>
+
+<select id="RBA_90_01_03_01_getRPT_GJDT"  parameterType="hashMap" resultType="DataObj">
+SELECT IFNULL(MAX(RPT_GJDT),0) AS LAST_RPT_GJDT
+  FROM JRBA_RPT_BAS_M
+ WHERE RPT_GJDT  != #{RPT_GJDT, jdbcType=VARCHAR}
+   AND RPT_GJDT <![CDATA[<]]> #{RPT_GJDT, jdbcType=VARCHAR}
+ ORDER BY RPT_GJDT DESC
+</select>
+
+<select id="RBA_90_01_03_01_getLastData"  parameterType="hashMap" resultType="DataObj">
+SELECT IN_V
+       ,MAX_IN_V
+       ,ATTCH_FILE_NO
+  FROM JRBA_JIPYO_V
+ WHERE RPT_GJDT = #{LAST_RPT_GJDT, jdbcType=VARCHAR}
+   AND JIPYO_IDX = #{JIPYO_IDX, jdbcType=VARCHAR}
+</select>
+
+<select id="RBA_90_01_03_01_getLastData2"  parameterType="hashMap" resultType="DataObj">
+SELECT IFNULL(GRP_AVG_PNT, '') AS GRP_AVG_PNT
+	  ,IFNULL(GRP_MAX_PNT, '') AS GRP_MAX_PNT
+	  ,IFNULL(GRP_MIN_PNT, '') AS GRP_MIN_PNT
+	  ,IFNULL(RANK, '')    AS RANK
+  FROM JRBA_FIU_JIPYO_V
+ WHERE RPT_GJDT = #{LAST_RPT_GJDT, jdbcType=VARCHAR}
+   AND JIPYO_IDX = #{JIPYO_IDX, jdbcType=VARCHAR}
+</select>
+
+<update id="RBA_90_01_03_01_loadDataInsert"  parameterType="hashMap">
+           INSERT INTO JRBA_JIPYO_V 
+	    (
+	    RPT_GJDT
+	    ,JIPYO_IDX
+	    ,IN_V
+	    ,RPT_PNT
+	    ,ITEM_S_C
+	    ,MAX_IN_V
+	    ,ATTCH_FILE_NO
+	    ,DR_DT
+	    ,DR_TIME
+	    ,DR_OP_JKW_NO
+	    ,CHG_DT
+	    ,CHG_TIME
+	    ,CHG_OP_JKW_NO
+	    )
+	VALUES
+	    (
+	    #{RPT_GJDT, jdbcType=VARCHAR}
+	    ,#{JIPYO_IDX, jdbcType=VARCHAR}
+	    ,#{IN_V, jdbcType=VARCHAR}
+	    ,#{RPT_PNT, jdbcType=VARCHAR}
+	    ,#{ITEM_S_C, jdbcType=VARCHAR}
+	    ,#{MAX_IN_V, jdbcType=VARCHAR}
+	    ,#{ATTCH_FILE_NO, jdbcType=VARCHAR}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	    )
+            ON DUPLICATE KEY 
+            UPDATE
+	       IN_V				= #{IN_V, jdbcType=VARCHAR}
+	       ,RPT_PNT			= #{RPT_PNT, jdbcType=VARCHAR}
+	       ,ITEM_S_C		= #{ITEM_S_C, jdbcType=VARCHAR}
+	       ,MAX_IN_V		= #{MAX_IN_V, jdbcType=VARCHAR}
+	       ,ATTCH_FILE_NO	= #{ATTCH_FILE_NO, jdbcType=VARCHAR}
+	       ,CHG_DT			= DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	       ,CHG_TIME		= DATE_FORMAT(SYSDATE(),'%H%i%s')
+	       ,CHG_OP_JKW_NO	= #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+</update>
+
+<update id="RBA_90_01_03_01_loadDataInsert2"  parameterType="hashMap">
+           INSERT INTO JRBA_FIU_JIPYO_V 
+	    (
+	    RPT_GJDT
+	    ,JIPYO_IDX
+	    ,IN_V
+	    ,RPT_PNT
+	    ,ITEM_S_C
+	    ,DR_DT
+	    ,DR_TIME
+	    ,DR_OP_JKW_NO
+	    ,CHG_DT
+	    ,CHG_TIME
+	    ,CHG_OP_JKW_NO
+	    ,GRP_AVG_PNT	
+		,GRP_MAX_PNT
+		,GRP_MIN_PNT
+		,RANK
+	    )
+	VALUES
+	    (
+	    #{RPT_GJDT, jdbcType=VARCHAR}
+	    ,#{JIPYO_IDX, jdbcType=VARCHAR}
+	    ,#{IN_V, jdbcType=VARCHAR}
+	    ,#{RPT_PNT, jdbcType=VARCHAR}
+	    ,#{ITEM_S_C, jdbcType=VARCHAR}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	    ,#{GRP_AVG_PNT, jdbcType=VARCHAR}
+		,#{GRP_MAX_PNT, jdbcType=VARCHAR}
+		,#{GRP_MIN_PNT, jdbcType=VARCHAR}
+		,#{RANK, jdbcType=VARCHAR}  
+	    )
+            ON DUPLICATE KEY 
+            UPDATE
+	       IN_V				= #{IN_V, jdbcType=VARCHAR}
+	       ,RPT_PNT			= #{RPT_PNT, jdbcType=VARCHAR}
+	       ,ITEM_S_C		= #{ITEM_S_C, jdbcType=VARCHAR}
+	       ,CHG_DT			= DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	       ,CHG_TIME		= DATE_FORMAT(SYSDATE(),'%H%i%s')
+	       ,CHG_OP_JKW_NO	= #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	       ,GRP_AVG_PNT		= #{GRP_AVG_PNT, jdbcType=VARCHAR}
+	       ,GRP_MAX_PNT		= #{GRP_MAX_PNT, jdbcType=VARCHAR}
+	       ,GRP_MIN_PNT		= #{GRP_MIN_PNT, jdbcType=VARCHAR}
+	       ,RANK			= #{RANK, jdbcType=VARCHAR}
+</update>
+
+<select id="RBA_90_01_03_02_doSearch"  parameterType="hashMap" resultType="DataObj">
+SELECT
+	'0' AS SELECTED
+	,JIPYOM.RPT_GJDT
+	,JIPYOM.JIPYO_IDX
+	,JIPYOM.JIPYO_C
+	,JIPYOM.RSK_CATG
+	,JIPYOM.RSK_FAC
+	,JIPYOM.JIPYO_NM
+	,JIPYOM.JIPYO_DESC
+	,JIPYOM.JIPYO_BIGO_CTNT
+	,JIPYOM.EST_BAS_SCOP
+	,JIPYOM.CAL_FRML
+	,JIPYOM.INP_ITEM
+	,JIPYOM.INP_UNIT_C
+	,JIPYOM.ANEX_CTNT
+	,JIPYOM.FRMG_MABD_C
+	,JIPYOM.VALT_G
+	,JIPYOM.ALLT_PNT
+	,JIPYOM.WEGHT
+	,JIPYOM.BAS_V
+	,JIPYOM.CAL_METH
+	,JIPYOM.IN_V_TP_C
+	,JIPYOM.CNCT_JIPYO_C_I
+	,JIPYOM.MNG_BRNO
+	,JIPYOM.IN_METH_C
+	,JIPYOM.JIPYO_USYN
+	,JIPYOM.JIPYO_ID
+	,JIPYOV.IN_V
+   ,(CASE WHEN JIPYOM.JIPYO_C = 'I' THEN ''
+		             WHEN JIPYOM.JIPYO_C = 'O' AND JIPYOM.VALT_G IN ('1', '4') THEN TRIM(TRAILING '.' FROM TRIM(FORMAT(JIPYOV.RPT_PNT, 2))) 
+		             WHEN JIPYOM.JIPYO_C = 'O' AND JIPYOM.VALT_G ='2' AND JIPYOV.MAX_IN_V <![CDATA[>]]> 0 THEN TRIM(TRAILING '.' FROM TRIM(FORMAT(JIPYOV.RPT_PNT, 2)))  
+		             ELSE '' END
+		     ) RPT_PNT	
+    ,JIPYOV.MAX_IN_V
+    ,JIPYOV.DR_DT
+	,JIPYOV.DR_TIME
+	,JIPYOV.DR_OP_JKW_NO
+	,JIPYOV.CHG_DT
+	,JIPYOV.CHG_TIME
+	,JIPYOV.CHG_OP_JKW_NO
+    ,JIPYOV.ITEM_S_C
+    ,DRUSER.USER_NM AS DR_OP_JKW_NM
+    ,CHGUSER.USER_NM AS CHG_OP_JKW_NM
+    ,A001.DTL_NM AS JIPYO_C_NM
+    ,A007.DTL_NM AS VALT_G_NM
+    ,NIC41B.DPRT_NM AS DPRT_NM
+    ,BASM.JIPYO_FIX_YN
+    ,BASM.JIPYO_FIX_DT
+FROM 
+JRBA_JIPYO_M JIPYOM
+	LEFT JOIN JRBA_RPT_BAS_M BASM ON JIPYOM.RPT_GJDT=BASM.RPT_GJDT
+	LEFT JOIN JRBA_JIPYO_V JIPYOV ON (JIPYOM.RPT_GJDT = JIPYOV.RPT_GJDT AND JIPYOM.JIPYO_IDX = JIPYOV.JIPYO_IDX)
+	LEFT JOIN JRBA_DTL_C A001 ON JIPYOM.RPT_GJDT = A001.RPT_GJDT AND A001.GRP_CD = 'A001' AND JIPYOM.JIPYO_C=A001.DTL_CD -- 위험구분
+	LEFT JOIN JRBA_DTL_C A007 ON JIPYOM.RPT_GJDT = A007.RPT_GJDT AND A007.GRP_CD = 'A007' AND JIPYOM.VALT_G=A007.DTL_CD -- 평가구분
+	LEFT JOIN C_USER CHGUSER ON JIPYOM.CHG_OP_JKW_NO = CHGUSER.LOGIN_ID      
+	LEFT JOIN C_USER DRUSER ON JIPYOM.CHG_OP_JKW_NO = DRUSER.LOGIN_ID      
+	LEFT JOIN NIC41B NIC41B  ON JIPYOM.MNG_BRNO = NIC41B.DPRT_CD
+	WHERE 1=1
+	AND JIPYOM.RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+	AND JIPYOM.JIPYO_USYN = '1'			-- 사용여부 Y
+<if test="CHECK_JIPYO_IDX != null and CHECK_JIPYO_IDX != ''" >
+   AND JIPYOM.JIPYO_IDX = #{CHECK_JIPYO_IDX, jdbcType=VARCHAR}	-- 지표번호
+</if>
+<if test="JIPYO_IDX != null and JIPYO_IDX != ''" >
+	AND JIPYOM.JIPYO_IDX LIKE CONCAT('%' , #{JIPYO_IDX, jdbcType=VARCHAR} , '%' )	-- 지표번호
+</if>
+<if test="JIPYO_NM != null and JIPYO_NM != ''" >
+	AND JIPYOM.JIPYO_NM LIKE CONCAT('%' , #{JIPYO_NM, jdbcType=VARCHAR} , '%' ) -- 지표명
+</if>
+<if test="JIPYO_C != null and JIPYO_C != ''" >
+   AND JIPYOM.JIPYO_C	  = #{JIPYO_C, jdbcType=VARCHAR}
+</if>
+ <if test="VALT_G != null and VALT_G != ''" >
+   AND JIPYOM.VALT_G    = #{VALT_G, jdbcType=VARCHAR}
+ </if>
+<if test="MNG_BRNO != null and MNG_BRNO != ''" >
+	AND JIPYOM.MNG_BRNO =  #{MNG_BRNO, jdbcType=VARCHAR}
+</if>
+ORDER BY JIPYOM.JIPYO_IDX
+</select>
+
+<update id="RBA_90_01_03_02_doMerge" parameterType="hashMap">
+          INSERT INTO JRBA_JIPYO_V 
+	        (
+	    RPT_GJDT
+	    ,JIPYO_IDX
+	    ,IN_V
+	    ,RPT_PNT
+	    ,ITEM_S_C
+        ,MAX_IN_V
+	    ,DR_DT
+	    ,DR_TIME
+	    ,DR_OP_JKW_NO
+	    ,CHG_DT
+	    ,CHG_TIME
+	    ,CHG_OP_JKW_NO
+	        )
+                VALUES
+	        (
+	    #{RPT_GJDT, jdbcType=VARCHAR}
+	    ,#{JIPYO_IDX, jdbcType=VARCHAR}
+	    ,#{IN_V, jdbcType=VARCHAR}
+	    ,#{RPT_PNT}
+	    ,#{ITEM_S_C, jdbcType=VARCHAR}
+        ,#{MAX_IN_V}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	        )                
+            ON DUPLICATE KEY 
+            UPDATE
+	       IN_V 	 		= #{IN_V, jdbcType=VARCHAR}
+           ,RPT_PNT  		= #{RPT_PNT}
+           ,ITEM_S_C 		= #{ITEM_S_C, jdbcType=VARCHAR}
+           ,MAX_IN_V        = #{MAX_IN_V}
+           ,CHG_DT 	 		= DATE_FORMAT(SYSDATE(),'%Y%m%d')
+           ,CHG_TIME 		= DATE_FORMAT(SYSDATE(),'%H%i%s')
+           ,CHG_OP_JKW_NO 	= #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+</update>
+
+
+<update id="RBA_90_01_03_02_doMerge2" parameterType="hashMap">
+          INSERT INTO JRBA_FIU_JIPYO_V 
+	        (
+	    RPT_GJDT
+	    ,JIPYO_IDX
+	    ,IN_V
+	    ,RPT_PNT
+	    ,ITEM_S_C
+	    ,DR_DT
+	    ,DR_TIME
+	    ,DR_OP_JKW_NO
+	    ,CHG_DT
+	    ,CHG_TIME
+	    ,CHG_OP_JKW_NO
+	        )
+                VALUES
+	        (
+	    #{RPT_GJDT, jdbcType=VARCHAR}
+	    ,#{JIPYO_IDX, jdbcType=VARCHAR}
+	    ,#{IN_V, jdbcType=VARCHAR}
+	    ,#{RPT_PNT}
+	    ,#{ITEM_S_C, jdbcType=VARCHAR}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	        )                
+            ON DUPLICATE KEY 
+            UPDATE
+	       IN_V 	 		= #{IN_V, jdbcType=VARCHAR}
+           ,RPT_PNT  		= #{RPT_PNT}
+           ,ITEM_S_C 		= #{ITEM_S_C, jdbcType=VARCHAR}
+           ,CHG_DT 	 		= DATE_FORMAT(SYSDATE(),'%Y%m%d')
+           ,CHG_TIME 		= DATE_FORMAT(SYSDATE(),'%H%i%s')
+           ,CHG_OP_JKW_NO 	= #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+</update>
+
+<select id="RBA_90_01_03_03_getAttachFile"  parameterType="hashMap" resultType="DataObj">
+SELECT LOSC_FILE_NM               
+  FROM RBA_ATTCH_FILE
+ WHERE ATTCH_FILE_NO = #{ATTCH_FILE_NO, jdbcType=VARCHAR}
+   AND FILE_SER = #{FILE_SER, jdbcType=VARCHAR}
+</select>
+
+<select id="RBA_90_01_03_03_getFileInfo"  parameterType="hashMap" resultType="DataObj">
+SELECT CONCAT(FILE_POS,PHSC_FILE_NM)	AS FULL_FILE_PATH  
+  FROM RBA_ATTCH_FILE
+ WHERE ATTCH_FILE_NO = #{ATTCH_FILE_NO, jdbcType=VARCHAR}
+   AND FILE_SER = #{FILE_SER, jdbcType=VARCHAR}
+</select>
+
+<update id="RBA_90_01_03_03_doDelete_RBA_ATTCH_FILE" parameterType="hashMap">
+DELETE FROM RBA_ATTCH_FILE
+ WHERE ATTCH_FILE_NO = #{ATTCH_FILE_NO, jdbcType=VARCHAR}
+   AND FILE_SER = #{FILE_SER, jdbcType=VARCHAR}
+</update>
+
+<update id="RBA_90_01_03_03_doUpdate_JRBA_JIPYO_V" parameterType="hashMap">
+UPDATE JRBA_JIPYO_V
+   SET ATTCH_FILE_NO = 0
+   	  ,CHG_DT 		 = DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	  ,CHG_TIME 	 = DATE_FORMAT(SYSDATE(),'%H%i%s')
+	  ,CHG_OP_JKW_NO = #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+ WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+   AND JIPYO_IDX = #{JIPYO_IDX, jdbcType=VARCHAR}
+</update>
+
+<update id="RBA_90_01_03_03_doUpdate_JRBA_JIPYO_V2" parameterType="hashMap">
+   UPDATE JRBA_FIU_JIPYO_V
+   SET CHG_DT 		 = DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	  ,CHG_TIME 	 = DATE_FORMAT(SYSDATE(),'%H%i%s')
+	  ,CHG_OP_JKW_NO = #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+ WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+   AND JIPYO_IDX = #{JIPYO_IDX, jdbcType=VARCHAR}
+</update>
+
+<update id="RBA_90_01_03_04_UPDATE_ATTCH_FILE" parameterType="hashMap">
+           INSERT INTO JRBA_JIPYO_V 
+	        (
+	            RPT_GJDT                        
+	           ,JIPYO_IDX                        
+	           ,ATTCH_FILE_NO
+	           ,ITEM_S_C
+	           ,DR_DT
+	           ,DR_TIME
+	           ,DR_OP_JKW_NO
+	           ,CHG_DT
+	           ,CHG_TIME
+	           ,CHG_OP_JKW_NO
+	        )
+                VALUES
+	        (
+		        #{RPT_GJDT, jdbcType=VARCHAR}
+		       ,#{JIPYO_IDX, jdbcType=VARCHAR}
+		       ,#{ATTCH_FILE_NO, jdbcType=VARCHAR}
+		       ,#{ITEM_S_C,  jdbcType=VARCHAR}
+		       ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+		       ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+		       ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+		       ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+		       ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+		       ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	        )                
+            ON DUPLICATE KEY 
+            UPDATE
+	       		 ATTCH_FILE_NO 	= #{ATTCH_FILE_NO, jdbcType=VARCHAR}
+	       		,ITEM_S_C		= #{ITEM_S_C,  jdbcType=VARCHAR}
+	      		,CHG_DT 		= DATE_FORMAT(SYSDATE(),'%Y%m%d')
+				,CHG_TIME 		= DATE_FORMAT(SYSDATE(),'%H%i%s')
+	          	,CHG_OP_JKW_NO 	= #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+</update>
+
+<update id="RBA_90_01_03_04_UPDATE_ATTCH_FILE2" parameterType="hashMap">
+           INSERT INTO JRBA_FIU_JIPYO_V 
+	        (
+	            RPT_GJDT                        
+	           ,JIPYO_IDX                        
+	           ,ITEM_S_C
+	           ,DR_DT
+	           ,DR_TIME
+	           ,DR_OP_JKW_NO
+	           ,CHG_DT
+	           ,CHG_TIME
+	           ,CHG_OP_JKW_NO
+	        )
+                VALUES
+	        (
+		        #{RPT_GJDT, jdbcType=VARCHAR}
+		       ,#{JIPYO_IDX, jdbcType=VARCHAR}
+		       ,#{ITEM_S_C,  jdbcType=VARCHAR}
+		       ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+		       ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+		       ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+		       ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+		       ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+		       ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	        )                
+            ON DUPLICATE KEY 
+            UPDATE
+	       		 ITEM_S_C		= #{ITEM_S_C,  jdbcType=VARCHAR}
+	      		,CHG_DT 		= DATE_FORMAT(SYSDATE(),'%Y%m%d')
+				,CHG_TIME 		= DATE_FORMAT(SYSDATE(),'%H%i%s')
+	          	,CHG_OP_JKW_NO 	= #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+</update>
+
+<select id="RBA_90_01_03_07_doSearch" parameterType="hashMap" resultType="DataObj">
+SELECT RPT_GJDT
+      ,BIGO_CTNT 
+  FROM JRBA_JIPYO_V
+ WHERE JIPYO_IDX = #{JIPYO_IDX, jdbcType=VARCHAR}
+   AND TRIM(BIGO_CTNT) IS NOT NULL
+ORDER BY RPT_GJDT DESC
+</select>
+
+<update id="RBA_90_01_03_07_doMerge_JRBA_JIPYO_V" parameterType="hashMap">
+           INSERT INTO JRBA_JIPYO_V 
+	        (
+	            RPT_GJDT                        
+	           ,JIPYO_IDX                        
+	           ,BIGO_CTNT
+	           ,ITEM_S_C
+	           ,DR_DT
+	           ,DR_TIME
+	           ,DR_OP_JKW_NO
+	           ,CHG_DT
+	           ,CHG_TIME
+	           ,CHG_OP_JKW_NO
+	        )
+                VALUES
+	        (
+		        #{RPT_GJDT, jdbcType=VARCHAR}
+		       ,#{JIPYO_IDX, jdbcType=VARCHAR}
+		       ,#{BIGO_CTNT, jdbcType=VARCHAR}
+		       ,#{ITEM_S_C,  jdbcType=VARCHAR}
+		       ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+		       ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+		       ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+		       ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+		       ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+		       ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	        )                
+            ON DUPLICATE KEY 
+            UPDATE
+	       		 BIGO_CTNT 		= #{BIGO_CTNT, jdbcType=VARCHAR}
+	       		,ITEM_S_C		= #{ITEM_S_C,  jdbcType=VARCHAR}
+	      		,CHG_DT 		= DATE_FORMAT(SYSDATE(),'%Y%m%d')
+				,CHG_TIME 		= DATE_FORMAT(SYSDATE(),'%H%i%s')
+	          	,CHG_OP_JKW_NO 	= #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+</update>
+
+<update id="RBA_90_01_03_07_doUpdate_JRBA_JIPYO_MM_I" parameterType="hashMap">
+UPDATE JRBA_JIPYO_MM_I
+   SET BIGO_CTNT = #{BIGO_CTNT, jdbcType=VARCHAR}
+ WHERE BAS_YYMM = #{BAS_YYMM, jdbcType=VARCHAR}
+   AND JIPYO_IDX = #{JIPYO_IDX, jdbcType=VARCHAR}
+</update>
+
+
+	<!-- START RBA_90_01_06 -->
+	
+	<select id="RBA_90_01_06_01_getSearchG" parameterType="hashMap" resultType="DataObj">
+		SELECT '0' AS SELECTED
+		    , GRP_CD
+		    , GRP_NM
+		    , UPD_YN
+		    , BIGO_CTNT
+		    , CHG_DT
+		    , CHG_OP_JKW_NO
+		    , B.USER_NM AS CHG_OP_JKW_NM  
+		FROM JRBA_GRP_C A
+		  LEFT JOIN C_USER B ON A.CHG_OP_JKW_NO=B.LOGIN_ID
+		WHERE 1 = 1
+	  		AND RPT_GJDT = #{RPT_GJDT,jdbcType=VARCHAR}
+	
+		<if test ="GRP_CD != null and GRP_CD !='' and GRP_NM != null and GRP_NM !='' ">   
+			AND (GRP_CD LIKE CONCAT('%', #{GRP_CD,jdbcType=VARCHAR} , '%') OR GRP_NM LIKE CONCAT('%', #{GRP_NM,jdbcType=VARCHAR} , '%') )
+		</if> 
+		ORDER BY GRP_CD  
+	</select>	
+	
+	<select id="RBA_90_01_06_01_getSearchD" parameterType="hashMap" resultType="DataObj">
+		SELECT '0' AS SELECTED
+		    , GRP_CD
+		    , DTL_CD
+		    , DTL_NM
+		    , USYN
+		    , HRNK_RBA_RSK_C
+		    , HRNK_RBA_RSK_C_V
+		    , CHG_DT
+		    , CHG_OP_JKW_NO
+		    , B.USER_NM AS CHG_OP_JKW_NM
+		FROM JRBA_DTL_C A
+		  LEFT JOIN C_USER B ON A.CHG_OP_JKW_NO=B.LOGIN_ID
+		WHERE 1 = 1
+	  
+	  	<if test ="RPT_GJDT != null and RPT_GJDT !='' "> 
+	   		AND RPT_GJDT = #{RPT_GJDT,jdbcType=VARCHAR}
+	  	</if> 
+	  	<if test ="GRP_CD != null and GRP_CD !='' "> 
+	   		AND GRP_CD = #{GRP_CD,jdbcType=VARCHAR}
+	  	</if> 
+	  	ORDER BY GRP_CD, DTL_CD   
+	</select>	
+	
+	<update id="RBA_90_01_06_01_merge_jrba_grp_c" parameterType="hashMap">
+           INSERT INTO JRBA_GRP_C 
+	        (
+		      GRP_CD                                -- 그룹코드값
+		      , GRP_NM                                -- 그룹코드명
+		      , UPD_YN                                -- 수정여부
+		      , BIGO_CTNT                             -- 비고내용
+		      , DR_DT
+		      , DR_TIME
+		      , DR_OP_JKW_NO
+		      , CHG_DT
+		      , CHG_TIME
+		      , CHG_OP_JKW_NO
+		      , RPT_GJDT    
+		)
+		VALUES
+		(
+		        #{GRP_CD,jdbcType=VARCHAR}
+		       ,#{GRP_NM,jdbcType=VARCHAR}
+		       ,1
+		       ,#{BIGO_CTNT,jdbcType=VARCHAR}
+		       ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+		       ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+		       ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+		       ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+		       ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+		       ,#{CHG_OP_JKW_NO, jdbcType=VARCHAR}
+		       ,#{RPT_GJDT,jdbcType=VARCHAR}
+		)
+           ON DUPLICATE KEY 
+            UPDATE
+		        GRP_NM = #{GRP_NM,jdbcType=VARCHAR}           -- 보고그룹코드명
+		        ,UPD_YN = #{UPD_YN,jdbcType=INTEGER}            -- 수정여부 
+		        ,BIGO_CTNT = #{BIGO_CTNT,jdbcType=VARCHAR}        -- 코드설명
+		        ,CHG_DT = DATE_FORMAT(SYSDATE(),'%Y%m%d') -- 변경일자
+		        ,CHG_TIME = DATE_FORMAT(SYSDATE(),'%H%i%s')
+		        ,CHG_OP_JKW_NO = #{CHG_OP_JKW_NO,jdbcType=VARCHAR}    -- 변경조작자번호
+	</update>	
+	
+	<update  id="RBA_90_01_06_01_delete_jrba_grp_c" parameterType="hashMap" >
+		DELETE FROM JRBA_GRP_C
+		WHERE RPT_GJDT = #{RPT_GJDT,jdbcType=VARCHAR}
+			AND GRP_CD = #{GRP_CD,jdbcType=VARCHAR}
+	</update>
+	
+	<update id="RBA_90_01_06_01_merge_jrba_dtl_c" parameterType="hashMap">
+           INSERT INTO JRBA_DTL_C 
+	        (
+	            GRP_CD                        
+	          , DTL_CD                        
+	          , DTL_NM                        
+	          , USYN                        
+	          , HRNK_RBA_RSK_C                    
+	          , HRNK_RBA_RSK_C_V                  
+	          , DR_DT
+	          , DR_TIME
+	          , DR_OP_JKW_NO
+	          , CHG_DT
+	          , CHG_TIME
+	          , CHG_OP_JKW_NO               
+	          , RPT_GJDT  
+		)
+		VALUES
+		(
+	          #{GRP_CD,jdbcType=VARCHAR}
+	         ,#{DTL_CD,jdbcType=VARCHAR}
+	         ,#{DTL_NM,jdbcType=VARCHAR}
+	         ,1
+	         ,#{HRNK_RBA_RSK_C,jdbcType=VARCHAR}
+	         ,#{HRNK_RBA_RSK_C_V,jdbcType=VARCHAR}
+	         ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	         ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	         ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	         ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	         ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	         ,#{CHG_OP_JKW_NO, jdbcType=VARCHAR}
+	           ,#{RPT_GJDT,jdbcType=VARCHAR}
+		)
+           ON DUPLICATE KEY 
+            UPDATE
+	       		DTL_NM = #{DTL_NM,jdbcType=VARCHAR}                      -- 상세코드명
+	      		, USYN = #{USYN,jdbcType=INTEGER}                          -- 사용 여부
+	      		, HRNK_RBA_RSK_C = #{HRNK_RBA_RSK_C,jdbcType=VARCHAR}      -- 상위RBA위험코드
+	      		, HRNK_RBA_RSK_C_V = #{HRNK_RBA_RSK_C_V,jdbcType=VARCHAR}  -- 상위RBA위험코드값
+	      		, CHG_DT = DATE_FORMAT(SYSDATE(),'%Y%m%d') -- 변경일자
+				, CHG_TIME = DATE_FORMAT(SYSDATE(),'%H%i%s')
+	          	, CHG_OP_JKW_NO = #{CHG_OP_JKW_NO,jdbcType=VARCHAR}
+	</update>		
+
+	<update  id="RBA_90_01_06_01_delete_jrba_dtl_c" parameterType="hashMap" >
+		DELETE FROM JRBA_DTL_C
+		WHERE RPT_GJDT = #{RPT_GJDT,jdbcType=VARCHAR}
+			AND GRP_CD = #{GRP_CD,jdbcType=VARCHAR}
+			AND DTL_CD = #{DTL_CD,jdbcType=VARCHAR}
+	</update>
+		
+	<!-- END RBA_90_01_06 -->
+	
+	
+	<!-- START RBA_90_01_05_01 -->
+	<select id="RBA_90_01_05_01_dosearch"  parameterType="hashMap" resultType="DataObj">
+	SELECT A.JIPYO_IDX
+        , A.RPT_GJDT, A.JIPYO_IDX, A.JIPYO_C, CD01.DTL_NM AS JIPYO_C_NM
+	, A.RSK_CATG, (CASE WHEN A.JIPYO_C='O' THEN CD02.DTL_NM ELSE CD04.DTL_NM END) AS RSK_CATG_NM
+	, A.RSK_FAC, (CASE WHEN A.JIPYO_C='O' THEN CD03.DTL_NM ELSE CD05.DTL_NM END) AS RSK_FAC_NM
+        , A.JIPYO_NM  
+        ,(SELECT  CONVERT(RPT_PNT, DECIMAL(4,2)) FROM JRBA_FIU_JIPYO_V WHERE RPT_GJDT=B.RPT_GJDT1 AND JIPYO_IDX =A.JIPYO_IDX)  AS  SCORE1
+        ,(SELECT  CONVERT(RPT_PNT, DECIMAL(4,2)) FROM JRBA_FIU_JIPYO_V WHERE RPT_GJDT=B.RPT_GJDT2 AND JIPYO_IDX =A.JIPYO_IDX)  AS  SCORE2
+        ,(SELECT  CONVERT(RPT_PNT, DECIMAL(4,2)) FROM JRBA_FIU_JIPYO_V WHERE RPT_GJDT=B.RPT_GJDT3 AND JIPYO_IDX =A.JIPYO_IDX)  AS  SCORE3
+        , IFNULL((SELECT IN_V  FROM JRBA_FIU_JIPYO_V WHERE RPT_GJDT=B.RPT_GJDT1 AND JIPYO_IDX=A.JIPYO_IDX ),0) AS VAL1             
+        , IFNULL((SELECT IN_V  FROM JRBA_FIU_JIPYO_V WHERE RPT_GJDT=B.RPT_GJDT2 AND JIPYO_IDX=A.JIPYO_IDX ),0) AS VAL2    
+        , IFNULL((SELECT IN_V  FROM JRBA_FIU_JIPYO_V WHERE RPT_GJDT=B.RPT_GJDT3 AND JIPYO_IDX=A.JIPYO_IDX ),0) AS VAL3
+        ,(CASE WHEN  A.JIPYO_C = 'I' THEN ''
+               WHEN  A.JIPYO_C = 'O' THEN (SELECT FORMAT(V_SCORE_DIFFERENCE1.SCOREDR, 2) 
+                                             FROM (
+							SELECT V.JIPYO_IDX
+							     , V.RPT_GJDT
+							     , CONVERT(V.RPT_PNT, DECIMAL(4,2)) - (SELECT CONVERT(RPT_PNT, DECIMAL(4,2)) FROM JRBA_FIU_JIPYO_V X WHERE X.RPT_GJDT =VG.RPT_GJDT2 AND X.JIPYO_IDX =V.JIPYO_IDX ) AS SCOREDR
+							  FROM JRBA_FIU_JIPYO_V V
+							     , (
+								SELECT MAX(CASE B.SNO WHEN 1 THEN B.RPT_GJDT ELSE '' END ) AS RPT_GJDT1  
+								     , MAX(CASE B.SNO WHEN 2 THEN B.RPT_GJDT ELSE '' END ) AS RPT_GJDT2  
+								     , MAX(CASE B.SNO WHEN 3 THEN B.RPT_GJDT ELSE '' END ) AS RPT_GJDT3
+								  FROM (
+										SELECT A.RPT_GJDT
+										     , (@ROWNUM := @ROWNUM + 1) SNO
+										  FROM (
+										SELECT RPT_GJDT
+										  FROM JRBA_RPT_BAS_M
+										 WHERE RPT_GJDT <![CDATA[<=]]> #{RPT_GJDT,jdbcType=VARCHAR}
+										 ORDER BY RPT_GJDT DESC
+										 ) A, (SELECT @ROWNUM := 0) R
+										 LIMIT 0,3
+									) B     
+							     ) VG
+							 WHERE V.RPT_GJDT = VG.RPT_GJDT1                                             
+                                                   ) V_SCORE_DIFFERENCE1 
+                                            WHERE V_SCORE_DIFFERENCE1.JIPYO_IDX = A.JIPYO_IDX ) 
+               ELSE '' 
+          END ) AS SCOREDR1		-- (최근회차 - 직전회차)        
+        ,(CASE WHEN  A.JIPYO_C = 'I' THEN ''
+               WHEN  A.JIPYO_C = 'O' THEN ( SELECT FORMAT(V_SCORE_DIFFERENCE2.SCOREDR, 2)  
+                                              FROM (
+							SELECT V.JIPYO_IDX
+							     , V.RPT_GJDT
+							     , CONVERT(V.RPT_PNT, DECIMAL(4,2)) - (SELECT CONVERT(RPT_PNT, DECIMAL(4,2)) FROM JRBA_FIU_JIPYO_V X WHERE X.RPT_GJDT =VG.RPT_GJDT3 AND X.JIPYO_IDX =V.JIPYO_IDX ) AS SCOREDR
+							  FROM JRBA_FIU_JIPYO_V V
+							     , (
+								SELECT MAX(CASE B.SNO WHEN 1 THEN B.RPT_GJDT ELSE '' END ) AS RPT_GJDT1  
+								     , MAX(CASE B.SNO WHEN 2 THEN B.RPT_GJDT ELSE '' END ) AS RPT_GJDT2  
+								     , MAX(CASE B.SNO WHEN 3 THEN B.RPT_GJDT ELSE '' END ) AS RPT_GJDT3
+								  FROM (
+										SELECT A.RPT_GJDT
+										     , (@ROWNUM := @ROWNUM + 1) SNO
+										  FROM (
+										SELECT RPT_GJDT
+										  FROM JRBA_RPT_BAS_M
+										 WHERE RPT_GJDT <![CDATA[<=]]> #{RPT_GJDT,jdbcType=VARCHAR}
+										 ORDER BY RPT_GJDT DESC
+										 ) A, (SELECT @ROWNUM := 0) R
+										 LIMIT 0,3
+									) B     
+							     ) VG
+							 WHERE V.RPT_GJDT = VG.RPT_GJDT2                                               
+                                                   )V_SCORE_DIFFERENCE2 
+                                             WHERE V_SCORE_DIFFERENCE2.JIPYO_IDX = A.JIPYO_IDX ) 
+               ELSE '' 
+          END ) AS SCOREDR2  	-- (직전회차 - 전전회차)          
+        , A.RPT_GJDT 
+        , B.RPT_GJDT1
+        , B.RPT_GJDT2
+        , B.RPT_GJDT3   
+        , IFNULL(D.GYLJ_ID, 0) AS GYLJ_ID		-- 결재ID 
+	, IFNULL(D.GYLJ_S_C, 0) AS GYLJ_S_C	-- 결재상태코드 
+        , CASE WHEN IFNULL(D.GYLJ_S_C, 0) = '3' THEN 'Y'	-- 지표결재상태코드(A014) = 3(완료) 
+	       ELSE 'N' END FINL_GYLJ_S				-- 최종승인여부 
+	  FROM JRBA_FIU_JIPYO_V C
+           INNER JOIN JRBA_JIPYO_M A ON  (A.RPT_GJDT=C.RPT_GJDT AND A.JIPYO_IDX = C.JIPYO_IDX )
+	  	   LEFT JOIN JRBA_DTL_C CD01 ON A.RPT_GJDT=CD01.RPT_GJDT AND CD01.GRP_CD = 'A001' AND A.JIPYO_C=CD01.DTL_CD
+		   LEFT JOIN JRBA_DTL_C CD02 ON A.RPT_GJDT=CD02.RPT_GJDT AND CD02.GRP_CD = 'A002' AND A.RSK_CATG=CD02.DTL_CD
+		   LEFT JOIN JRBA_DTL_C CD03 ON A.RPT_GJDT=CD03.RPT_GJDT AND CD03.GRP_CD = 'A003' AND A.RSK_FAC=CD03.DTL_CD
+		   LEFT JOIN JRBA_DTL_C CD04 ON A.RPT_GJDT=CD04.RPT_GJDT AND CD04.GRP_CD = 'A004' AND A.RSK_CATG=CD04.DTL_CD 
+		   LEFT JOIN JRBA_DTL_C CD05 ON A.RPT_GJDT=CD05.RPT_GJDT AND CD05.GRP_CD = 'A005' AND A.RSK_FAC=CD05.DTL_CD
+		   LEFT JOIN JRBA_DTL_C CD06 ON A.RPT_GJDT=CD06.RPT_GJDT AND CD06.GRP_CD = 'A007' AND A.VALT_G=CD06.DTL_CD 
+		   LEFT JOIN JRBA_DTL_C CD07 ON A.RPT_GJDT=CD07.RPT_GJDT AND CD07.GRP_CD = 'A013' AND A.IN_METH_C=CD07.DTL_CD
+		   LEFT JOIN JRBA_RPT_RST_M D ON A.RPT_GJDT = D.RPT_GJDT		-- 보고기준일자 
+		   , (
+			SELECT MAX(CASE B.SNO WHEN 1 THEN B.RPT_GJDT ELSE '' END ) AS RPT_GJDT1  
+			     , MAX(CASE B.SNO WHEN 2 THEN B.RPT_GJDT ELSE '' END ) AS RPT_GJDT2  
+			     , MAX(CASE B.SNO WHEN 3 THEN B.RPT_GJDT ELSE '' END ) AS RPT_GJDT3
+			  FROM (
+					SELECT A.RPT_GJDT
+					     , (@ROWNUM := @ROWNUM + 1) SNO
+					  FROM (
+					SELECT RPT_GJDT
+					  FROM JRBA_RPT_BAS_M
+					 WHERE RPT_GJDT <![CDATA[<=]]> #{RPT_GJDT,jdbcType=VARCHAR}
+					 ORDER BY RPT_GJDT DESC
+					 ) A, (SELECT @ROWNUM := 0) R
+					 LIMIT 0,3
+				) B		   
+		   ) B
+	 WHERE 1=1
+	   AND A.RPT_GJDT = B.RPT_GJDT1
+	  	<if test = "JIPYO_IDX != null and JIPYO_IDX !='' and JIPYO_IDX !='ALL'">  
+		   	AND A.JIPYO_IDX LIKE CONCAT('%' , #{JIPYO_IDX, jdbcType=VARCHAR} , '%' ) 
+		</if>
+		
+		<if test = "JIPYO_NM != null and JIPYO_NM !=''">  
+		   	AND A.JIPYO_NM LIKE CONCAT('%' , #{JIPYO_NM, jdbcType=VARCHAR} , '%') 
+		</if>
+		
+		<if test = "JIPYO_C != null and JIPYO_C !=''">  
+		   	AND A.JIPYO_C = #{JIPYO_C,jdbcType=VARCHAR}
+		</if>
+		
+		<if test = "RSK_CATG != null and RSK_CATG !=''">  
+			AND A.RSK_CATG = #{RSK_CATG,jdbcType=VARCHAR}
+		</if>
+		
+		<if test = "RSK_FAC != null and RSK_FAC !=''">  
+		   	AND A.RSK_FAC = #{RSK_FAC,jdbcType=VARCHAR}
+		</if>	   
+	 ORDER BY A.JIPYO_IDX ASC
+	</select>
+	
+	<select id="RBA_90_01_05_02_dosearch"  parameterType="hashMap" resultType="DataObj">
+	SELECT  
+	      IFNULL((SELECT RPT_PNT FROM JRBA_JIPYO_V WHERE RPT_GJDT=B.RPT_GJDT1 AND JIPYO_IDX=#{JIPYO_IDX}),0) AS SCORE1                        
+	    , IFNULL((SELECT RPT_PNT FROM JRBA_JIPYO_V WHERE RPT_GJDT=B.RPT_GJDT2 AND JIPYO_IDX=#{JIPYO_IDX}),0) AS SCORE2               
+	    , IFNULL((SELECT RPT_PNT FROM JRBA_JIPYO_V WHERE RPT_GJDT=B.RPT_GJDT3 AND JIPYO_IDX=#{JIPYO_IDX}),0) AS SCORE3                       
+	  FROM JRBA_JIPYO_M A, 
+	  (
+	    SELECT  MAX(CASE SNO WHEN 1 THEN BB.RPT_GJDT END ) AS RPT_GJDT1
+	          , MAX(CASE SNO WHEN 2 THEN BB.RPT_GJDT END ) AS RPT_GJDT2
+	          , MAX(CASE SNO WHEN 3 THEN BB.RPT_GJDT END ) AS RPT_GJDT3
+	    FROM
+	         (SELECT RPT_GJDT
+	               , @rownum := @rownum + 1  AS SNO
+	            FROM JRBA_RPT_BAS_M AA, (SELECT @rownum := 0) r
+	  		   --  <![CDATA[  
+	           WHERE RPT_GJDT <= #{RPT_GJDT,jdbcType=VARCHAR}
+	           ORDER BY AA.RPT_GJDT DESC
+	         ) BB
+	    WHERE SNO < 4  
+	  		   --   ]]>     
+	) B
+	 WHERE A.RPT_GJDT = B.RPT_GJDT1
+	ORDER BY A.JIPYO_IDX
+	</select>
+	
+	<select id="RBA_90_01_05_02_dosearch2"  parameterType="hashMap" resultType="DataObj">
+	SELECT  
+	      IFNULL((SELECT RPT_PNT FROM JRBA_FIU_JIPYO_V WHERE RPT_GJDT=B.RPT_GJDT1 AND JIPYO_IDX=#{JIPYO_IDX}),0) AS SCORE1                        
+	    , IFNULL((SELECT RPT_PNT FROM JRBA_FIU_JIPYO_V WHERE RPT_GJDT=B.RPT_GJDT2 AND JIPYO_IDX=#{JIPYO_IDX}),0) AS SCORE2               
+	    , IFNULL((SELECT RPT_PNT FROM JRBA_FIU_JIPYO_V WHERE RPT_GJDT=B.RPT_GJDT3 AND JIPYO_IDX=#{JIPYO_IDX}),0) AS SCORE3                       
+	  FROM JRBA_JIPYO_M A, 
+	  (
+	    SELECT  MAX(CASE SNO WHEN 1 THEN BB.RPT_GJDT END ) AS RPT_GJDT1
+	          , MAX(CASE SNO WHEN 2 THEN BB.RPT_GJDT END ) AS RPT_GJDT2
+	          , MAX(CASE SNO WHEN 3 THEN BB.RPT_GJDT END ) AS RPT_GJDT3
+	    FROM
+	         (SELECT RPT_GJDT
+	               , @rownum := @rownum + 1  AS SNO
+	            FROM JRBA_RPT_BAS_M AA, (SELECT @rownum := 0) r
+	  		   --  <![CDATA[  
+	           WHERE RPT_GJDT <= #{RPT_GJDT,jdbcType=VARCHAR}
+	           ORDER BY AA.RPT_GJDT DESC
+	         ) BB
+	    WHERE SNO < 4  
+	  		   --   ]]>     
+	) B
+	 WHERE A.RPT_GJDT = B.RPT_GJDT1
+	ORDER BY A.JIPYO_IDX
+	</select>
+
+	<!-- END RBA_90_01_05_01 -->
+	
+<!--********************공통******************************  -->
+<select id="JRBA_common_getRPT_GJDT"  parameterType="hashMap" resultType="DataObj">
+	SELECT RPT_GJDT AS CD,
+	       DATE_FORMAT(DATE_FORMAT(RPT_GJDT,'%Y%m%d'),'%Y-%m-%d') AS CD_NM
+	  FROM JRBA_RPT_BAS_M
+	 WHERE 1=1
+	 GROUP BY RPT_GJDT
+	 ORDER BY RPT_GJDT DESC
+</select>
+
+<select id="RBA_common_getComboData_JRBA_DTL_C" parameterType="hashMap" resultType="DataObj">
+	SELECT DTL_CD AS CD
+	     , DTL_NM AS CD_NM  
+	     , GRP_CD AS GRP_CD
+	  FROM JRBA_DTL_C
+	 WHERE USYN = 1
+	<if test="RPT_GJDT != null and RPT_GJDT != '' ">
+	<choose>
+		<when test="RPT_GJDT == 'MAX'">
+	   AND RPT_GJDT = ( SELECT MAX(RPT_GJDT) AS RPT_GJDT
+	                      FROM JRBA_DTL_C
+	                  )
+		</when>
+		<otherwise>
+	   AND RPT_GJDT = #{RPT_GJDT , jdbcType=VARCHAR}
+		</otherwise>
+	</choose>
+	</if>
+	<if test="GRP_CD != null and GRP_CD != '' ">
+		AND GRP_CD = #{GRP_CD, jdbcType=VARCHAR}
+	</if>
+	<if test="HRNK_RBA_RSK_C != null and HRNK_RBA_RSK_C != '' ">
+		AND HRNK_RBA_RSK_C = #{HRNK_RBA_RSK_C, jdbcType=VARCHAR}
+	</if>
+	<if test="HRNK_RBA_RSK_C_V != null and HRNK_RBA_RSK_C_V != '' ">
+		AND HRNK_RBA_RSK_C_V = #{HRNK_RBA_RSK_C_V, jdbcType=VARCHAR}
+	</if>
+	ORDER BY SNO
+</select>
+
+
+<select id="RBA_90_01_02_01_doCheckJipyoV"  parameterType="hashMap" resultType="DataObj">
+    SELECT COUNT(*) AS CNT 
+      FROM JRBA_JIPYO_V
+     WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+       AND ITEM_S_C = '2'	-- 확정일때만
+</select>
+
+<select id="RBA_90_01_02_05_getSearchEvaluationCode"  parameterType="hashMap" resultType="DataObj">
+SELECT
+    RPT_GJDT
+	,GRP_CD
+	,DTL_CD
+	,CASE WHEN SUBSTR(GRP_CD, 1, 1) IN ('O', 'I') AND LENGTH(GRP_CD) = 6
+		         THEN CONCAT('[' , DTL_CD , '] ' , DTL_NM )
+		         ELSE DTL_NM END AS DTL_NM
+	,SNO
+	,USYN
+	,HRNK_RBA_RSK_C
+	,HRNK_RBA_RSK_C_V
+	,DR_DT
+	,DR_TIME
+	,DR_OP_JKW_NO
+	,CHG_DT
+	,CHG_TIME
+	,CHG_OP_JKW_NO
+ FROM JRBA_DTL_C
+ WHERE GRP_CD 	= #{GRP_CD, jdbcType=VARCHAR}
+ AND RPT_GJDT	= #{RPT_GJDT, jdbcType=VARCHAR}
+ ORDER BY SNO	
+</select>
+
+<update  id="RBA_90_01_02_03_DELETE_JRBA_JIPYO_BAS_I" parameterType="hashMap" >
+DELETE FROM  JRBA_JIPYO_BAS_I
+    WHERE RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+    AND JIPYO_IDX = #{JIPYO_IDX, jdbcType=VARCHAR}
+</update>
+
+<update  id="RBA_90_01_02_03_INSERT_JRBA_JIPYO_BAS_I" parameterType="hashMap" >
+INSERT INTO JRBA_JIPYO_BAS_I (
+	RPT_GJDT
+	,SNO
+	,JIPYO_IDX
+	,JIPYO_CMPR_CAL_C
+	,CMPR_V             
+	,CAL_PNT            
+	,DR_DT              
+	,DR_TIME            
+	,DR_OP_JKW_NO       
+	,CHG_DT             
+	,CHG_TIME           
+	,CHG_OP_JKW_NO
+) VALUES(
+#{RPT_GJDT, jdbcType=VARCHAR}
+,#{SNO, jdbcType=NUMERIC}
+,#{JIPYO_IDX, jdbcType=VARCHAR}
+,#{JIPYO_CMPR_CAL_C, jdbcType=VARCHAR}
+,#{CMPR_V, jdbcType=VARCHAR}
+,#{CAL_PNT, jdbcType=NUMERIC}
+,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+,DATE_FORMAT(SYSDATE(),'%H%i%s')
+,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+,DATE_FORMAT(SYSDATE(),'%H%i%s')
+,#{CHG_OP_JKW_NO, jdbcType=VARCHAR}
+)
+</update>
+
+
+<!-- FIU 지표결과 조회 -->
+<select id="RBA_90_01_04_01_getSearch1"  parameterType="hashMap" resultType="DataObj">
+	SELECT IFNULL(D.GYLJ_ID, 0) AS GYLJ_ID		-- 결재ID 
+	     , IFNULL(D.GYLJ_S_C, 0) AS GYLJ_S_C	-- 결재상태코드 
+	     , CASE
+	            WHEN IFNULL(D.GYLJ_S_C, 0) = '3' THEN 'Y'	-- 지표결재상태코드(A014) = 3(완료) 
+	            ELSE 'N'
+	       END FINL_GYLJ_S				-- 최종승인여부 
+	     , E.DTL_NM	AS GYLJ_S_C_NM		-- 승인상태 
+	     , M.JIPYO_IDX					-- 지표번호 - 보고지표인덱스 
+	     , M.JIPYO_NM					-- 지표명 
+	     , M.INP_ITEM					-- 입력항목 
+	     , M.INP_UNIT_C 				-- 입력단위코드 
+	     , A.DTL_NM	AS INP_UNIT_C_NM	-- 입력단위코드명 
+	     , M.ALLT_PNT					-- 배점점수 
+	     , FORMAT(B.IN_V,0)	IN_V					-- 입력값 
+				     , (CASE WHEN M.JIPYO_C = 'O' AND M.IN_V_TP_C='C' -- 입력값이 '코드'
+			            THEN (SELECT CONCAT('[' , DTL_CD , '] ' , DTL_NM) FROM JRBA_DTL_C WHERE RPT_GJDT=M.RPT_GJDT AND GRP_CD=M.CNCT_JIPYO_C_I AND DTL_CD = B.IN_V)
+			            ELSE FORMAT(B.IN_V,0) END)  AS IN_V_NM	-- 입력값타입이 코드인경우 사용될 코드리스트 
+				     , (CASE WHEN M.JIPYO_C = 'I' THEN ''
+			             WHEN M.JIPYO_C = 'O' AND M.VALT_G IN ('1', '4') AND B.IN_V IS NOT NULL THEN TRIM(TRAILING '.' FROM TRIM(FORMAT(B.RPT_PNT, 2))) 
+			             WHEN M.JIPYO_C = 'O' AND M.VALT_G ='2' AND B.MAX_IN_V <![CDATA[>]]> 0 THEN TRIM(TRAILING '.' FROM TRIM(FORMAT(B.RPT_PNT, 2))) 
+			             ELSE '' END ) AS RPT_PNT					-- 지표점수 
+	     , CASE
+	            WHEN IFNULL(B.ATTCH_FILE_NO, 0) = 0 THEN 'N'
+	            ELSE 'Y'
+	       END AS ATTCH_FILE_YN			-- 증빙파일 
+	     , B.ATTCH_FILE_NO				-- 첨부파일번호 
+	     , TRIM(B.ITEM_S_C)	AS ITEM_S_C	-- 항목상태코드 
+	     , C.DTL_NM	AS ITEM_S_C_NM		-- 항목상태코드명 
+	     , M.CAL_FRML					-- 산출식 
+	     , M.CAL_METH					-- 산출방법 
+	     , M.JIPYO_C					-- 지표위험구분 
+	     , F.DTL_NM AS JIPYO_C_NM		-- 지표위험구분명 
+	     , M.RSK_CATG					-- 위험카테고리 
+	     , G.DTL_NM AS RSK_CATG_NM		-- 위험카테고리명 
+	     , M.RSK_FAC					-- 항목 
+	     , H.DTL_NM AS RSK_FAC_NM		-- 항목명 
+	     , CONCAT(M.CHG_DT,M.CHG_TIME) AS CHG_DT
+	     , M.FRMG_MABD_C				-- 작성주체코드 
+	     , M.VALT_G						-- 평가구분코드 
+	     , M.IN_V_TP_C					-- 입력값타입 
+	     , M.WEGHT						-- 가중치 
+	     , M.CNCT_JIPYO_C_I				-- 연결지표코드정보 
+	     , M.BAS_V						-- 기본값 
+	     , M.JIPYO_DESC					-- 지표내용 
+	     , M.JIPYO_BIGO_CTNT			-- 지표설명 
+	     , M.EST_BAS_SCOP				-- 산정기준범위 
+	     , M.ANEX_CTNT					-- 부가설명 
+	     , M.JIPYO_ID
+	     , IFNULL(B.ITEM_S_C, 0) AS ITEM_S_C	-- 항목상태코드 
+         , COUNT(M.JIPYO_NM) AS JIPYO_CNT
+         , SUM(IF (B.ITEM_S_C = 2 , 1, 0)) AS ITEM_S_C_CNT
+	     , M.IN_V_TP_C
+	     , M.CNCT_JIPYO_C_I
+	  FROM JRBA_JIPYO_M M			-- RBA 보고지표 
+	  LEFT JOIN JRBA_DTL_C A		-- RBA 상세 코드 정보 
+	         ON M.RPT_GJDT   = A.RPT_GJDT	-- 보고기준일자 
+	        AND A.GRP_CD     = 'A012'		-- 입력단위코드 
+	        AND M.INP_UNIT_C = A.DTL_CD		-- 입력단위코드 
+	  LEFT JOIN JRBA_JIPYO_V B  	-- RBA 보고지표값 
+	         ON M.RPT_GJDT  = B.RPT_GJDT	-- 보고기준일자 
+	        AND M.JIPYO_IDX = B.JIPYO_IDX	-- 보고지표인덱스 
+	  LEFT JOIN JRBA_DTL_C C		-- RBA 상세 코드 정보 
+	         ON M.RPT_GJDT = C.RPT_GJDT		-- 보고기준일자 
+	        AND C.GRP_CD   = 'A010'			-- 지표상태코드
+	        AND B.ITEM_S_C = C.DTL_CD		-- 지표상태코드 
+	  LEFT JOIN JRBA_RPT_RST_M D	-- RBA 보고결과 관리 
+	         ON M.RPT_GJDT = D.RPT_GJDT		-- 보고기준일자 
+	  LEFT JOIN JRBA_DTL_C E		-- RBA 상세 코드 정보 
+	         ON D.RPT_GJDT = E.RPT_GJDT		-- 보고기준일자 
+	        AND E.GRP_CD   = 'A014'			-- 지표결재상태코드 
+	        AND IFNULL(D.GYLJ_S_C, 0) = E.DTL_CD		-- 결재상태코드 
+	  LEFT JOIN JRBA_DTL_C F		-- RBA 상세 코드 정보 
+	         ON M.RPT_GJDT = F.RPT_GJDT		-- 보고기준일자 
+	        AND F.GRP_CD   = 'A001'			-- 지표위험구분 
+	        AND M.JIPYO_C  = F.DTL_CD		-- 지표위험구분 
+	  LEFT JOIN JRBA_DTL_C G		-- RBA 상세 코드 정보 
+	         ON M.RPT_GJDT = G.RPT_GJDT		-- 보고기준일자 
+	        AND G.GRP_CD = ( CASE
+	                              WHEN M.JIPYO_C = 'O' THEN 'A002'	-- 지표위험구분이 운영위험 = 운영위험카테고리(A002) 
+	                              WHEN M.JIPYO_C = 'I' THEN 'A004'	-- 지표위험구분이 운영위험 = 고유위험카테고리(A004) 
+	                         END
+	                       )
+	        AND M.RSK_CATG = G.DTL_CD	-- 지표위험구분 
+	  LEFT JOIN JRBA_DTL_C H			-- RBA 상세 코드 정보 
+	         ON M.RPT_GJDT = H.RPT_GJDT	-- 보고기준일자 
+	        AND H.GRP_CD = ( CASE
+	                              WHEN M.JIPYO_C = 'O' THEN 'A003'	-- 지표위험구분이 운영위험 = 운영위험팩터(A003) 
+	                              WHEN M.JIPYO_C = 'I' THEN 'A005'	-- 지표위험구분이 운영위험 = 고유위험팩터(A005) 
+	                         END
+	                       )
+	        AND M.RSK_FAC = H.DTL_CD	-- 지표위험구분 
+	  LEFT JOIN JRBA_RPT_BAS_M I		-- RBA 보고기본 
+	         ON M.RPT_GJDT   = I.RPT_GJDT	-- 보고기준일자 
+	 WHERE 1 = 1
+	   AND M.RPT_GJDT = #{RPT_GJDT}			-- 보고기준일자 
+	   AND M.JIPYO_USYN = 1					-- 지표사용여부 
+	<if test ="JIPYO_IDX != null and JIPYO_IDX != ''">
+       AND M.JIPYO_IDX  = #{JIPYO_IDX}			-- 지표번호 
+  	</if>   
+	<if test ="JIPYO_NM != null and JIPYO_NM != ''">
+       AND M.JIPYO_NM LIKE CONCAT('%',#{JIPYO_NM} ,'%')  -- 지표명 
+  	</if>   
+	<if test ="JIPYO_C != null and JIPYO_C != ''">
+	   AND M.JIPYO_C = #{JIPYO_C}				-- 지표위험구분 
+  	</if>   
+	<if test ="RSK_CATG != null and RSK_CATG != ''">
+	   AND M.RSK_CATG = #{RSK_CATG}			-- 위험카테고리 
+  	</if>   
+	<if test ="RSK_FAC != null and RSK_FAC != ''">
+	   AND M.RSK_FAC = #{RSK_FAC}				-- 항목 
+  	</if>   
+	<if test ="VALT_G != null and VALT_G != ''">
+	   AND M.VALT_G = #{VALT_G}				-- 평가구분 
+  	</if> 
+<!--  
+   	<choose> 
+   		<when test ="ROLE_ID != null and ROLE_ID == 4">	본점담당자 
+        AND IFNULL(D.GYLJ_S_C, '0') IN ( '0'	 본점담당자(ROLE_ID = 4) 결재상태코드 = 0  : 미결재  
+                                    , '22'	 본점담당자(ROLE_ID = 4) 결재상태코드 = 22 : 반려  
+                                    ) 
+   		</when> 
+   		<when test ="ROLE_ID != null and ROLE_ID == 5">	본점책임자 
+        AND IFNULL(D.GYLJ_S_C, '0') = '12'		 본점책임자(ROLE_ID = 5) 결재상태코드 = 12 : 승인요청  
+   		</when> 
+   		<otherwise> 
+   		</otherwise> 
+   	</choose> 
+-->
+	 ORDER BY M.JIPYO_IDX	-- 지표번호 - 보고지표인덱스 
+</select>
+
+
+<!-- FIU 지표결과 보고파일 조회 -->
+<select id="RBA_90_01_04_01_getSearch2"  parameterType="hashMap" resultType="DataObj">
+	SELECT M.RPT_GJDT		-- 보고기준일자  
+	     , M.RPT_YN			-- 보고여부  
+	     , A.ATTCH_FILE_NO	-- 첨부파일번호  
+	     , A.FILE_SER		-- 파일일련번호  
+	     , A.DATA_G			-- 자료유형  
+	     , A.FILE_POS		-- 파일경로  
+	     , A.LOSC_FILE_NM	-- 논리파일명  
+	     , A.PHSC_FILE_NM	-- 물리파일명  
+	     , A.FILE_SIZE		-- 파일사이즈  
+	     , A.DOWNLOAD_CNT	-- 다운로드수  
+	     , DATE_FORMAT(STR_TO_DATE(CONCAT(A.DR_DT,A.DR_TIME),'%Y%m%d%H%i%s'), '%Y-%m-%d') AS DR_DT	-- 등록일자
+	     , DATE_FORMAT(STR_TO_DATE(CONCAT(A.DR_DT,A.DR_TIME),'%Y%m%d%H%i%s'), '%H:%i:%s') AS DR_DT	-- 등록시간	          
+	     , A.DR_OP_JKW_NO	-- 등록조작자번호  
+         , B.USER_NM
+	  FROM JRBA_RPT_RST_M M			-- RBA 보고결과관리  
+	       JOIN RBA_ATTCH_FILE A	-- RBA 첨부파일  
+	         ON A.ATTCH_FILE_NO = M.ATTCH_FILE_NO
+      LEFT JOIN C_USER B   
+             ON A.DR_OP_JKW_NO = B.LOGIN_ID  
+	 WHERE 1 = 1
+	   AND M.RPT_GJDT = #{RPT_GJDT}	-- 보고기준일자  
+	   ORDER BY FILE_SER ASC
+</select>
+
+<select id="RBA_90_01_04_01_getSearch3"  parameterType="hashMap" resultType="DataObj">
+	SELECT IFNULL(D.GYLJ_ID, 0) AS GYLJ_ID	-- 결재ID  
+	     , IFNULL(D.GYLJ_S_C, 0) AS GYLJ_S_C
+	     , E.DTL_NM	AS GYLJ_S_C_NM		-- 승인상태  
+	     , CASE
+	            WHEN IFNULL(D.GYLJ_S_C, 0) = '3' THEN 'Y'	-- 지표결재상태코드(A014) = 3(완료)  
+	            ELSE 'N'
+	       END FINL_GYLJ_S				-- 최종승인여부  
+         , IFNULL(( SELECT IFNULL(H.ROLE_ID, 0) AS ROLE_ID 
+                   FROM C_GYLJ_H H
+                  WHERE H.GYLJ_ID = D.GYLJ_ID
+                    AND H.GYLJ_SER = ( SELECT MAX(GYLJ_SER)
+                                         FROM C_GYLJ_H
+                                        WHERE GYLJ_ID = D.GYLJ_ID 
+                                     )
+               )
+              , 0) AS GYLJ_ROLE_ID 
+              , IFNULL(D.GYLJ_ROLE_ID , 0)  AS NEXT_GYLJ_ROLE_ID
+              ,(SELECT GYLJ_ROLE_ID 
+                FROM C_GYLJ_D 
+                WHERE GYLJ_LINE_G_C  = 'W99' 
+                AND SNO = (SELECT MIN(SNO) FROM C_GYLJ_D WHERE GYLJ_LINE_G_C  = 'W99' ) )  AS FIRST_GYLJ
+              ,(SELECT GYLJ_ROLE_ID 
+                FROM C_GYLJ_D 
+                WHERE GYLJ_LINE_G_C  = 'W99' 
+                AND SNO = (SELECT MAX(SNO) FROM C_GYLJ_D WHERE GYLJ_LINE_G_C  = 'W99' ))  AS END_GYLJ
+	  FROM JRBA_RPT_RST_M D  
+		   LEFT JOIN JRBA_DTL_C E		-- RBA 상세 코드 정보  
+		          ON D.RPT_GJDT         = E.RPT_GJDT	-- 보고기준일자  
+		         AND E.GRP_CD           = 'A014'		-- 지표결재상태코드  
+		         AND IFNULL(D.GYLJ_S_C, 0) = E.DTL_CD		-- 결재상태코드  
+	 WHERE 1 = 1
+	   AND D.RPT_GJDT =  #{RPT_GJDT}	-- 보고기준일자  			-- 보고기준일자  
+</select>
+
+<delete id="RBA_90_01_04_01_DELETE_RBA_ATTCH_FILE" parameterType="hashMap">
+	DELETE FROM RBA_ATTCH_FILE
+	 WHERE ATTCH_FILE_NO = #{ATTCH_FILE_NO}
+	   AND FILE_SER      = #{FILE_SER}
+</delete>
+
+<select id="RBA_90_01_04_01_COUNT_ATTACH_FILE"  parameterType="hashMap" resultType="DataObj">
+	SELECT COUNT(*) AS CNT
+	  FROM RBA_ATTCH_FILE
+	 WHERE ATTCH_FILE_NO = #{ATTCH_FILE_NO} 
+</select>
+
+<update id="RBA_90_01_04_01_UPDATE_JRBA_RPT_RST_M" parameterType="hashMap">
+	UPDATE JRBA_RPT_RST_M 
+	   SET ATTCH_FILE_NO = 0
+	 WHERE RPT_GJDT = #{RPT_GJDT} 
+</update>
+
+<!-- FIU 지표결과 첨부파일 조회 -->
+<select id="RBA_90_01_04_04_ATTACH_FILE"  parameterType="hashMap" resultType="DataObj">
+	SELECT A.ATTCH_FILE_NO
+	     , A.FILE_SER AS FILE_SEQ
+	     , A.DATA_G
+	     , A.FILE_POS
+	     , A.LOSC_FILE_NM AS USER_FILE_NM
+	     , A.PHSC_FILE_NM AS PHSC_FILE_NM
+	     , A.FILE_SIZE
+	     , A.DOWNLOAD_CNT AS DOWNLOAD_COUNT
+	     , A.DR_DT
+	     , A.DR_TIME
+	     , A.DR_OP_JKW_NO
+	  FROM RBA_ATTCH_FILE A
+	 WHERE 1 = 1
+	   AND ATTCH_FILE_NO	= #{ATTCH_FILE_NO} 
+	<if test ="FILE_SER != null and FILE_SER != ''">
+	   AND FILE_SER 		= #{FILE_SER} 
+  	</if>   
+</select>
+
+<update id="RBA_90_01_04_04_UPDATE_DOWNLOAD_CNT" parameterType="hashMap">
+	UPDATE RBA_ATTCH_FILE 
+	   SET DOWNLOAD_CNT = (DOWNLOAD_CNT + 1)
+	 WHERE 1 = 1
+	   AND ATTCH_FILE_NO = #{ATTCH_FILE_NO}
+	   AND FILE_SER      = #{FILE_SER}
+</update>
+
+<!--  첨부파일번호 생성 -->
+<select id="RBA_90_01_04_02_getSearch_ATTCH_FILE_NO"  parameterType="hashMap" resultType="DataObj">
+	SELECT LPAD(RBA_ATTCH_FILE_SEQ(), 10, '0') AS MAX_FILE_NO
+	  FROM DUAL
+</select>
+
+<insert id="RBA_90_01_04_03_INSERT_ATTCH_FILE"  parameterType="hashMap">
+	-- RBA 첨부파일 
+    INSERT INTO RBA_ATTCH_FILE ( ATTCH_FILE_NO	-- 첨부파일번호 
+                               , FILE_SER		-- 파일일련번호 
+                               , DATA_G			-- 자료유형 
+                               , FILE_POS		-- 파일경로 
+                               , LOSC_FILE_NM	-- 논리파일명 
+                               , PHSC_FILE_NM	-- 물리파일명 
+                               , FILE_SIZE		-- 파일사이즈 
+                               , DOWNLOAD_CNT	-- 다운로드수 
+                               , DR_DT			-- 등록일자 
+                               , DR_TIME		-- 등록시간 
+                               , DR_OP_JKW_NO	-- 등록조작자번호 
+                               )
+                        VALUES ( #{ATTCH_FILE_NO}				-- 첨부파일번호 
+                               , #{FILE_SER}					-- 파일일련번호 
+                               , #{DATA_G}						-- 자료유형 
+                               , #{FILE_POS}					-- 파일경로 
+                               , #{LOSC_FILE_NM}				-- 논리파일명 
+                               , #{PHSC_FILE_NM}				-- 물리파일명 
+                               , #{FILE_SIZE}					-- 파일사이즈 
+                               , #{DOWNLOAD_CNT}				-- 다운로드수 
+                               , DATE_FORMAT(SYSDATE(),'%Y%m%d')	-- 등록일자 
+                               , DATE_FORMAT(SYSDATE(),'%H%i%s')	-- 등록시간 
+                               , #{DR_OP_JKW_NO}				-- 등록조작자번호 
+                               )
+</insert>
+
+<update id="RBA_90_01_04_03_UPDATE_JRBA_RPT_RST_M"  parameterType="hashMap">
+	UPDATE JRBA_RPT_RST_M 
+	   SET FIU_RPT_GJDT  = #{FIU_RPT_GJDT}
+	     , ATTCH_FILE_NO = #{ATTCH_FILE_NO}
+     WHERE RPT_GJDT = #{RPT_GJDT}
+</update>
+
+<select id="RBA_90_01_04_06_getSearch_GYLJ_HISTORY"  parameterType="hashMap" resultType="DataObj">
+	SELECT A.GYLJ_ID		-- 결재ID 
+	     , A.GYLJ_SER		-- 결재일련번호 
+	     , A.ROLE_ID		-- ROLE_ID 
+	     , B.ROLE_NM		-- ROLE_ID명 
+	     , A.GYLJ_S_C		-- 결재상태코드 
+	     , C.DTL_NM AS GYLJ_S_C_NM	-- 결재상태코드명 
+	     , A.GYLJ_G_C		-- 결재구분코드 
+	     , A.GYLJ_JKW_NO	-- 등록조작자번호 
+	     , D.USER_NM		-- 처리자명 
+	     , E.DEP_TITLE		-- 처리지점 
+	     , A.NOTE_CTNT		-- 비고내용 
+	     , DATE_FORMAT(STR_TO_DATE(CONCAT(A.DR_DT,A.DR_TIME),'%Y%m%d%H%i%s'), '%Y-%m-%d %H:%i:%s') AS GYLJ_DT	-- 결재일자 
+	     , A.DR_DT			-- 등록일자 
+	     , A.DR_TIME		-- 등록시간 
+	     , A.DR_OP_JKW_NO	-- 등록조작자번호 
+	  FROM C_GYLJ_H A			-- RBA 결재이력 
+	  LEFT JOIN C_ROLE B		-- 사용자 권한 ROLE_ID마스터 
+	         ON A.ROLE_ID = B.ROLE_ID		--  
+	  LEFT JOIN JRBA_DTL_C C	-- RBA 상세 코드 정 
+	         ON A.GYLJ_S_C	= C.DTL_CD		-- 결재상태코드 
+	        AND C.RPT_GJDT 	= #{RPT_GJDT}	-- 보고기준일자 
+	        AND C.GRP_CD  	= 'A014'		-- 보고그룹코드값 
+	  LEFT JOIN C_USER D		-- AML 사용자 
+	         ON A.GYLJ_JKW_NO = D.LOGIN_ID	-- 등록조작자번호 
+	  LEFT JOIN C_DEP_INFO E				-- AML 부점 
+	         ON E.DEP_ID = D.DEP_ID 		-- 부점코드 
+	 WHERE 1 = 1
+	   AND A.GYLJ_ID = #{GYLJ_ID}	-- 결재ID 
+	 ORDER BY A.GYLJ_SER ASC	-- 결재일련번호 
+</select>
+
+<!-- 지표 값 추이 BSL -->
+<select id="RBA_90_01_04_07_dosearch"  parameterType="hashMap" resultType="DataObj">
+	SELECT B.RPT_GJDT1 AS RPT_GJDT1
+	     , IFNULL(( SELECT IN_V 
+	               FROM JRBA_JIPYO_V 
+	              WHERE RPT_GJDT=B.RPT_GJDT1 
+	                AND JIPYO_IDX=#{JIPYO_IDX}
+	           ),0) AS SCORE1
+         , B.RPT_GJDT2 AS RPT_GJDT2                
+         , IFNULL(( SELECT IN_V 
+                   FROM JRBA_JIPYO_V 
+                  WHERE RPT_GJDT=B.RPT_GJDT2 
+                    AND JIPYO_IDX=#{JIPYO_IDX}
+               ),0) AS SCORE2 
+         , B.RPT_GJDT3 AS RPT_GJDT3           
+         , IFNULL(( SELECT IN_V 
+                   FROM JRBA_JIPYO_V 
+                  WHERE RPT_GJDT=B.RPT_GJDT3 
+                    AND JIPYO_IDX=#{JIPYO_IDX}
+               ),0) AS SCORE3                       
+      FROM JRBA_JIPYO_M A, 
+                 ( SELECT MAX(CASE SNO WHEN 1 THEN BB.RPT_GJDT END ) AS RPT_GJDT1
+	                      , MAX(CASE SNO WHEN 2 THEN BB.RPT_GJDT END ) AS RPT_GJDT2
+	                      , MAX(CASE SNO WHEN 3 THEN BB.RPT_GJDT END ) AS RPT_GJDT3	                      
+	                   FROM ( SELECT RPT_GJDT
+	                               , @rownum := @rownum + 1  AS SNO
+	                            FROM JRBA_RPT_BAS_M AA, (SELECT @rownum := 0) r  
+	  		       <![CDATA[  
+	                           WHERE RPT_GJDT <= #{RPT_GJDT,jdbcType=VARCHAR}
+	                           ORDER BY AA.RPT_GJDT DESC
+	                        ) BB
+	                  WHERE SNO < 4  
+	  		        ]]>     
+	)          B
+     WHERE A.RPT_GJDT  = B.RPT_GJDT1          
+       AND A.JIPYO_IDX = #{JIPYO_IDX}
+     ORDER BY A.JIPYO_IDX
+</select>
+
+<select id="RBA_90_01_02_05_getSearchEvaluationCriteria"  parameterType="hashMap" resultType="DataObj">
+SELECT 
+    A.RPT_GJDT            					-- 보고기준일자
+    ,A.SNO                					-- 순번
+    ,JIPYOM.CNCT_JIPYO_C_I					-- 연결분석코드
+    ,A.CAL_PNT            					-- 산출점수
+    ,A.JIPYO_CMPR_CAL_C   					-- 지표비교산식코드
+    ,A009.DTL_NM AS JIPYO_CMPR_CAL_C_NM     -- 지표비교산식코드명  
+    ,A.CMPR_V             					-- 비교값
+    ,DTLC.DTL_NM AS CMPR_V_NM          		-- 비교값명
+    ,A.JIPYO_IDX          					-- 보고지표인덱스
+	,A.DR_DT              					-- 등록일자
+	,A.DR_TIME            					-- 등록시간
+	,A.DR_OP_JKW_NO       					-- 등록조작자번호
+	,A.CHG_DT             					-- 변경일자
+	,A.CHG_TIME           					-- 변경시간
+	,A.CHG_OP_JKW_NO      					-- 변경조작자번호
+	,JIPYOM.IN_V_TP_C AS IN_V_TP_C			-- 입력값타입
+FROM JRBA_JIPYO_BAS_I A
+    LEFT JOIN JRBA_JIPYO_M JIPYOM ON A.RPT_GJDT=JIPYOM.RPT_GJDT AND A.JIPYO_IDX = JIPYOM.JIPYO_IDX								-- RBA보고지표
+    LEFT JOIN JRBA_DTL_C DTLC ON A.RPT_GJDT=DTLC.RPT_GJDT AND DTLC.GRP_CD = JIPYOM.CNCT_JIPYO_C_I AND DTLC.DTL_CD  = A.CMPR_V   -- 연결분석코드명
+    LEFT JOIN JRBA_DTL_C A009 ON A.RPT_GJDT=A009.RPT_GJDT AND A009.GRP_CD = 'A009' AND A009.DTL_CD  = A.JIPYO_CMPR_CAL_C        -- 지표비교산식코드명
+WHERE A.JIPYO_IDX = #{JIPYO_IDX, jdbcType=VARCHAR}
+AND A.RPT_GJDT = #{RPT_GJDT, jdbcType=VARCHAR}
+ORDER BY A.SNO
+</select>
+
+<select id="RBA_00_00_00_00_common_getComboData"  parameterType="hashMap" resultType="DataObj">
+SELECT 
+ 	ROLE_ID AS CODE  
+ 	,ROLE_NM AS NAME
+ FROM C_ROLE
+ WHERE ROLE_ID IN (3 ,4 , 5 ,6)
+</select>
+
+<update  id="RBA_90_01_05_04_doSave" parameterType="hashMap" >
+           INSERT INTO JRBA_FIU_JIPYO_V 
+	        (
+	    RPT_GJDT
+	    ,JIPYO_IDX
+	    ,IN_V
+	    ,RPT_PNT
+	    ,ITEM_S_C
+	    ,GRP_AVG_PNT
+	    ,GRP_MAX_PNT
+	    ,GRP_MIN_PNT
+	    ,RANK
+	    ,DR_DT
+	    ,DR_TIME
+	    ,DR_OP_JKW_NO
+	    ,CHG_DT
+	    ,CHG_TIME
+	    ,CHG_OP_JKW_NO
+		)
+		VALUES
+		(
+	    #{RPT_GJDT, jdbcType=VARCHAR}
+	    ,#{JIPYO_IDX, jdbcType=VARCHAR}
+	    ,#{IN_V, jdbcType=VARCHAR}
+	    ,#{RPT_PNT, jdbcType=VARCHAR}
+	    ,#{ITEM_S_C, jdbcType=VARCHAR}
+	    ,#{GRP_AVG_PNT, jdbcType=VARCHAR}    
+  		,#{GRP_MAX_PNT, jdbcType=VARCHAR}    
+  		,#{GRP_MIN_PNT, jdbcType=VARCHAR}
+  		,#{RANK, jdbcType=VARCHAR}    
+  	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+	    ,DATE_FORMAT(SYSDATE(),'%Y%m%d')
+	    ,DATE_FORMAT(SYSDATE(),'%H%i%s')
+	    ,#{DR_OP_JKW_NO, jdbcType=VARCHAR}
+		)
+           ON DUPLICATE KEY 
+            UPDATE
+	       RPT_PNT  		= #{RPT_PNT, jdbcType=VARCHAR}
+	       ,GRP_AVG_PNT  	= #{GRP_AVG_PNT, jdbcType=VARCHAR}
+	       ,GRP_MAX_PNT  	= #{GRP_MAX_PNT, jdbcType=VARCHAR}
+	       ,GRP_MIN_PNT  	= #{GRP_MIN_PNT, jdbcType=VARCHAR}
+	       ,RANK  			= #{RANK, jdbcType=VARCHAR}
+           ,CHG_DT 	 		= DATE_FORMAT(SYSDATE(),'%Y%m%d')
+           ,CHG_TIME 		= DATE_FORMAT(SYSDATE(),'%H%i%s')
+           ,CHG_OP_JKW_NO 	= #{DR_OP_JKW_NO, jdbcType=VARCHAR}
+</update>
+</mapper>

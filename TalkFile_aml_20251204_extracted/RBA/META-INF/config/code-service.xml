@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="euc-kr"?>
+<!-- UTF-8 처리 -->
+<!DOCTYPE code-service SYSTEM "code-service.dtd">
+
+	<code-service verbose="true" defaultElement="codegroup">
+
+		<code-service-config name="codegroup" deploy="true" loadOnStartup="100" verbose="true" lastModified="1063711712016" target="all.all">
+			<repository-class>jspeed.base.repository.map.DBStringArrayRepository</repository-class>
+			<pre-load>true</pre-load>
+			<code-param>
+				<param-name>create-statement</param-name>
+				<param-value>INSERT INTO JF_COMMON_CODE_GROUP (GROUP_CODE, GROUP_NAME, GROUP_DESC, CRE_USER, CRE_DATE) VALUES (?,?,?,?,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'))</param-value>
+			</code-param>
+			<code-param>
+				<param-name>remove-statement</param-name>
+				<param-value>UPDATE JF_COMMON_CODE_GROUP SET DELETE_YN='Y' WHERE GROUP_CODE=?</param-value>
+			</code-param>
+			<code-param>
+				<param-name>modify-statement</param-name>
+				<param-value>UPDATE JF_COMMON_CODE_GROUP SET GROUP_NAME=?,GROUP_DESC=?,DSC_USER=?,DSC_DATE=TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') WHERE GROUP_CODE=?</param-value>
+			</code-param>
+			<code-param>
+				<param-name>jndi-name</param-name>
+				<param-value>jSpeedDataSource</param-value>
+			</code-param>
+			<code-param>
+				<param-name>single-load-statement</param-name>
+				<param-value>SELECT GROUP_CODE, GROUP_NAME, GROUP_DESC, CRE_USER, CRE_DATE FROM JF_COMMON_CODE_GROUP WHERE GROUP_CODE=?</param-value>
+			</code-param>
+			<code-param>
+				<param-name>load-statement</param-name>
+				<param-value>SELECT GROUP_CODE, GROUP_NAME, GROUP_DESC, CRE_USER, CRE_DATE FROM JF_COMMON_CODE_GROUP WHERE DELETE_YN='N' OR DELETE_YN IS NULL</param-value>
+			</code-param>
+		</code-service-config>
+
+		<code-service-config name="code" deploy="true" loadOnStartup="100" verbose="true" lastModified="1075707101518" target="all.web">
+			<repository-class>jspeed.base.repository.map.DBStringArrayRepository</repository-class>
+			<pre-load>true</pre-load>
+			<code-param>
+				<param-name>jndi-name</param-name>
+				<param-value>jSpeedDataSource</param-value>
+			</code-param>
+			<code-param>
+				<param-name>modify-statement</param-name>
+				<param-value>UPDATE JF_COMMON_CODE SET COMMON_NAME=?,COMMON_DESC=?,DSC_USER=?,DSC_DATE=TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS') WHERE GROUP_CODE=? AND COMMON_CODE=?</param-value>
+			</code-param>
+			<code-param>
+				<param-name>remove-statement</param-name>
+				<param-value>UPDATE JF_COMMON_CODE SET DELETE_YN='Y' WHERE GROUP_CODE=? AND COMMON_CODE=?</param-value>
+			</code-param>
+			<code-param>
+				<param-name>create-statement</param-name>
+				<param-value>INSERT INTO JF_COMMON_CODE (GROUP_CODE, COMMON_CODE, COMMON_NAME, COMMON_DESC, CRE_USER, CRE_DATE) VALUES (?,?,?,?,?,TO_CHAR(SYSDATE,'YYYYMMDDHH24MISS'))</param-value>
+			</code-param>
+			<code-param>
+				<param-name>single-load-statement</param-name>
+				<param-value>SELECT GROUP_CODE||'.'||COMMON_CODE key, GROUP_CODE, COMMON_CODE, COMMON_NAME, COMMON_DESC, CRE_USER, CRE_DATE FROM JF_COMMON_CODE WHERE GROUP_CODE=? AND COMMON_CODE=?</param-value>
+			</code-param>
+			<code-param>
+				<param-name>load-statement</param-name>
+				<param-value>SELECT GROUP_CODE||'.'||COMMON_CODE key, GROUP_CODE, COMMON_CODE, COMMON_NAME, COMMON_DESC, CRE_USER, CRE_DATE FROM JF_COMMON_CODE WHERE DELETE_YN='N' OR DELETE_YN IS NULL</param-value>
+			</code-param>
+		</code-service-config>
+
+	</code-service>

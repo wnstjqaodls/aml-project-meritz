@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="euc-kr"?>
+
+<!-- UTF-8 ó�� -->
+
+<!DOCTYPE domain-service SYSTEM "domain-service.dtd">
+
+	<domain-service defaultElement="default">
+
+		<domain-service-config name="AMLXpress" loadOnStartup="100" verbose="true" lastModified="1220247886000" target="*.*">
+			<log-type>CONSOLE_FILE</log-type>
+			<log-level>DEBUG</log-level>
+			<log-location></log-location>
+			<default-instance-max-user>1000</default-instance-max-user>
+			<default-instance-max-user-return-page>/index.jsp</default-instance-max-user-return-page>
+			<default-instance-max-ejb>500</default-instance-max-ejb>
+			<default-instance-max-ejb-return-code>SYSTEM000</default-instance-max-ejb-return-code>
+			<peak-point-control-status>true</peak-point-control-status>
+			<default-monitoring-interval>3</default-monitoring-interval>
+			<application-check-page>null</application-check-page>
+			<domain-url>http://amlexpress.gtone.co.kr/</domain-url>
+			<domain-uri-prefix-type>directory</domain-uri-prefix-type>
+			<domain-uri-prefix>/</domain-uri-prefix>
+			<domain-name>AMLXpress</domain-name>
+		</domain-service-config>
+
+	</domain-service>

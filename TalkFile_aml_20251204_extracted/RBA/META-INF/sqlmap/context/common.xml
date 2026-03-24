@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN" "http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<!-- UTF-8 처리 -->
+
+<mapper namespace="comm">
+
+	 <select id="RBA_10_02_01_01_getRbaAttchFileSeq"  parameterType="hashMap" resultType="DataObj">
+	    SELECT RBA_ATTCH_FILE_SEQ.NEXTVAL AS SEQ FROM DUAL
+	</select>
+	
+	
+	<update id="RBA_10_02_01_01_insertFile" parameterType="hashMap">
+    INSERT INTO RBA_ATTCH_FILE
+       (ATTCH_FILE_NO,         
+        FILE_SER,        
+        DATA_G,         
+        FILE_POS,         
+        LOSC_FILE_NM,     
+        PHSC_FILE_NM,     
+        FILE_SIZE,        
+        DOWNLOAD_CNT,   
+        DR_DT,       
+        DR_TIME,
+        DR_OP_JKW_NO
+       )       
+       VALUES (
+        #{ATTCH_FILE_NO,jdbcType=VARCHAR}
+       ,#{FILE_SER,jdbcType=VARCHAR}
+       ,#{DATA_G,jdbcType=VARCHAR}
+       ,#{FILE_POS,jdbcType=VARCHAR}
+       ,#{LOSC_FILE_NM,jdbcType=VARCHAR}
+       ,#{PHSC_FILE_NM,jdbcType=VARCHAR}
+       ,#{FILE_SIZE,jdbcType=VARCHAR}
+       ,#{DOWNLOAD_CNT,jdbcType=VARCHAR}
+       ,TO_CHAR(SYSDATE,'YYYYMMDD')
+       ,TO_CHAR(SYSDATE,'HH24MISS')
+       ,#{DR_OP_JKW_NO,jdbcType=VARCHAR}
+       )
+</update>
+	<select id="AML_90_01_03_01_getNIC90B"  parameterType="hashMap" resultType="DataObj">
+		SELECT * FROM NIC90B WHERE MENU_ACT_ID = #{param0}
+	</select> 
+</mapper>	

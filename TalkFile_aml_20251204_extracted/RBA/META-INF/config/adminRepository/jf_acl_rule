@@ -1,0 +1,103 @@
+1=\
+	1,\
+	Super Page Rule,\
+	1,\
+	0.0.0.0,\
+	255.255.255.255,\
+	20040312000000,\
+	20061231000000,\
+	N,\
+	You can access to all page of the jSpeed.,\
+	,\
+	,\
+	jspeed,\
+	,\
+	N,\
+	N
+
+2=\
+	2,\
+	Console Management Page Rule,\
+	1,\
+	0.0.0.0,\
+	255.255.255.255,\
+	20050214000000,\
+	20050214000000,\
+	N,\
+	You can access to the page of jSpeed Console Management,\
+	,\
+	,\
+	jspeed,\
+	,\
+	N,\
+	N
+
+3=\
+	3,\
+	Notice Management Page Rule,\
+	1,\
+	0.0.0.0,\
+	255.255.255.255,\
+	20050214000000,\
+	20050214000000,\
+	N,\
+	You can access to the page of jSpeed Notice management.,\
+	,\
+	,\
+	jspeed,\
+	20050214103259,\
+	N,\
+	N
+
+4=\
+	4,\
+	Base Service Page Rule,\
+	1,\
+	0.0.0.0,\
+	255.255.255.255,\
+	20050214000000,\
+	20050214000000,\
+	N,\
+	You can access to the page of jSpeed Base Service Management.,\
+	,\
+	,\
+	jspeed,\
+	20050214103730,\
+	N,\
+	N
+
+5=\
+	5,\
+	Service Monitoring Page Rule,\
+	1,\
+	0.0.0.0,\
+	255.255.255.255,\
+	20050214000000,\
+	20050214000000,\
+	N,\
+	You can access to the page of jSpeed Service Monitoring.,\
+	,\
+	,\
+	jspeed,\
+	20050214103839,\
+	N,\
+	N
+	
+6=\
+	6,\
+	Common Page Rule,\
+	1,\
+	0.0.0.0,\
+	255.255.255.255,\
+	20050321000000,\
+	20050321000000,\
+	N,\
+	,\
+	,\
+	,\
+	jspeed,\
+	20050329152346,\
+	N,\
+	N
+
+

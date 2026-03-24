@@ -1,0 +1,2466 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+PUBLIC "-//ibatis.apache.org//DTD Mapper 3.0//EN"
+"http://ibatis.apache.org/dtd/ibatis-3-mapper.dtd">
+<mapper namespace="AML_00" >
+
+    <select id="AML_00_00_00_00_common_getComboData_BRN_CD" parameterType="hashMap" resultType="DataObj">
+        SELECT A.DPRT_CD AS CODE
+              ,A.DPRT_NM AS NAME
+          FROM NIC41B A
+         WHERE A.USE_CCD = 'Y'
+        <if test=" FLAG != null ">
+           AND (
+                 (
+                   ( A.DPRT_CD >= #{DPRT_CD0} AND A.DPRT_CD <![CDATA[<]]> = #{DPRT_CD1} )
+                   AND A.DPRT_CD NOT IN
+                   <foreach collection="BRANCH_EX_NOT_LIST" item="BRANCH_EX_NOT_LIST" index="indexs" open="(" separator="," close=")">
+                       #{BRANCH_EX_NOT_LIST}
+                   </foreach>
+                  )
+                  OR A.DPRT_CD IN
+                  <foreach collection="BRANCH_EX_LIST" item="BRANCH_EX_LIST" index="indexs" open="(" separator="," close=")">
+                  #{BRANCH_EX_LIST}
+                  </foreach>
+               )
+         ORDER BY A.DPRT_CD
+        </if>
+        <if test=" FLAG == null ">
+           AND A.DPRT_CD IN ( SELECT B.DPRT_CD
+                                FROM NIC41B B
+                               START WITH B.DPRT_CD = #{DPRT_CD}
+                             CONNECT BY PRIOR B.DPRT_CD = DECODE(B.DPRT_CD, #{DPRT_CD}, '-1', B.HG_RNK_DPRT_CD)
+                            )
+        </if>
+    </select>
+
+	<!-- 삼성증권 -->
+	<select id="AML_00_02_01_01_getApprovalCount" parameterType="hashMap" resultType="DataObj">
+	select d.proc_id , count(*) as CNT, '' as CNM 
+	  from NIC66B E, WF_PROC_INSTANCE a, WF_PROC_INSTANCE d,   
+	  WF_WORK_PARTICIPANT b left outer join    
+	  wf_work_performer c on    
+	  ( c.WORK_STATUS_CD ='FINISHED' and b.work_id=c.work_id and b.PARTICIPANT_ID=c.PERFORMER_ID)   
+	  where    
+	  a.WORK_ID=b.WORK_ID and c.PERFORMER_ID is null   
+	  and ((b.PERSON_YN='Y' AND b.PARTICIPANT_ID = #{USER_ID})  
+	     OR  
+	     (b.PERSON_YN='N' AND b.PARTICIPANT_ID  
+	     IN (SELECT BB.DEP_ID || '.' || ROLE_ID FROM C_USER_GROUP_ROLE AA, C_USER BB  
+	     WHERE AA.USER_ID= #{USER_ID}  AND AA.USER_ID = BB.USER_ID  
+	         AND BB.DEP_ID || '.' || ROLE_ID = #{ROLE_ID}) )  
+	     )    
+	  and a.PAR_INST_ID=d.INST_ID   
+	  and e.INST_ID=d.INST_ID   
+	  group by d.proc_id
+		
+	<if test='ROLE_CD == "7" '> 
+	 UNION ALL
+	SELECT 77777, COUNT(*) AS CNT, ''
+      FROM NIC66B A
+          ,NIC01B B
+          ,(SELECT J.SSPS_DL_CRT_DT
+                  ,J.SSPS_DL_ID
+                  ,COUNT(*) AS CNT
+             FROM NIC73B J
+            GROUP BY J.SSPS_DL_CRT_DT
+                    ,J.SSPS_DL_ID
+           ) C
+      WHERE A.DL_P_RNMCNO  = B.RNMCNO
+        AND A.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT
+        AND A.SSPS_DL_ID = C.SSPS_DL_ID
+        AND A.INST_ID IS NULL
+    </if>  
+	<if test='ROLE_CD == "4"'> 
+	 UNION ALL
+	SELECT 77777, COUNT(*) AS CNT, ''
+      FROM NIC66B A
+          ,NIC01B B
+          ,(SELECT J.SSPS_DL_CRT_DT
+                  ,J.SSPS_DL_ID
+                  ,COUNT(*) AS CNT
+             FROM NIC73B J
+            GROUP BY J.SSPS_DL_CRT_DT
+                    ,J.SSPS_DL_ID
+           ) C
+      WHERE A.DL_P_RNMCNO  = B.RNMCNO
+        AND A.SSPS_DL_CRT_DT = C.SSPS_DL_CRT_DT
+        AND A.SSPS_DL_ID = C.SSPS_DL_ID
+        AND A.INST_ID IS NULL
+	 UNION ALL                                       
+	SELECT 99999, COUNT(*) AS CNT, '' 
+	  FROM NIC66B              
+	 WHERE SSPS_DL_CRT_CCD IN ('STR', 'KYC')         
+	    AND RPR_PRGRS_CCD = '9'                      
+	    AND OK_CCD = '1'                             
+	    --AND SSPS_DL_CRT_DT BETWEEN to_char(add_months(SYSDATE, -3), 'yyyymmdd') and to_char(sysdate,'yyyyMMdd')    
+	 UNION ALL                                       
+	SELECT 88888, COUNT(*) AS CNT, '' 
+	  FROM NIC66B              
+	 WHERE SSPS_DL_CRT_CCD IN ('CTR', 'CAC')        
+	    AND RPR_PRGRS_CCD = '9'                      
+	    AND OK_CCD = '1'                            
+	    --AND SSPS_DL_CRT_DT BETWEEN to_char(add_months(SYSDATE, -3), 'yyyymmdd') and to_char(sysdate,'yyyyMMdd')
+	 UNION ALL
+	SELECT * FROM (                                 
+			SELECT 10000 + DECODE(COALESCE(KFU_RRPR_STS_CD, KFU_RPR_STS_CD , RPR_PRGRS_CCD), '99', '10',
+			                           COALESCE(KFU_RRPR_STS_CD, KFU_RPR_STS_CD , RPR_PRGRS_CCD) )
+			      , COUNT(*) AS CNT
+			      , GET_CODE_NAME('S060', COALESCE(KFU_RRPR_STS_CD, KFU_RPR_STS_CD , RPR_PRGRS_CCD))
+			  FROM NIC66B A, NIC80B B             
+			 WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+			   AND A.SSPS_DL_ID = B.SSPS_DL_ID
+			   AND LENGTH(B.RPR_OGN_CD) = 6 
+			   AND SSPS_DL_CRT_CCD IN ('STR', 'KYC')         
+			   AND COALESCE(KFU_RRPR_STS_CD, KFU_RPR_STS_CD , RPR_PRGRS_CCD) IN ('14','24','34','44','54','60','99')                    
+			   AND OK_CCD = '1'                             
+			   --AND SSPS_DL_CRT_DT BETWEEN to_char(add_months(SYSDATE, -3), 'yyyymmdd') and to_char(sysdate,'yyyyMMdd')
+			GROUP BY COALESCE(KFU_RRPR_STS_CD, KFU_RPR_STS_CD , RPR_PRGRS_CCD)
+			ORDER BY DECODE(COALESCE(KFU_RRPR_STS_CD, KFU_RPR_STS_CD , RPR_PRGRS_CCD), '99', '10',
+			                           COALESCE(KFU_RRPR_STS_CD, KFU_RPR_STS_CD , RPR_PRGRS_CCD) )
+	 )                                 
+	 UNION ALL
+	SELECT * FROM (                                           
+			SELECT 20000 + DECODE(NVL(KFU_RPR_STS_CD , RPR_PRGRS_CCD), '99', '10', NVL(KFU_RPR_STS_CD , RPR_PRGRS_CCD) )  
+			     , COUNT(*) AS CNT
+			     , GET_CODE_NAME('S060', NVL(KFU_RPR_STS_CD , RPR_PRGRS_CCD))  
+			  FROM NIC66B A, NIC80B B             
+			 WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+			   AND A.SSPS_DL_ID = B.SSPS_DL_ID
+			   AND LENGTH(B.RPR_OGN_CD) = 6
+			   AND SSPS_DL_CRT_CCD IN ('CTR', 'CAC')        
+			   AND NVL(KFU_RPR_STS_CD , RPR_PRGRS_CCD) IN ('14','24','34','54','99')
+			   AND OK_CCD = '1'                            
+			    --AND SSPS_DL_CRT_DT BETWEEN to_char(add_months(SYSDATE, -3), 'yyyymmdd') and to_char(sysdate,'yyyyMMdd')
+			GROUP BY NVL(KFU_RPR_STS_CD , RPR_PRGRS_CCD)
+			ORDER BY DECODE(NVL(KFU_RPR_STS_CD , RPR_PRGRS_CCD), '99', '10', NVL(KFU_RPR_STS_CD , RPR_PRGRS_CCD) )    
+	) 
+	 UNION ALL
+	SELECT 30000 + 70
+	     , COUNT(*) AS CNT
+	     , GET_CODE_NAME('S063', '70')
+	  FROM NIC100B
+	 WHERE SSPS_DL_GB = 'S'
+	   AND SSPS_PRGRS_CCD = '70'
+	   --AND REQ_DT BETWEEN to_char(add_months(SYSDATE, -3), 'yyyymmdd') and to_char(sysdate,'yyyyMMdd')                             
+	</if>
+	UNION ALL
+	
+	    SELECT 
+			11 AS PROC_ID --위험요소결재
+			, COUNT(DISTINCT M.BAS_YYMM) AS CNT
+			, '위험요소결재' AS CNM
+		FROM SRBA_RISK_ELMT_M M , SRBA_APPR_M G
+		WHERE 1=1
+		AND  M.BAS_YYMM = G.BAS_YYMM
+		AND  'SRBA_RISK_ELMT_M' = G.TABLE_NM
+		AND  ( ( G.GYLJ_S_C = '12' AND #{ROLE_CD} = '104' ) OR ( G.GYLJ_S_C = '22' AND #{ROLE_CD} = '4' ) )
+		
+		UNION ALL
+		
+		SELECT 
+			12 AS PROC_ID --통제항목결재
+			, COUNT(DISTINCT M.BAS_YYMM) AS CNT
+			, '통제항목결재' AS CNM
+		FROM SRBA_RISK_ELMT_M M , SRBA_APPR_M G
+		WHERE 1=1
+		AND  M.BAS_YYMM = G.BAS_YYMM
+		AND  'SRBA_CNTL_ELMN_M' = G.TABLE_NM
+		AND  ( ( G.GYLJ_S_C = '12' AND #{ROLE_CD} = '104' ) OR ( G.GYLJ_S_C = '22' AND #{ROLE_CD} = '4' ) )
+		
+		UNION ALL
+		
+		--통제수행 결재건수
+		SELECT 13 AS PROC_ID
+		, COUNT(1) AS CNT
+		, '' as CNM
+		FROM (
+			SELECT M.BAS_YYMM , M.BRNO, M.CNTL_ELMN_C, G.GYLJ_S_C
+			FROM SRBA_V_CNTL_ELMN_M M , SRBA_APPR_M G
+			WHERE 1 =1
+			AND  M.BAS_YYMM = G.BAS_YYMM
+			AND  'SRBA_V_CNTL_ELMN_M' = G.TABLE_NM
+			AND  M.CNTL_ELMN_C = G.LV3
+			AND  M.BRNO = G.BRNO
+			GROUP BY M.BAS_YYMM , M.BRNO, M.CNTL_ELMN_C, G.GYLJ_S_C
+			) A , 
+			( SELECT DEP_DESC AS BRNO FROM C_DEP_INFO AA, C_USER UU WHERE UU.USER_ID = #{USER_ID} AND UU.DEP_ID = AA.DEP_ID ) B
+		WHERE ( #{ROLE_CD} = '4' AND GYLJ_S_C = '22' AND A.BRNO = B.BRNO ) --운영팀담당자 ( 반려대상 )
+		     OR ( #{ROLE_CD} = '4' AND GYLJ_S_C = '23' ) --운영팀담당자 ( 영업점대상 본점담당자 결재 대상 )
+		     OR ( #{ROLE_CD} = '104' AND GYLJ_S_C = '12' AND A.BRNO = B.BRNO ) --보고책임자
+		     OR ( #{ROLE_CD} = '104' AND GYLJ_S_C = '32' ) --보고책임자
+		     OR ( #{ROLE_CD} = '105' AND GYLJ_S_C = '22' AND A.BRNO = B.BRNO ) --지점담당자
+		     OR ( #{ROLE_CD} = '6' AND GYLJ_S_C ='13' AND A.BRNO = B.BRNO) --지점책임자
+		
+		UNION ALL
+		
+		SELECT 
+			20 AS PROC_ID --개선현황
+			, COUNT(DISTINCT M.BAS_YYMM) AS CNT
+			, '개선현황' AS CNM
+		FROM SRBA_RISK_ELMT_M M , SRBA_APPR_M G
+		WHERE 1=1
+		AND  M.BAS_YYMM = G.BAS_YYMM
+		AND  'SRBA_CNTL_ELMN_M' = G.TABLE_NM
+		AND  ( ( G.GYLJ_S_C = '12' AND #{ROLE_CD} = '5' ) OR ( G.GYLJ_S_C = '22' AND #{ROLE_CD} = '4' ) )
+		
+		UNION ALL
+		
+		SELECT 
+			21 AS PROC_ID --KRI개선
+			, COUNT(DISTINCT M.BAS_YYMM) AS CNT
+			, 'KRI개선' AS CNM
+		FROM SRBA_RISK_ELMT_M M , SRBA_APPR_M G
+		WHERE 1=1
+		AND  M.BAS_YYMM = G.BAS_YYMM
+		AND  'SRBA_CNTL_ELMN_M' = G.TABLE_NM
+		AND  ( ( G.GYLJ_S_C = '12' AND #{ROLE_CD} = '5' ) OR ( G.GYLJ_S_C = '22' AND #{ROLE_CD} = '4' ) )
+	
+	</select>
+	
+	<!-- 삼성증권 end -->
+	
+	
+    <select id="AML_00_02_01_01_getApprovalCount_old" parameterType="hashMap" resultType="DataObj">
+        SELECT /*+ LEADING(E) */ D.PROC_ID, COUNT(*) AS CNT
+          FROM NIC66B E, WF_PROC_INSTANCE A, WF_PROC_INSTANCE D, WF_WORK_PARTICIPANT B
+          LEFT OUTER JOIN WF_WORK_PERFORMER C
+            ON ( C.WORK_STATUS_CD = 'FINISHED' AND B.WORK_ID = C.WORK_ID AND B.PARTICIPANT_ID = C.PERFORMER_ID)
+         WHERE A.WORK_ID = B.WORK_ID AND C.PERFORMER_ID IS NULL
+           AND ( (B.PERSON_YN ='Y' AND B.PARTICIPANT_ID = #{USER_ID})
+                 OR
+                 (B.PERSON_YN='N' AND B.PARTICIPANT_ID IN (SELECT J.DEP_ID || '.' || I.ROLE_ID
+                                                             FROM C_USER_GROUP_ROLE I, C_USER J
+                                                            WHERE I.USER_ID= #{USER_ID} AND I.USER_ID = J.USER_ID
+                                                              AND J.DEP_ID || '.' || I.ROLE_ID = #{ROLE_ID}
+                                                           )
+                 )
+               )
+           AND A.PAR_INST_ID = D.INST_ID
+           AND E.INST_ID = D.INST_ID
+         GROUP BY D.PROC_ID
+        <if test='ROLE_CD == "4"'>
+     UNION ALL
+        SELECT 99999, COUNT(*)
+          FROM NIC66B F
+         WHERE F.SSPS_DL_CRT_CCD IN ('STR', 'KYC')
+           AND F.RPR_PRGRS_CCD = '9'
+           AND F.OK_CCD = '1'
+           AND F.SSPS_DL_CRT_DT BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -3), 'YYYYMMDD') AND TO_CHAR(SYSDATE,'YYYYMMDD')
+     UNION ALL
+        SELECT 88888, COUNT(*)
+          FROM NIC66B G
+         WHERE G.SSPS_DL_CRT_CCD IN ('CTR', 'CAC')
+           AND G.RPR_PRGRS_CCD = '9'
+           AND G.OK_CCD = '1'
+           AND G.SSPS_DL_CRT_DT BETWEEN TO_CHAR(ADD_MONTHS(SYSDATE, -3), 'YYYYMMDD') AND TO_CHAR(SYSDATE,'YYYYMMDD')
+        </if>
+<!-- [START] 배치오류 소스 추가  부분 -->
+     UNION ALL
+        SELECT 77777, COUNT(*)
+          FROM NIC93B_LOG I
+         WHERE 1=1
+           AND I.JOB_ID IN ('A30S10','A50S10') -- 사이트에 맞게 JOB_ID변경
+           AND I.JOB_ST_CD = '9'
+           AND I.TRADE_DT IS NOT NULL
+           AND NOT EXISTS (
+                            SELECT J.JOB_DT
+                              FROM NIC93B_LOG J
+                             WHERE 1=1
+                               AND J.JOB_ID IN ('A30S10','A50S10') -- 사이트에 맞게 JOB_ID변경
+                               AND J.JOB_ST_CD = 1
+                               AND I.TRADE_DT = J.TRADE_DT
+                               AND J.JOB_DT = ( SELECT MAX(K.JOB_DT)
+                                                 FROM NIC93B_LOG K
+                                                WHERE SUBSTR(J.JOB_DT, 1, 8)= SUBSTR(K.JOB_DT, 1, 8)
+                                                  AND J.JOB_SEQ = K.JOB_SEQ
+                                                GROUP BY SUBSTR(K.JOB_DT, 1, 8)
+                                              )
+                           )
+<!-- [END] 배치오류 소스 추가  부분 -->
+    </select>
+
+    <select id="AML_00_00_00_00_getCustId_By_AccNo" parameterType="hashMap" resultType="DataObj">
+        SELECT A.RNMCNO /* 20250605 AML_CUST_ID */
+          FROM NIC17B A
+         WHERE A.MN_DL_DPRT_CD = #{param0} AND A.CIF = #{param1} AND ROWNUM=1
+    </select>
+
+    <select id="AML_00_02_01_01_getAlertList_MASTER_BRANCH_N" parameterType="hashMap" resultType="DataObj">
+        SELECT *
+          FROM ( SELECT DISTINCT B.SSPS_DL_CRT_DT                               -- 혐의거래 생성일자
+                                ,A.SSPS_DL_CRT_CCD                              -- 혐의거래생성 구분코드
+                                ,A.SSPS_TYP_CD                                  -- 혐의유형코드
+                                ,A.SSPS_DL_RPR_CCD                              -- 혐의거래보고구분코드
+                                ,B.MN_DL_DPRT_CD                                -- 혐의거래부점코드
+                                ,B.MN_DL_DPRT_NM                                -- 혐의거래부점코드명
+                                ,FN_CDINFO_VAR('NO', C.RNMCNO, '') AS RNMCNO    -- 거래자실명확인번호
+                                ,C.CS_NM                                        -- 거래자실명확인번호명
+                                ,DECODE(A.SSPS_DL_CRT_CCD, 'CTR', B.GNL_AC_NO, '') AS GNL_AC_NO
+                   FROM NIC66B A, NIC71B B, NIC01B C
+                  WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+                    AND A.SSPS_DL_ID = B.SSPS_DL_ID
+                    AND A.DL_P_RNMCNO /* 20250605 AML_CUST_ID */ = C.RNMCNO /* 20250605 AML_CUST_ID */
+                    AND B.SSPS_DL_CRT_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    AND A.SSPS_DL_CRT_CCD = #{SSPS_DL_CRT_CCD}
+                    AND B.MN_DL_DPRT_CD = #{BDPT_CD}
+               ) M
+         WHERE ROWNUM &lt; #{ROWNUM}
+    </select>
+
+    <select id="AML_00_02_01_01_getAlertList_MASTER_BRANCH_Y" parameterType="hashMap" resultType="DataObj">
+        SELECT *
+          FROM ( SELECT DISTINCT A.SSPS_DL_CRT_DT      -- 혐의거래 생성 일자
+                                ,A.SSPS_DL_CRT_CCD     -- 혐의거래생성 구분코드
+                                ,A.SSPS_TYP_CD         -- 혐의유형코드
+                                ,A.SSPS_DL_RPR_CCD     -- 혐의거래보고구분코드
+                                ,( SELECT I.GNL_AC_NO
+                                     FROM NIC71B I
+                                    WHERE I.SSPS_DL_CRT_DT = A.SSPS_DL_CRT_DT
+                                      AND I.SSPS_DL_ID = A.SSPS_DL_ID
+                                      AND ROWNUM = 1
+                                 ) AS GNL_AC_NO        -- 종합계좌번호
+                                ,( SELECT J.MN_DL_DPRT_CD
+                                     FROM NIC71B J
+                                    WHERE J.SSPS_DL_CRT_DT = A.SSPS_DL_CRT_DT
+                                      AND J.SSPS_DL_ID = A.SSPS_DL_ID
+                                      AND ROWNUM = 1
+                                 ) AS MN_DL_DPRT_CD    -- 주거래부점코드
+                                ,( SELECT K.MN_DL_DPRT_NM
+                                     FROM NIC71B K
+                                    WHERE K.SSPS_DL_CRT_DT = A.SSPS_DL_CRT_DT
+                                      AND K.SSPS_DL_ID = A.SSPS_DL_ID
+                                      AND ROWNUM = 1
+                                  ) AS MN_DL_DPRT_NM    -- 주거래부점코드명
+                                ,FN_CDINFO_VAR('NO', B.RNMCNO, '') AS RNMCNO
+                                ,B.RNMCNO /* 20250605 AML_CUST_ID */
+                                ,B.CS_NM
+                   FROM NIC66B A, NIC01B B
+                  WHERE A.DL_P_RNMCNO /* 20250605 AML_CUST_ID */ = B.RNMCNO /* 20250605 AML_CUST_ID */
+                    AND A.SSPS_DL_CRT_DT = TO_CHAR(SYSDATE, 'YYYYMMDD')
+                    AND A.SSPS_DL_CRT_CCD = #{SSPS_DL_CRT_CCD}
+                ) T
+        WHERE ROWNUM &lt; #{ROWNUM}
+    </select>
+
+    <!-- 메뉴 트리 반환 -->
+    <select id="getMenuTree" parameterType="hashMap" resultType="DataObj">
+        WITH RECURSIVE (PAR_MENU_ACT_ID, MENU_ACT_ID, DISPLAY_NM, ACTIVE_MENU_IMAGE, INACTIVE_MENU_IMAGE, DISPLAY_ORDER, WINDOW_ACT_ID, RECURSIVE_LEVEL)
+          AS ( SELECT X.PAR_MENU_ACT_ID
+                     ,X.MENU_ACT_ID
+                     ,X.DISPLAY_NM
+                     ,X.ACTIVE_MENU_IMAGE
+                     ,X.INACTIVE_MENU_IMAGE
+                     ,X.DISPLAY_ORDER
+                     ,X.WINDOW_ACT_ID
+                     ,1 RECURSIVE_LEVEL
+                 FROM ( SELECT C.PAR_MENU_ACT_ID
+                              ,B.MENU_ACT_ID
+                              ,A.DISPLAY_NM
+                              ,B.ACTIVE_MENU_IMAGE
+                              ,B.INACTIVE_MENU_IMAGE
+                              ,C.DISPLAY_ORDER
+                              ,( SELECT E.WINDOW_ACT_ID
+                                   FROM ( SELECT F.MENU_ACT_ID
+                                                ,F.WINDOW_ACT_ID
+                                            FROM C_MENU_WINDOW_MAP F
+                                           ORDER BY F.WINDOW_DEFAULT_YN DESC
+                                                   ,F.WINDOW_ACT_ID ASC
+                                         ) E
+                                  WHERE ROWNUM = 1
+                                    AND E.MENU_ACT_ID = B.MENU_ACT_ID
+                               ) AS WINDOW_ACT_ID
+                          FROM C_GROUP_ROLE_MENU_ACT_AUTH D
+                              ,C_PKG_MENU_MAP C
+                              ,C_MENU_ACT B
+                              ,C_MENU_DISPLAY A
+                         WHERE A.LANG_CD = #{LANG_CD}
+                           AND A.MENU_ACT_ID     = B.MENU_ACT_ID
+                           AND B.MENU_ACT_ID     = C.MENU_ACT_ID
+                           AND B.MENU_DISPLAY_YN = 'Y'
+                           AND C.PKG_ID          = D.PKG_ID
+                           AND C.MENU_ACT_ID <![CDATA[<>]]> C.PAR_MENU_ACT_ID
+                           AND D.PKG_ID          = #{PKG_ID}
+                           AND D.PAR_MENU_ACT_ID = C.PAR_MENU_ACT_ID
+                           AND D.MENU_ACT_ID     = C.MENU_ACT_ID
+                           AND D.GROUP_ID        = #{GROUP_ID}
+                           AND D.ROLE_ID         = #{ROLE_ID}
+                           AND D.ACCESS_YN       = 'Y'
+                         ORDER BY C.DISPLAY_ORDER
+                       ) X
+                WHERE X.PAR_MENU_ACT_ID = 'AML'
+            UNION ALL
+               SELECT Y.PAR_MENU_ACT_ID
+                     ,Y.MENU_ACT_ID
+                     ,Y.DISPLAY_NM
+                     ,Y.ACTIVE_MENU_IMAGE
+                     ,Y.INACTIVE_MENU_IMAGE
+                     ,Y.DISPLAY_ORDER
+                     ,Y.WINDOW_ACT_ID
+                     ,P.RECURSIVE_LEVEL+1
+                 FROM ( SELECT C.PAR_MENU_ACT_ID
+                              ,B.MENU_ACT_ID
+                              ,A.DISPLAY_NM
+                              ,B.ACTIVE_MENU_IMAGE
+                              ,B.INACTIVE_MENU_IMAGE
+                              ,C.DISPLAY_ORDER
+                              ,( SELECT E.WINDOW_ACT_ID
+                                   FROM ( SELECT F.MENU_ACT_ID
+                                                ,F.WINDOW_ACT_ID
+                                            FROM C_MENU_WINDOW_MAP F
+                                           ORDER BY F.WINDOW_DEFAULT_YN DESC
+                                                   ,F.WINDOW_ACT_ID ASC
+                                        ) E
+                                  WHERE ROWNUM = 1
+                                    AND E.MENU_ACT_ID = B.MENU_ACT_ID
+                               ) AS WINDOW_ACT_ID
+                          FROM C_GROUP_ROLE_MENU_ACT_AUTH D
+                              ,C_PKG_MENU_MAP C
+                              ,C_MENU_ACT B
+                              ,C_MENU_DISPLAY A
+                         WHERE A.LANG_CD         = #{LANG_CD}
+                           AND A.MENU_ACT_ID     = B.MENU_ACT_ID
+                           AND B.MENU_ACT_ID     = C.MENU_ACT_ID
+                           AND B.MENU_DISPLAY_YN = 'Y'
+                           AND C.PKG_ID          = D.PKG_ID
+                           AND C.MENU_ACT_ID <![CDATA[<>]]> C.PAR_MENU_ACT_ID
+                           AND D.PKG_ID          = #{PKG_ID}
+                           AND D.PAR_MENU_ACT_ID = C.PAR_MENU_ACT_ID
+                           AND D.MENU_ACT_ID     = C.MENU_ACT_ID
+                           AND D.GROUP_ID        = #{GROUP_ID}
+                           AND D.ROLE_ID         = #{ROLE_ID}
+                           AND D.ACCESS_YN       = 'Y'
+                         ORDER BY C.DISPLAY_ORDER
+                      ) Y, RECURSIVE P
+                 WHERE Y.PAR_MENU_ACT_ID = P.MENU_ACT_ID
+            )
+     SELECT R.RECURSIVE_LEVEL AS M_LEVEL
+           ,CASE WHEN R.WINDOW_ACT_ID IS NULL THEN 0 ELSE 1 END AS IS_LEAF
+           ,R.PAR_MENU_ACT_ID
+           ,R.MENU_ACT_ID
+           ,R.DISPLAY_NM
+           ,R.ACTIVE_MENU_IMAGE
+           ,R.INACTIVE_MENU_IMAGE
+           ,R.DISPLAY_ORDER
+           ,R.WINDOW_ACT_ID
+       FROM RECURSIVE R
+      ORDER BY R.RECURSIVE_LEVEL, R.DISPLAY_ORDER
+    </select>
+
+    <!-- 메뉴 권한 체크 -->
+    <select id="getcheckAuth" parameterType="hashMap" resultType="DataObj">
+        SELECT A.ACCESS_YN
+          FROM C_GROUP_ROLE_MENU_ACT_AUTH A
+         WHERE A.MENU_ACT_ID = #{MENU_ACT_ID}
+    </select>
+
+    <!-- 패스워드 변경 체크 -->
+    <select id="AML_00_01_01_02.getCheckPwdChange" parameterType="hashMap" resultType="DataObj">
+        SELECT A.USER_ID
+              ,A.DETAIL_CD
+              ,A.DETAIL
+          FROM C_USER_DETAIL A
+         WHERE A.USER_ID = #{USER_ID}
+           AND A.DETAIL_CD = 'PWD_CHNG_DATE'
+           AND A.DETAIL IS NOT NULL
+    </select>
+
+    <!-- 패스워드 변경 추가 -->
+    <insert id="AML_00_01_01_02.addCheckPwdChange" parameterType="hashMap">
+        INSERT INTO C_USER_DETAIL (USER_ID, DETAIL_CD, DETAIL)
+        VALUES ( #{USER_ID}, 'PWD_CHNG_DATE', TO_CHAR(SYSDATE,'YYYYMMDD') )
+    </insert>
+
+    <!-- 패스워드 변경 수정 -->
+    <update id="AML_00_01_01_02.setCheckPwdChange" parameterType="hashMap">
+        UPDATE C_USER_DETAIL A
+           SET A.DETAIL = TO_CHAR(SYSDATE,'YYYYMMDD')
+         WHERE A.USER_ID = #{USER_ID} AND A.DETAIL_CD = 'PWD_CHNG_DATE'
+    </update>
+
+    <!-- 패스워드 변경 이력 -->
+    <insert id="AML_00_01_01_02_insertPassWordHist" parameterType="hashMap">
+        INSERT INTO C_USER_PASSWD_HST (USER_ID, USER_PWD, CRE_ID, CRE_DT)
+        VALUES (#{USER_ID}, #{USER_PWD}, #{CRE_ID}, #{CRE_DT})
+    </insert>
+    
+    <select id="AML_00_02_01_01_getDataChart1_1_1" parameterType="hashMap" resultType="DataObj">
+	/* 위험등급별 고객 현황: 전체, 최근 1개월 */
+	WITH TOTAL_HML_DATA
+	AS (
+	    SELECT H, M
+	         , (CASE WHEN T = 0 THEN 0 ELSE (1 - (H + M)) END) AS L
+	      FROM (
+	            SELECT TRUNC(CASE WHEN NVL(SUM(T_CNT), 0) = 0 THEN 0 ELSE (NVL(SUM(H_CNT), 0)/SUM(T_CNT)) END, 3) AS H
+	                 , TRUNC(CASE WHEN NVL(SUM(T_CNT), 0) = 0 THEN 0 ELSE (NVL(SUM(M_CNT), 0)/SUM(T_CNT)) END, 3) AS M
+	                 , NVL(SUM(T_CNT), 0)                                                                         AS T
+	              FROM (
+	                    SELECT CASE WHEN NIC65.DATA_DTIL_CCD = '01' THEN NIC65.CNT ELSE 0 END AS H_CNT
+	                         , CASE WHEN NIC65.DATA_DTIL_CCD = '02' THEN NIC65.CNT ELSE 0 END AS M_CNT
+	                         , NIC65.CNT                                                      AS T_CNT
+	                      FROM (SELECT /*+ INDEX_SS(X NIC65BPK) */
+	                                   MAX(BAS_YYMM) AS BAS_YYMM
+	                              FROM NIC65B
+	                             WHERE 1 = 1
+	                               AND BAS_YYMM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+	                               AND BIZ_RULE_CCD = '01'
+	                               AND DATA_CCD = '11') NIC65_MTH
+	                            LEFT OUTER JOIN NIC65B NIC65
+	                                         ON (
+	                                                 NIC65.BAS_YYMM = NIC65_MTH.BAS_YYMM
+	                                             AND NIC65.BIZ_RULE_CCD = '01'
+	                                             AND NIC65.DATA_CCD = '11'
+	                                             AND ((    #{ROLE_ID } IN ('4', '5', '7', '104')
+	                                                   AND NIC65.BRN_CD = '99999')
+	                                                  OR (    #{ROLE_ID } NOT IN ('4', '5', '7', '104')
+	                                                      AND NIC65.BRN_CD = #{BDPT_CD }))))))
+	SELECT 'L'      AS TS_GRADE_CCD
+	     , '저위험' AS TS_GRADE_NAME
+	     , L        AS TD_GRADE_PERCENT
+	  FROM TOTAL_HML_DATA
+	UNION ALL
+	SELECT 'M'      AS TS_GRADE_CCD
+	     , '중위험' AS TS_GRADE_NAME
+	     , M        AS TD_GRADE_PERCENT
+	  FROM TOTAL_HML_DATA
+	UNION ALL
+	SELECT 'H'      AS TS_GRADE_CCD
+	     , '고위험' AS TS_GRADE_NAME
+	     , H        AS TD_GRADE_PERCENT
+	  FROM TOTAL_HML_DATA
+	</select>
+	
+	<select id="AML_00_02_01_01_getDataChart1_1_2" parameterType="hashMap" resultType="DataObj">
+		/* 위험등급별 고객 현황: 개인/법인, 최근 1개월 */
+		SELECT CUST_CCD                                              AS TS_CUST_CCD
+		     , CASE WHEN CUST_CCD = '01' THEN '개인' ELSE '법인' END AS TS_CUST_CCD_NM
+		     , NVL(SUM(H_CNT), 0)                                    AS TD_H
+		     , NVL(SUM(M_CNT), 0)                                    AS TD_M
+		     , NVL(SUM(L_CNT), 0)                                    AS TD_L
+		  FROM (
+		        SELECT NIC65.CUST_CCD
+		             , CASE WHEN NIC65.DATA_DTIL_CCD = '01' THEN NIC65.CNT ELSE 0 END AS H_CNT
+		             , CASE WHEN NIC65.DATA_DTIL_CCD = '02' THEN NIC65.CNT ELSE 0 END AS M_CNT
+		             , CASE WHEN NIC65.DATA_DTIL_CCD = '03' THEN NIC65.CNT ELSE 0 END AS L_CNT
+		          FROM (SELECT /*+ INDEX_SS(X NIC65BPK) */
+		                       MAX(BAS_YYMM) AS BAS_YYMM
+		                  FROM NIC65B
+		                 WHERE 1 = 1
+		                   AND BAS_YYMM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+		                   AND BIZ_RULE_CCD = '01'
+		                   AND DATA_CCD = '11') NIC65_MTH
+		             , NIC65B                   NIC65
+		         WHERE 1 = 1
+		           AND NIC65.BAS_YYMM = NIC65_MTH.BAS_YYMM
+		           AND NIC65.BIZ_RULE_CCD = '01'
+		           AND NIC65.DATA_CCD = '11'
+		           AND ((    #{ROLE_ID } IN ('4', '5', '7', '104')
+		                 AND NIC65.BRN_CD = '99999')
+		                OR (    #{ROLE_ID } NOT IN ('4', '5', '7', '104')
+		                    AND NIC65.BRN_CD = #{BDPT_CD }))
+		        UNION ALL
+		        SELECT '01' AS CUST_CCD, 0 AS H_CNT, 0 AS M_CNT, 0 AS L_CNT FROM DUAL
+		        UNION ALL
+		        SELECT '02' AS CUST_CCD, 0 AS H_CNT, 0 AS M_CNT, 0 AS L_CNT FROM DUAL)
+		 GROUP BY CUST_CCD
+	</select>
+
+    <select id="AML_00_02_01_01_getDataChart1_2_1" parameterType="hashMap" resultType="DataObj">
+		/* 월별 고객확인(CDD) 현황: 2개월, 신규 */
+		WITH MNTH_DATA
+		AS (
+		    SELECT TO_CHAR(ADD_MONTHS(NIC65_01.BAS_YYMM,-NIC65_02.LV+1),'YYYYMM') AS BAS_YYMM
+		      FROM (
+		            SELECT /*+ INDEX_SS(X NIC65BPK) */
+		                   NVL(TO_DATE(MAX(BAS_YYMM),'YYYYMM'),SYSDATE) AS BAS_YYMM
+		              FROM NIC65B
+		             WHERE 1 = 1
+		               AND BAS_YYMM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+		               AND BIZ_RULE_CCD = '03') NIC65_01
+		         , (
+		            SELECT LEVEL AS LV FROM DUAL CONNECT BY LEVEL <![CDATA[<=]]> 2) NIC65_02)
+		SELECT BAS_YYMM                                            AS TS_BAS_YYMM
+		     , TO_CHAR(TO_DATE(BAS_YYMM, 'YYYYMM'), 'YY.MM')||'월' AS TS_BAS_YYMM_NAME
+		     , NVL(SUM(H_CNT), 0)                                  AS TD_H
+		     , NVL(SUM(M_CNT), 0)                                  AS TD_M
+		     , NVL(SUM(L_CNT), 0)                                  AS TD_L
+		  FROM (
+		        SELECT MD.BAS_YYMM
+		             , CASE WHEN NIC65.DATA_DTIL_CCD = '01' THEN NIC65.CNT ELSE 0 END AS H_CNT
+		             , CASE WHEN NIC65.DATA_DTIL_CCD = '02' THEN NIC65.CNT ELSE 0 END AS M_CNT
+		             , CASE WHEN NIC65.DATA_DTIL_CCD = '03' THEN NIC65.CNT ELSE 0 END AS L_CNT
+		          FROM MNTH_DATA MD
+		               LEFT OUTER JOIN NIC65B NIC65
+		                            ON (
+		                                    NIC65.BAS_YYMM = MD.BAS_YYMM
+		                                AND NIC65.BIZ_RULE_CCD = '03'
+		                                AND NIC65.DATE_TEX_CCD = '01'
+		                                AND ((    #{ROLE_ID } IN ('4', '5', '7', '104')
+		                                      AND NIC65.BRN_CD = '99999')
+		                                     OR (    #{ROLE_ID } NOT IN ('4', '5', '7', '104')
+		                                         AND NIC65.BRN_CD = #{BDPT_CD }))))
+		 GROUP BY BAS_YYMM
+		 ORDER BY BAS_YYMM
+	</select>
+	
+	<select id="AML_00_02_01_01_getDataChart1_2_2" parameterType="hashMap" resultType="DataObj">
+	/* 월별 고객확인(CDD) 현황: 2개월, 재이행 */
+	WITH MNTH_DATA
+	AS (
+	    SELECT TO_CHAR(ADD_MONTHS(NIC65_01.BAS_YYMM,-NIC65_02.LV+1),'YYYYMM') AS BAS_YYMM
+	      FROM (
+	            SELECT /*+ INDEX_SS(X NIC65BPK) */
+	                   NVL(TO_DATE(MAX(BAS_YYMM),'YYYYMM'),SYSDATE) AS BAS_YYMM
+	              FROM NIC65B
+	             WHERE 1 = 1
+	               AND BAS_YYMM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+	               AND BIZ_RULE_CCD = '03') NIC65_01
+	         , (
+	            SELECT LEVEL AS LV FROM DUAL CONNECT BY LEVEL <![CDATA[<=]]> 2) NIC65_02)
+	SELECT BAS_YYMM                                            AS TS_BAS_YYMM
+	     , TO_CHAR(TO_DATE(BAS_YYMM, 'YYYYMM'), 'YY.MM')||'월' AS TS_BAS_YYMM_NAME
+	     , NVL(SUM(H_CNT), 0)                                  AS TD_H
+	     , NVL(SUM(M_CNT), 0)                                  AS TD_M
+	     , NVL(SUM(L_CNT), 0)                                  AS TD_L
+	  FROM (
+	        SELECT MD.BAS_YYMM
+	             , CASE WHEN NIC65.DATA_DTIL_CCD = '01' THEN NIC65.CNT ELSE 0 END AS H_CNT
+	             , CASE WHEN NIC65.DATA_DTIL_CCD = '02' THEN NIC65.CNT ELSE 0 END AS M_CNT
+	             , CASE WHEN NIC65.DATA_DTIL_CCD = '03' THEN NIC65.CNT ELSE 0 END AS L_CNT
+	          FROM MNTH_DATA MD
+	               LEFT OUTER JOIN NIC65B NIC65
+	                            ON (
+	                                    NIC65.BAS_YYMM = MD.BAS_YYMM
+	                                AND NIC65.BIZ_RULE_CCD = '03'
+	                                AND NIC65.DATE_TEX_CCD = '02'
+	                                AND ((    #{ROLE_ID } IN ('4', '5', '7', '104')
+	                                      AND NIC65.BRN_CD = '99999')
+	                                     OR (    #{ROLE_ID } NOT IN ('4', '5', '7', '104')
+	                                         AND NIC65.BRN_CD = #{BDPT_CD }))))
+	 GROUP BY BAS_YYMM
+	 ORDER BY BAS_YYMM
+	</select>
+	
+	<select id="AML_00_02_01_01_getDataChart2_1_1" parameterType="hashMap" resultType="DataObj">
+	/* 일별 고액현금거래(CTR) 현황: 5일 */
+    WITH BAS_YMD_LIST AS (
+    SELECT TAGT_DATE AS BAS_YMD
+      FROM  (
+			    SELECT B.DL_DT AS TAGT_DATE
+			         , ROW_NUMBER() OVER (ORDER BY B.DL_DT DESC) AS RNUM
+			      FROM SSQ.NIC66B A
+			         , SSQ.NIC75B B
+			     WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+			       AND A.SSPS_DL_ID = B.SSPS_DL_ID
+			       AND A.SSPS_DL_CRT_CCD = 'CTR'
+			       AND A.INST_ID IS NOT NULL
+			       AND B.DL_DT <![CDATA[<=]]> TO_CHAR(SYSDATE,'YYYYMMDD')
+			     GROUP BY B.DL_DT
+			     ORDER BY B.DL_DT DESC
+           )
+     WHERE RNUM <![CDATA[<=]]> 5)
+    SELECT X.BAS_YMD AS TS_BAS_YMD
+         , TO_CHAR(TO_DATE(X.BAS_YMD, 'YYYYMMDD'), 'MM.DD') || (SELECT CASE WHEN DAY_OF_WEEK_CODE = '0' THEN '(일)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '1' THEN '(월)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '2' THEN '(화)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '3' THEN '(수)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '4' THEN '(목)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '5' THEN '(금)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '6' THEN '(토)'
+                                                                        END
+                                                                  FROM SID.IDO_A_UUE_INSN_CALENDAR I
+                                                                 WHERE I.ENTY_ID = 1
+                                                                   AND I.TAGT_DATE = X.BAS_YMD)
+           AS TS_BAS_YMD_NAME
+         , NVL(Y.TI_ALT_CNT,0) AS TI_ALT_CNT
+         , NVL(Y.TI_RPT_CNT,0) AS TI_RPT_CNT
+      FROM BAS_YMD_LIST X
+         , (
+                SELECT B.DL_DT AS BAS_YMD
+                     , COUNT(*) AS TI_ALT_CNT
+                     , COUNT(DECODE(A.RPR_PRGRS_CCD,'99',1)) AS TI_RPT_CNT
+                  FROM SSQ.NIC66B A
+                     , SSQ.NIC75B B
+                 WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+                   AND A.SSPS_DL_ID = B.SSPS_DL_ID
+                   AND B.DL_DT <![CDATA[>=]]> (SELECT MIN(BAS_YMD) FROM BAS_YMD_LIST)
+                   AND A.SSPS_DL_CRT_CCD = 'CTR'
+                   AND A.INST_ID IS NOT NULL
+                   AND (    #{ROLE_ID } IN ('4', '5', '7', '104')
+                         OR ( #{ROLE_ID } NOT IN ('4', '5', '7', '104')
+                         AND B.HANDLNG_BRN_CD = #{BDPT_CD }))
+                 GROUP BY B.DL_DT
+           ) Y
+     WHERE X.BAS_YMD = Y.BAS_YMD(+)
+     ORDER BY X.BAS_YMD
+ </select>
+
+	<select id="AML_00_02_01_01_getDataChart2_2_1" parameterType="hashMap" resultType="DataObj">
+	/* 일별 의심스러운거래(STR) 현황: 영업일 5일 */
+	WITH BAS_YMD_LIST AS (
+    SELECT TAGT_DATE AS BAS_YMD
+      FROM  (
+                SELECT /*+ INDEX_DESC(X X1_IDO_A_UUE_INSN_CALENDAR) */
+                       TO_CHAR(TO_DATE(TAGT_DATE,'YYYYMMDD')+1,'YYYYMMDD') AS TAGT_DATE
+                     , ROW_NUMBER() OVER (ORDER BY TAGT_DATE DESC) AS RNUM
+                  FROM SID.IDO_A_UUE_INSN_CALENDAR X
+                 WHERE ENTY_ID = 1  -- 삼성증권
+                   AND TO_CHAR(TO_DATE(TAGT_DATE,'YYYYMMDD')+1,'YYYYMMDD') <![CDATA[<=]]> TO_CHAR(SYSDATE,'YYYYMMDD')
+                   AND HDAY_YN = 'N'
+                 ORDER BY TAGT_DATE DESC
+           )
+     WHERE RNUM <![CDATA[<=]]> 5)
+    SELECT X.BAS_YMD AS TS_BAS_YMD
+         , TO_CHAR(TO_DATE(X.BAS_YMD, 'YYYYMMDD'), 'MM.DD') || (SELECT CASE WHEN DAY_OF_WEEK_CODE = '0' THEN '(일)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '1' THEN '(월)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '2' THEN '(화)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '3' THEN '(수)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '4' THEN '(목)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '5' THEN '(금)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '6' THEN '(토)'
+                                                                        END
+                                                                  FROM SID.IDO_A_UUE_INSN_CALENDAR I
+                                                                 WHERE I.ENTY_ID = 1
+                                                                   AND I.TAGT_DATE = X.BAS_YMD)
+           AS TS_BAS_YMD_NAME
+         , NVL(Y.TI_ALT_CNT,0) AS TI_ALT_CNT
+         , NVL(Y.TI_RPT_CNT,0) AS TI_RPT_CNT
+      FROM BAS_YMD_LIST X
+         , (
+                SELECT A.SSPS_DL_CRT_DT AS BAS_YMD
+                     , COUNT(*) AS TI_ALT_CNT
+                     , COUNT(DECODE(A.RPR_PRGRS_CCD,'99',1)) AS TI_RPT_CNT
+                  FROM SSQ.NIC66B A
+                    , (SELECT SSPS_DL_CRT_DT
+                            , SSPS_DL_ID
+                            , MAX(HANDLNG_BRN_CD) KEEP (DENSE_RANK FIRST ORDER BY DL_DT DESC, DL_SQ DESC) MAX_BRN_CD
+                         FROM SSQ.NIC75B
+                        WHERE SSPS_DL_CRT_DT <![CDATA[>=]]> (SELECT MIN(BAS_YMD) FROM BAS_YMD_LIST)
+                          AND (SSPS_DL_ID LIKE 'STR%' OR SSPS_DL_ID LIKE 'KYC%')
+                        GROUP BY SSPS_DL_CRT_DT, SSPS_DL_ID
+                     ) B
+                 WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT(+) -- 2022.01.04 STR WC07 거래번호 문제로 OUTER로 변경
+                   AND A.SSPS_DL_ID = B.SSPS_DL_ID(+) -- 2022.01.04 STR WC07 거래번호 문제로 OUTER로 변경
+                   AND A.SSPS_DL_CRT_DT <![CDATA[>=]]> (SELECT MIN(BAS_YMD) FROM BAS_YMD_LIST)
+                   AND A.SSPS_DL_CRT_CCD IN ('STR')
+                   AND A.INST_ID IS NOT NULL
+                   AND (    #{ROLE_ID } IN ('4', '5', '7', '104')
+                         OR ( #{ROLE_ID } NOT IN ('4', '5', '7', '104')
+                         AND B.MAX_BRN_CD = #{BDPT_CD }))
+                 GROUP BY A.SSPS_DL_CRT_DT
+           ) Y
+     WHERE X.BAS_YMD = Y.BAS_YMD(+)
+     ORDER BY X.BAS_YMD
+ 	</select>
+	
+
+    <select id="AML_00_02_01_01_getDataChart1_1_1_old" parameterType="hashMap" resultType="DataObj">
+        /* 위험등급별 고객 현황: 전체, 최근 1개월
+         * 중위험, 고위험의 잔여비율은 모두 저위험에 포함됨
+         * 직문에 따라 다르게 조회함
+         *   본점담당자(4), 본점책임자(5), AML시스템관리자(7) : 지점이 전체(99999)인 자료를 조회
+         *   다른 직무: 사용자의 지점에 해당하는 자료를 조회
+         */
+        WITH TOTAL_HML_DATA
+          AS ( SELECT J.H, J.M, (CASE WHEN J.T = 0 THEN 0 ELSE (1 - (J.H + J.M) ) END) AS L
+                 FROM ( SELECT TRUNC(CASE WHEN NVL(SUM(I.T_CNT), 0) = 0 THEN 0 ELSE (NVL(SUM(I.H_CNT), 0)/SUM(I.T_CNT)) END, 3) AS H
+                              ,TRUNC(CASE WHEN NVL(SUM(I.T_CNT), 0) = 0 THEN 0 ELSE (NVL(SUM(I.M_CNT), 0)/SUM(I.T_CNT)) END, 3) AS M
+                              ,NVL(SUM(I.T_CNT), 0)                                                                             AS T
+                          FROM ( SELECT CASE WHEN Z.DATA_DTIL_CCD = '01' THEN Z.CNT ELSE 0 END AS H_CNT
+                                       ,CASE WHEN Z.DATA_DTIL_CCD = '02' THEN Z.CNT ELSE 0 END AS M_CNT
+                                       ,Z.CNT                                                  AS T_CNT
+                                   FROM ( SELECT /*+ INDEX(X PK_NIC65B) */
+                                                 MAX(X.BAS_YYMM) AS BAS_YYMM
+                                            FROM NIC65B X
+                                           WHERE 1 = 1
+                                             AND X.BAS_YYMM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                                             AND X.BIZ_RULE_CCD = '01'
+                                             AND X.DATA_CCD = '11'
+                                         ) Y
+                                   LEFT OUTER JOIN NIC65B Z
+                                     ON ( Z.BAS_YYMM = Y.BAS_YYMM
+                                          AND Z.BIZ_RULE_CCD = '01'
+                                          AND Z.DATA_CCD = '11'
+                                          AND ( (#{ROLE_ID} IN ('4', '5', '7') AND Z.BRN_CD = '99999')
+                                                OR ( #{ROLE_ID} NOT IN ('4', '5', '7') AND Z.BRN_CD = #{BDPT_CD} )
+                                              )
+                                        )
+                                ) I
+                      ) J
+              )
+        SELECT 'L'      AS TS_GRADE_CCD
+              ,GET_CODE_NAME('A004', 'L')  AS TS_GRADE_NAME
+              ,A.L      AS TD_GRADE_PERCENT
+          FROM TOTAL_HML_DATA A
+         UNION ALL
+        SELECT 'M'      AS TS_GRADE_CCD
+               ,GET_CODE_NAME('A004', 'M')  AS TS_GRADE_NAME
+               ,B.M     AS TD_GRADE_PERCENT
+          FROM TOTAL_HML_DATA B
+         UNION ALL
+        SELECT 'H'      AS TS_GRADE_CCD
+               ,GET_CODE_NAME('A004', 'H')  AS TS_GRADE_NAME
+               ,C.H     AS TD_GRADE_PERCENT
+          FROM TOTAL_HML_DATA C
+    </select>
+
+    <select id="AML_00_02_01_01_getDataChart1_1_2_old" parameterType="hashMap" resultType="DataObj">
+        /* 위험등급별 고객 현황: 개인/법인, 최근 1개월
+         * 직문에 따라 다르게 조회함
+         * 본점담당자(4), 본점책임자(5), AML시스템관리자(7) : 지점이 전체(99999)인 자료를 조회
+         * 다른 직무: 사용자의 지점에 해당하는 자료를 조회
+         */
+        SELECT A.CUST_CCD                                              AS TS_CUST_CCD
+              ,GET_CODE_NAME('M006', SUBSTR(A.CUST_CCD,2,1))           AS TS_CUST_CCD_NM
+              ,NVL(SUM(A.H_CNT), 0)                                    AS TD_H
+              ,NVL(SUM(A.M_CNT), 0)                                    AS TD_M
+              ,NVL(SUM(A.L_CNT), 0)                                    AS TD_L
+          FROM ( SELECT Z.CUST_CCD
+                       ,CASE WHEN Z.DATA_DTIL_CCD = '01' THEN Z.CNT ELSE 0 END AS H_CNT
+                       ,CASE WHEN Z.DATA_DTIL_CCD = '02' THEN Z.CNT ELSE 0 END AS M_CNT
+                       ,CASE WHEN Z.DATA_DTIL_CCD = '03' THEN Z.CNT ELSE 0 END AS L_CNT
+                   FROM ( SELECT /*+ INDEX(X PK_NIC65B) */
+                                 MAX(X.BAS_YYMM) AS BAS_YYMM
+                            FROM NIC65B X
+                           WHERE 1 = 1
+                             AND X.BAS_YYMM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                             AND X.BIZ_RULE_CCD = '01'
+                             AND X.DATA_CCD = '11'
+                         ) Y
+                        ,NIC65B Z
+                  WHERE 1 = 1
+                    AND Z.BAS_YYMM = Y.BAS_YYMM
+                    AND Z.BIZ_RULE_CCD = '01'
+                    AND Z.DATA_CCD = '11'
+                    AND ( (#{ROLE_ID} IN ('4', '5', '7') AND Z.BRN_CD = '99999')
+                          OR ( #{ROLE_ID} NOT IN ('4', '5', '7') AND Z.BRN_CD = #{BDPT_CD} )
+                        )
+              UNION ALL
+                 SELECT '01' AS CUST_CCD, 0 AS H_CNT, 0 AS M_CNT, 0 AS L_CNT FROM DUAL
+              UNION ALL
+                 SELECT '02' AS CUST_CCD, 0 AS H_CNT, 0 AS M_CNT, 0 AS L_CNT FROM DUAL
+               ) A
+         GROUP BY A.CUST_CCD
+    </select>  
+
+    <select id="AML_00_02_01_01_getDataChart1_2_1_old" parameterType="hashMap" resultType="DataObj">
+        /* 월별 고객확인(CDD) 현황: 2개월, 신규
+         * 직문에 따라 다르게 조회함
+         *   본점담당자(4), 본점책임자(5), AML시스템관리자(7) : 지점이 전체(99999)인 자료를 조회
+         *   다른 직무: 사용자의 지점에 해당하는 자료를 조회
+         */
+        WITH MNTH_DATA
+          AS ( SELECT TO_CHAR(ADD_MONTHS(Y.BAS_YYMM, -Z.LV+1),'YYYYMM') AS BAS_YYMM
+                  FROM ( SELECT /*+ INDEX(X PK_NIC65B) */
+                                NVL(TO_DATE(MAX(X.BAS_YYMM),'YYYYMM'), SYSDATE) AS BAS_YYMM
+                           FROM NIC65B X
+                          WHERE 1 = 1
+                            AND X.BAS_YYMM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                            AND X.BIZ_RULE_CCD = '03'
+                        ) Y
+                        , ( SELECT LEVEL AS LV FROM DUAL
+                           CONNECT BY LEVEL <![CDATA[<=]]> 2
+                          ) Z
+              )
+      SELECT C.BAS_YYMM                                            AS TS_BAS_YYMM
+            ,TO_CHAR(TO_DATE(C.BAS_YYMM, 'YYYYMM'), 'YY.MM')       AS TS_BAS_YYMM_NAME
+            ,NVL(SUM(C.H_CNT), 0)                                  AS TD_H
+            ,NVL(SUM(C.M_CNT), 0)                                  AS TD_M
+            ,NVL(SUM(C.L_CNT), 0)                                  AS TD_L
+        FROM ( SELECT A.BAS_YYMM
+                     ,CASE WHEN B.DATA_DTIL_CCD = '01' THEN B.CNT ELSE 0 END AS H_CNT
+                     ,CASE WHEN B.DATA_DTIL_CCD = '02' THEN B.CNT ELSE 0 END AS M_CNT
+                     ,CASE WHEN B.DATA_DTIL_CCD = '03' THEN B.CNT ELSE 0 END AS L_CNT
+                 FROM MNTH_DATA A
+                 LEFT OUTER JOIN NIC65B B
+                   ON ( B.BAS_YYMM = A.BAS_YYMM
+                        AND B.BIZ_RULE_CCD = '03'
+                        AND B.DATA_TEX_CCD = '01'
+                        AND ( ( #{ROLE_ID} IN ('4', '5', '7') AND B.BRN_CD = '99999')
+                              OR ( #{ROLE_ID } NOT IN ('4', '5', '7') AND B.BRN_CD = #{BDPT_CD} )
+                            )
+                       )
+             ) C
+       GROUP BY C.BAS_YYMM
+       ORDER BY C.BAS_YYMM
+    </select>
+
+    <select id="AML_00_02_01_01_getDataChart1_2_2_old" parameterType="hashMap" resultType="DataObj">
+        /* 월별 고객확인(CDD) 현황: 2개월, 재이행
+         * 직문에 따라 다르게 조회함
+         *   본점담당자(4), 본점책임자(5), AML시스템관리자(7) : 지점이 전체(99999)인 자료를 조회
+         *   다른 직무: 사용자의 지점에 해당하는 자료를 조회
+         */
+        WITH MNTH_DATA
+          AS ( SELECT TO_CHAR(ADD_MONTHS(Y.BAS_YYMM, -Z.LV+1), 'YYYYMM') AS BAS_YYMM
+                 FROM ( SELECT /*+ INDEX(X PK_NIC65B) */
+                               NVL(TO_DATE(MAX(X.BAS_YYMM),'YYYYMM'), SYSDATE) AS BAS_YYMM
+                          FROM NIC65B X
+                         WHERE 1 = 1
+                           AND X.BAS_YYMM <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMM')
+                           AND X.BIZ_RULE_CCD = '03'
+                      ) Y
+                     ,( SELECT LEVEL AS LV FROM DUAL
+                       CONNECT BY LEVEL <![CDATA[<=]]> 2) Z
+              )
+      SELECT C.BAS_YYMM                                            AS TS_BAS_YYMM
+            ,TO_CHAR(TO_DATE(C.BAS_YYMM, 'YYYYMM'), 'YY.MM')       AS TS_BAS_YYMM_NAME
+            ,NVL(SUM(C.H_CNT), 0)                                  AS TD_H
+            ,NVL(SUM(C.M_CNT), 0)                                  AS TD_M
+            ,NVL(SUM(C.L_CNT), 0)                                  AS TD_L
+        FROM ( SELECT A.BAS_YYMM
+                     ,CASE WHEN B.DATA_DTIL_CCD = '01' THEN B.CNT ELSE 0 END AS H_CNT
+                     ,CASE WHEN B.DATA_DTIL_CCD = '02' THEN B.CNT ELSE 0 END AS M_CNT
+                     ,CASE WHEN B.DATA_DTIL_CCD = '03' THEN B.CNT ELSE 0 END AS L_CNT
+                 FROM MNTH_DATA A
+                 LEFT OUTER JOIN NIC65B B
+                   ON ( B.BAS_YYMM = A.BAS_YYMM
+                        AND B.BIZ_RULE_CCD = '03'
+                        AND B.DATA_TEX_CCD = '02'
+                        AND ( ( #{ROLE_ID } IN ('4', '5', '7') AND B.BRN_CD = '99999')
+                              OR ( #{ROLE_ID } NOT IN ('4', '5', '7') AND B.BRN_CD = #{BDPT_CD} )
+                            )
+                       )
+              ) C
+       GROUP BY C.BAS_YYMM
+       ORDER BY C.BAS_YYMM
+    </select>
+
+    <select id="AML_00_02_01_01_getDataChart2_1_1_samsung" parameterType="hashMap" resultType="DataObj">
+        /* 일별 고액현금거래(CTR) 현황: 거래일 5일
+         * 직문에 따라 다르게 조회함
+         *   본점담당자(4), 본점책임자(5), AML시스템관리자(7) : 모든 지점 자료를 조회
+         *   다른 직무: 사용자의 지점에 해당하는 자료를 조회
+         */
+        WITH BAS_YMD_LIST
+          AS ( SELECT C.TAGT_DATE AS BAS_YMD
+                     ,COUNT(*) OVER () AS DATE_CNT
+                 FROM ( SELECT B.DL_DT AS TAGT_DATE
+                              ,ROW_NUMBER() OVER (ORDER BY B.DL_DT DESC) AS RNUM
+                          FROM NIC66B A, NIC75B B
+                         WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+                           AND A.SSPS_DL_ID = B.SSPS_DL_ID
+                           AND A.SSPS_DL_CRT_CCD = 'CTR'
+                           AND A.INST_ID IS NOT NULL
+                           AND B.DL_DT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+                         GROUP BY B.DL_DT
+                         ORDER BY B.DL_DT DESC
+                      ) C
+                WHERE C.RNUM <![CDATA[<=]]> 7
+              )
+          ,BAS_YMD_RESET_LIST
+          AS ( SELECT I.BAS_YMD
+                 FROM BAS_YMD_LIST I
+                UNION
+               SELECT TO_CHAR(TO_DATE(K.BAS_YMD, 'YYYYMMDD')
+                                   - CASE WHEN K.MAX_LV <![CDATA[>=]]> 0
+                                          THEN CASE WHEN (K.MAX_LV - L.LV) <![CDATA[>=]]> 0
+                                                    THEN L.LV
+                                                    ELSE 0
+                                                END
+                                          ELSE 0
+                                      END,  'YYYYMMDD'
+                             ) AS BAS_YMD
+                 FROM ( SELECT NVL(MIN(J.BAS_YMD), TO_CHAR(SYSDATE, 'YYYYMMDD') ) AS BAS_YMD
+                              ,(7 - NVL(MIN(J.DATE_CNT), 0) ) AS MAX_LV
+                          FROM BAS_YMD_LIST J
+                      ) K
+                      ,(SELECT LEVEL AS LV FROM DUAL
+                       CONNECT BY LEVEL <![CDATA[<=]]> 7
+                       ) L
+             )
+      SELECT X.BAS_YMD AS TS_BAS_YMD
+            , TO_CHAR(TO_DATE(X.BAS_YMD, 'YYYYMMDD'), 'MM.DD') || (SELECT CASE WHEN DAY_OF_WEEK_CODE = '0' THEN '(일)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '1' THEN '(월)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '2' THEN '(화)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '3' THEN '(수)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '4' THEN '(목)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '5' THEN '(금)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '6' THEN '(토)'
+                                                                        END
+                                                                  FROM SID.IDO_A_UUE_INSN_CALENDAR I
+                                                                 WHERE I.ENTY_ID = 1
+                                                                   AND I.TAGT_DATE = X.BAS_YMD)
+             AS TS_BAS_YMD_NAME
+            ,NVL(Y.TI_ALT_CNT,0)                              AS TI_ALT_CNT
+            ,NVL(Y.TI_RPT_CNT,0)                              AS TI_RPT_CNT
+        FROM BAS_YMD_RESET_LIST X
+            ,( SELECT B.DL_DT AS BAS_YMD
+                      ,COUNT(*) AS TI_ALT_CNT
+                      ,COUNT(CASE WHEN A.RPR_PRGRS_CCD = '99'
+                                  THEN 1
+                                  WHEN A.RPR_PRGRS_CCD = '9' AND A.OK_CCD = '1'
+                                  THEN 1
+                                  ELSE 0
+                              END) AS TI_RPT_CNT
+              FROM NIC66B A
+                  ,NIC75B B
+             WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+               AND A.SSPS_DL_ID = B.SSPS_DL_ID
+               AND B.DL_DT <![CDATA[>=]]> (SELECT MIN(T.BAS_YMD) FROM BAS_YMD_RESET_LIST T)
+               AND A.SSPS_DL_CRT_CCD = 'CTR'
+               AND A.INST_ID IS NOT NULL
+               AND ( #{ROLE_ID} IN ('4', '5', '7')
+                     OR ( #{ROLE_ID } NOT IN ('4', '5', '7')
+                         AND B.HANDLNG_BRN_CD = #{BDPT_CD}
+                        )
+                    )
+             GROUP BY B.DL_DT
+             ) Y
+       WHERE X.BAS_YMD = Y.BAS_YMD(+)
+       ORDER BY X.BAS_YMD
+    </select>
+
+    <select id="AML_00_02_01_01_getDataChart2_2_1_samsung" parameterType="hashMap" resultType="DataObj">
+        /* 일별 의심스러운거래(STR) 현황: 추출일 5일
+         * 직문에 따라 다르게 조회함
+         *   본점담당자(4), 본점책임자(5), AML시스템관리자(7) : 모든 지점 자료를 조회
+         *   다른 직무: 사용자의 지점에 해당하는 자료를 조회
+         */
+        WITH BAS_YMD_LIST
+          AS ( SELECT C.TAGT_DATE AS BAS_YMD
+                     ,COUNT(*) OVER () AS DATE_CNT
+                 FROM ( SELECT A.SSPS_DL_CRT_DT AS TAGT_DATE
+                              ,ROW_NUMBER() OVER (ORDER BY A.SSPS_DL_CRT_DT DESC) AS RNUM
+                          FROM NIC66B A
+                              ,NIC75B B
+                         WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+                           AND A.SSPS_DL_ID = B.SSPS_DL_ID
+                           AND (B.SSPS_DL_ID LIKE 'STR%' OR B.SSPS_DL_ID LIKE 'KYC%')
+                           AND A.SSPS_DL_CRT_DT <![CDATA[<=]]> TO_CHAR(SYSDATE, 'YYYYMMDD')
+                           AND A.SSPS_DL_CRT_CCD IN ('STR', 'KYC')
+                           AND A.INST_ID IS NOT NULL
+                         GROUP BY A.SSPS_DL_CRT_DT
+                         ORDER BY A.SSPS_DL_CRT_DT DESC
+                      ) C
+                WHERE C.RNUM <![CDATA[<=]]> 7
+              )
+          ,BAS_YMD_RESET_LIST
+          AS ( SELECT D.BAS_YMD FROM BAS_YMD_LIST D
+                UNION
+               SELECT TO_CHAR(TO_DATE(G.BAS_YMD, 'YYYYMMDD')
+                                    - CASE WHEN G.MAX_LV <![CDATA[>=]]> 0
+                                           THEN CASE WHEN (G.MAX_LV - H.LV) <![CDATA[>=]]> 0
+                                                     THEN H.LV
+                                                     ELSE 0
+                                                 END
+                                           ELSE 0
+                                       END,  'YYYYMMDD'
+                             ) AS BAS_YMD
+                 FROM ( SELECT NVL(MIN(F.BAS_YMD), TO_CHAR(SYSDATE, 'YYYYMMDD') ) AS BAS_YMD
+                               , (7 - NVL(MIN(F.DATE_CNT), 0) ) AS MAX_LV
+                          FROM BAS_YMD_LIST F
+                      ) G
+                     ,( SELECT LEVEL AS LV FROM DUAL
+                       CONNECT BY LEVEL <![CDATA[<=]]> 7
+                      ) H
+              )
+      SELECT X.BAS_YMD AS TS_BAS_YMD
+            , TO_CHAR(TO_DATE(X.BAS_YMD, 'YYYYMMDD'), 'MM.DD') || (SELECT CASE WHEN DAY_OF_WEEK_CODE = '0' THEN '(일)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '1' THEN '(월)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '2' THEN '(화)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '3' THEN '(수)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '4' THEN '(목)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '5' THEN '(금)'
+                                                                            WHEN DAY_OF_WEEK_CODE = '6' THEN '(토)'
+                                                                        END
+                                                                  FROM SID.IDO_A_UUE_INSN_CALENDAR I
+                                                                 WHERE I.ENTY_ID = 1
+                                                                   AND I.TAGT_DATE = X.BAS_YMD)
+             AS TS_BAS_YMD_NAME
+            ,NVL(Y.TI_ALT_CNT,0) AS TI_ALT_CNT
+            ,NVL(Y.TI_RPT_CNT,0) AS TI_RPT_CNT
+        FROM BAS_YMD_RESET_LIST X
+            ,( SELECT A.SSPS_DL_CRT_DT AS BAS_YMD
+                     ,COUNT(*) AS TI_ALT_CNT
+                     ,COUNT(DECODE(A.RPR_PRGRS_CCD, '99', 1) ) AS TI_RPT_CNT
+                 FROM NIC66B A
+                     ,(SELECT M.SSPS_DL_CRT_DT
+                             ,M.SSPS_DL_ID
+                             ,MAX(M.HANDLNG_BRN_CD) KEEP (DENSE_RANK FIRST ORDER BY M.DL_DT DESC, M.DL_SQ DESC) AS MAX_BRN_CD
+                         FROM NIC75B M
+                        WHERE M.SSPS_DL_CRT_DT <![CDATA[>=]]> (SELECT MIN(N.BAS_YMD) FROM BAS_YMD_LIST N)
+                          AND (M.SSPS_DL_ID LIKE 'STR%' OR M.SSPS_DL_ID LIKE 'KYC%')
+                        GROUP BY M.SSPS_DL_CRT_DT, M.SSPS_DL_ID
+                      ) B
+                WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+                  AND A.SSPS_DL_ID = B.SSPS_DL_ID
+                  AND A.SSPS_DL_CRT_DT <![CDATA[>=]]> (SELECT MIN(P.BAS_YMD) FROM BAS_YMD_RESET_LIST P)
+                  AND A.SSPS_DL_CRT_CCD IN ('STR','KYC')
+                  AND A.INST_ID IS NOT NULL
+                  AND ( #{ROLE_ID} IN ('4', '5', '7')
+                        OR ( #{ROLE_ID} NOT IN ('4', '5', '7') AND B.MAX_BRN_CD = #{BDPT_CD})
+                      )
+             GROUP BY A.SSPS_DL_CRT_DT
+             ) Y
+       WHERE X.BAS_YMD = Y.BAS_YMD(+)
+       ORDER BY X.BAS_YMD
+    </select>
+
+    <select id="AML_00_04_01_01_getDataChart3_1_1" parameterType="hashMap" resultType="DataObj">
+        SELECT S.DT
+              ,LISTAGG(CASE WHEN S.JOB_ID = 'A10R10' THEN S.LAST_STAUS ELSE NULL END) WITHIN GROUP(ORDER BY 1) AS W
+              ,LISTAGG(CASE WHEN S.JOB_ID = 'A10R20' THEN S.LAST_STAUS ELSE NULL END) WITHIN GROUP(ORDER BY 1) AS R
+              ,LISTAGG(CASE WHEN S.JOB_ID = 'A30S10' THEN S.LAST_STAUS ELSE NULL END) WITHIN GROUP(ORDER BY 1) AS S
+              ,LISTAGG(CASE WHEN S.JOB_ID = 'A50S10' THEN S.LAST_STAUS ELSE NULL END) WITHIN GROUP(ORDER BY 1) AS C
+          FROM ( SELECT A.DT
+                       ,B.JOB_ID
+                       ,B.JOB_ST_CD
+                       ,B.LAST_STAUS
+                   FROM ( SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') AS DT FROM DUAL
+                           UNION
+                          SELECT TO_CHAR(SYSDATE - 1, 'YYYYMMDD') AS DT FROM DUAL
+                           UNION
+                          SELECT TO_CHAR(SYSDATE - 2, 'YYYYMMDD') AS DT FROM DUAL
+                        ) A
+                   LEFT OUTER JOIN ( SELECT T.*
+                                           ,CASE WHEN T.JOB_ST_CD = 1 THEN 'A'
+                                                 WHEN T.JOB_ST_CD = 9 THEN 'E'
+                                                 WHEN T.JOB_ST_CD IS NULL THEN 'O'
+                                             END AS LAST_STAUS
+                                       FROM ( SELECT C.JOB_ID
+                                                    ,TO_CHAR(C.STRT_DY_TM, 'YYYYMMDD') AS DT
+                                                    ,C.JOB_ST_CD
+                                                    ,ROW_NUMBER() OVER (PARTITION BY C.JOB_ID, TO_CHAR(C.STRT_DY_TM, 'YYYYMMDD') ORDER BY C.STRT_DY_TM DESC) AS RM
+                                                FROM NIC93B_LOG C
+                                               WHERE C.STRT_DY_TM BETWEEN TO_DATE((TO_CHAR(SYSDATE - 2, 'YYYYMMDD') || '000000'), 'YYYYMMDDHH24MISS')
+                                                                      AND TO_DATE(TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS'), 'YYYYMMDDHH24MISS')
+                                                 AND C.JOB_ID IN ( 'A10R10','A10R20','A30S10','A50S10')
+                                            ) T
+                                      WHERE T.RM = 1
+                                   ) B
+                     ON A.DT = B.DT
+              ) S
+         GROUP BY S.DT
+         ORDER BY S.DT DESC
+    </select>
+
+    <select id="AML_00_02_01_P1_getSearch" parameterType="hashMap" resultType="DataObj">
+        SELECT CASE WHEN SUBSTR(D.DATA_DTIL_CCD, 1, 1) = '1' THEN D.BAS_YYMM
+                    WHEN SUBSTR(D.DATA_DTIL_CCD, 1, 1) IN ('2', '3') OR D.BAS_YYMM IS NOT NULL
+                    THEN NULL
+                    ELSE 'Total'
+                END AS BAS_YYMM
+              ,CASE WHEN SUBSTR(D.DATA_DTIL_CCD, 2, 2) = '01' THEN GET_CODE_NAME('A004', 'H')
+                    WHEN SUBSTR(D.DATA_DTIL_CCD, 2, 2) = '02' THEN GET_CODE_NAME('A004', 'M')
+                    WHEN SUBSTR(D.DATA_DTIL_CCD, 2, 2) = '03' THEN GET_CODE_NAME('A004', 'L')
+                    ELSE CASE WHEN D.BAS_YYMM IS NULL THEN NULL ELSE 'Total' END
+                END AS DATA_DTIL_NM
+              ,D.T_PERS_CNT
+              ,D.T_PERS_RAT
+              ,D.P_PERS_CNT
+              ,D.P_PERS_RAT
+              ,D.C_PERS_CNT
+              ,D.C_PERS_RAT
+          FROM ( SELECT C.BAS_YYMM
+                       ,C.DATA_DTIL_CCD
+                       ,SUM(C.T_PERS_CNT) AS T_PERS_CNT
+                       ,SUM(C.T_PERS_RAT) AS T_PERS_RAT
+                       ,SUM(C.P_PERS_CNT) AS P_PERS_CNT
+                       ,SUM(C.P_PERS_RAT) AS P_PERS_RAT
+                       ,SUM(C.C_PERS_CNT) AS C_PERS_CNT
+                       ,SUM(C.C_PERS_RAT) AS C_PERS_RAT
+                   FROM ( SELECT B.BAS_YYMM
+                                ,RANK() OVER (PARTITION BY B.BAS_YYMM ORDER BY B.DATA_DTIL_CCD) || B.DATA_DTIL_CCD
+                                                                                                  AS DATA_DTIL_CCD
+                        /* 전체 */
+                                ,B.TP_CNT                                                         AS T_PERS_CNT
+                                ,CASE WHEN B.DATA_DTIL_CCD = '01' OR B.DATA_DTIL_CCD = '02'
+                                      THEN TRUNC(CASE WHEN B.TT_CNT = 0 THEN 0 ELSE (B.TP_CNT/B.TT_CNT) END, 3)
+                                      ELSE 1
+                                         - ( TRUNC(CASE WHEN B.TT_CNT = 0 THEN 0 ELSE (B.TH_CNT/B.TT_CNT) END, 3)
+                                             + TRUNC(CASE WHEN B.TT_CNT = 0 THEN 0 ELSE (B.TM_CNT/B.TT_CNT) END, 3)
+                                           )
+                                  END                                                             AS T_PERS_RAT
+                        /* 개인 */
+                                ,B.PP_CNT                                                         AS P_PERS_CNT
+                                ,CASE WHEN B.DATA_DTIL_CCD = '01' OR B.DATA_DTIL_CCD = '02'
+                                      THEN TRUNC(CASE WHEN B.PT_CNT = 0 THEN 0 ELSE (B.PP_CNT/B.PT_CNT) END, 3)
+                                      ELSE 1
+                                         - ( TRUNC(CASE WHEN B.PT_CNT = 0 THEN 0 ELSE (B.PH_CNT/B.PT_CNT) END, 3)
+                                             + TRUNC(CASE WHEN B.PT_CNT = 0 THEN 0 ELSE (B.PM_CNT/B.PT_CNT) END, 3)
+                                           )
+                                  END                                                             AS P_PERS_RAT
+
+                        /* 법인 */
+                                ,B.CP_CNT                                                         AS C_PERS_CNT
+                                ,CASE WHEN B.DATA_DTIL_CCD = '01' OR B.DATA_DTIL_CCD = '02'
+                                      THEN TRUNC(CASE WHEN B.CT_CNT = 0 THEN 0 ELSE (B.CP_CNT/B.CT_CNT) END, 3)
+                                      ELSE 1
+                                         - ( TRUNC(CASE WHEN B.CT_CNT = 0 THEN 0 ELSE (B.CH_CNT/B.CT_CNT) END, 3)
+                                             + TRUNC(CASE WHEN B.CT_CNT = 0 THEN 0 ELSE (B.CM_CNT/B.CT_CNT) END, 3)
+                                           )
+                                  END                                                             AS C_PERS_RAT
+                            FROM ( SELECT A.BAS_YYMM
+                                         ,A.DATA_DTIL_CCD
+                                 /* 전체 */
+                                         ,SUM(SUM(A.CNT)) OVER (PARTITION BY A.BAS_YYMM)                 AS TT_CNT
+                                         ,NVL(SUM(A.CNT), 0)                                             AS TP_CNT
+                                         ,SUM(SUM(CASE WHEN A.DATA_DTIL_CCD = '01'
+                                                       THEN A.CNT
+                                                       ELSE 0
+                                                   END) )       OVER (PARTITION BY A.BAS_YYMM)           AS TH_CNT
+                                         ,SUM(SUM(CASE WHEN A.DATA_DTIL_CCD = '02'
+                                                       THEN A.CNT
+                                                       ELSE 0
+                                                   END) )       OVER (PARTITION BY A.BAS_YYMM)           AS TM_CNT
+                                 /* 개인 */
+                                         ,SUM(SUM(CASE WHEN A.CUST_CCD = '01'
+                                                       THEN A.CNT
+                                                       ELSE 0
+                                                   END) )       OVER (PARTITION BY A.BAS_YYMM)           AS PT_CNT
+                                         ,NVL(SUM(CASE WHEN A.CUST_CCD = '01' THEN A.CNT ELSE 0 END), 0) AS PP_CNT
+                                         ,SUM(SUM(CASE WHEN A.CUST_CCD = '01'
+                                                            AND A.DATA_DTIL_CCD = '01'
+                                                       THEN A.CNT
+                                                       ELSE 0
+                                                   END) )       OVER (PARTITION BY A.BAS_YYMM)           AS PH_CNT
+                                         ,SUM(SUM(CASE WHEN A.CUST_CCD = '01'
+                                                     AND A.DATA_DTIL_CCD = '02'
+                                                     THEN A.CNT
+                                                     ELSE 0
+                                                   END) )       OVER (PARTITION BY A.BAS_YYMM)           AS PM_CNT
+                                 /* 법인 */
+                                         ,SUM(SUM(CASE WHEN A.CUST_CCD = '02'
+                                                     THEN A.CNT
+                                                     ELSE 0
+                                                   END) )       OVER (PARTITION BY A.BAS_YYMM)           AS CT_CNT
+                                         ,NVL(SUM(CASE WHEN A.CUST_CCD = '02' THEN A.CNT ELSE 0 END), 0) AS CP_CNT
+                                         ,SUM(SUM(CASE WHEN A.CUST_CCD = '02'
+                                                            AND A.DATA_DTIL_CCD = '01'
+                                                       THEN A.CNT
+                                                       ELSE 0
+                                                   END) )       OVER (PARTITION BY A.BAS_YYMM)            AS CH_CNT
+                                         ,SUM(SUM(CASE WHEN A.CUST_CCD = '02'
+                                                             AND A.DATA_DTIL_CCD = '02'
+                                                        THEN A.CNT
+                                                        ELSE 0
+                                                    END) )      OVER (PARTITION BY A.BAS_YYMM)            AS CM_CNT
+                                     FROM NIC65B A
+                                    WHERE 1 = 1
+                                      AND A.BAS_YYMM <![CDATA[>=]]> #{fromDate }
+                                      AND A.BAS_YYMM <![CDATA[<=]]> #{toDate }
+                                      AND A.BIZ_RULE_CCD = '01'
+                                      AND A.DATA_CCD = '11'
+                                      AND ( (#{ROLE_ID } IN ('4', '5', '7') AND A.BRN_CD = '99999')
+                                            OR ( #{ROLE_ID } NOT IN ('4', '5', '7') AND A.BRN_CD = #{BDPT_CD} )
+                                          )
+                                    GROUP BY A.BAS_YYMM
+                                            ,A.DATA_DTIL_CCD
+                                 ) B
+                        ) C
+                  WHERE 1 = 1
+                  GROUP BY C.BAS_YYMM, ROLLUP(C.DATA_DTIL_CCD)
+                  ORDER BY C.BAS_YYMM DESC, C.DATA_DTIL_CCD
+               ) D
+    </select>
+
+
+	<select id="AML_00_02_01_P2_getSearch_01" parameterType="hashMap" resultType="DataObj">
+	SELECT CASE WHEN SUBSTR(DATA_DTIL_CCD, 1, 1) = '1' THEN BAS_YYMM
+	            WHEN   SUBSTR(DATA_DTIL_CCD, 1, 1) IN ('2', '3')
+	                OR BAS_YYMM IS NOT NULL
+	                                                   THEN NULL
+	                                                   ELSE '합계'
+	       END AS BAS_YYMM
+	     , CASE WHEN SUBSTR(DATA_DTIL_CCD, 2, 2) = '01' THEN '고위험'
+	            WHEN SUBSTR(DATA_DTIL_CCD, 2, 2) = '02' THEN '중위험'
+	            WHEN SUBSTR(DATA_DTIL_CCD, 2, 2) = '03' THEN '저위험'
+	                                      ELSE CASE WHEN BAS_YYMM IS NULL THEN NULL
+	                                                                 ELSE '계'
+	                                           END
+	       END AS DATA_DTIL_NM
+	     , TN_PERS_CNT
+	     , TR_PERS_CNT
+	     , TD_PERS_CNT
+	     , TF_PERS_CNT
+	     , PN_PERS_CNT
+	     , PR_PERS_CNT
+	     , PD_PERS_CNT
+	     , PF_PERS_CNT
+	     , CN_PERS_CNT
+	     , CR_PERS_CNT
+	     , CD_PERS_CNT
+	     , CF_PERS_CNT
+	  FROM (
+	        SELECT BAS_YYMM
+	             , DATA_DTIL_CCD
+	             , SUM(TN_PERS_CNT) AS TN_PERS_CNT
+	             , SUM(TR_PERS_CNT) AS TR_PERS_CNT
+	             , SUM(TD_PERS_CNT) AS TD_PERS_CNT
+	             , SUM(TF_PERS_CNT) AS TF_PERS_CNT
+	             , SUM(PN_PERS_CNT) AS PN_PERS_CNT
+	             , SUM(PR_PERS_CNT) AS PR_PERS_CNT
+	             , SUM(PD_PERS_CNT) AS PD_PERS_CNT
+	             , SUM(PF_PERS_CNT) AS PF_PERS_CNT
+	             , SUM(CN_PERS_CNT) AS CN_PERS_CNT
+	             , SUM(CR_PERS_CNT) AS CR_PERS_CNT
+	             , SUM(CD_PERS_CNT) AS CD_PERS_CNT
+	             , SUM(CF_PERS_CNT) AS CF_PERS_CNT
+	          FROM (
+	                SELECT NIC65.BAS_YYMM
+	                     , RANK() OVER (PARTITION BY NIC65.BAS_YYMM ORDER BY NIC65.DATA_DTIL_CCD) || NIC65.DATA_DTIL_CCD
+	                                                                                          AS DATA_DTIL_CCD
+	                     /* 전체 */
+	                     /*   신규 */
+	                     , SUM(CASE WHEN NIC65.DATE_TEX_CCD = '01' THEN NIC65.CNT ELSE 0 END) AS TN_PERS_CNT
+	                     /*   재이행 */
+	                     , SUM(CASE WHEN NIC65.DATE_TEX_CCD = '02' THEN NIC65.CNT ELSE 0 END) AS TR_PERS_CNT
+	                     /*   지연이행 */
+	                     , SUM(CASE WHEN NIC65.DATE_TEX_CCD = '03' THEN NIC65.CNT ELSE 0 END) AS TD_PERS_CNT
+	                     /*   선이행 */
+	                     , SUM(CASE WHEN NIC65.DATE_TEX_CCD = '04' THEN NIC65.CNT ELSE 0 END) AS TF_PERS_CNT
+	                     /* 개인 */
+	                     /*   신규 */
+	                     , SUM(CASE WHEN     NIC65.DATE_TEX_CCD = '01'
+	                                     AND NIC65.CUST_CCD = '01'     THEN NIC65.CNT ELSE 0 END) AS PN_PERS_CNT
+	                     /*   재이행 */
+	                     , SUM(CASE WHEN     NIC65.DATE_TEX_CCD = '02'
+	                                     AND NIC65.CUST_CCD = '01'     THEN NIC65.CNT ELSE 0 END) AS PR_PERS_CNT
+	                     /*   지연이행 */
+	                     , SUM(CASE WHEN     NIC65.DATE_TEX_CCD = '03'
+	                                     AND NIC65.CUST_CCD = '01'     THEN NIC65.CNT ELSE 0 END) AS PD_PERS_CNT
+	                     /*   선이행 */
+	                     , SUM(CASE WHEN     NIC65.DATE_TEX_CCD = '04'
+	                                     AND NIC65.CUST_CCD = '01'     THEN NIC65.CNT ELSE 0 END) AS PF_PERS_CNT
+	                     /* 법인 */
+	                     /*   신규 */
+	                     , SUM(CASE WHEN     NIC65.DATE_TEX_CCD = '01'
+	                                     AND NIC65.CUST_CCD = '02'     THEN NIC65.CNT ELSE 0 END) AS CN_PERS_CNT
+	                     /*   재이행 */
+	                     , SUM(CASE WHEN     NIC65.DATE_TEX_CCD = '02'
+	                                     AND NIC65.CUST_CCD = '02'     THEN NIC65.CNT ELSE 0 END) AS CR_PERS_CNT
+	                     /*   지연이행 */
+	                     , SUM(CASE WHEN     NIC65.DATE_TEX_CCD = '03'
+	                                     AND NIC65.CUST_CCD = '02'     THEN NIC65.CNT ELSE 0 END) AS CD_PERS_CNT
+	                     /*   선이행 */
+	                     , SUM(CASE WHEN     NIC65.DATE_TEX_CCD = '04'
+	                                     AND NIC65.CUST_CCD = '02'     THEN NIC65.CNT ELSE 0 END) AS CF_PERS_CNT
+	                  FROM NIC65B NIC65
+	                 WHERE 1 = 1
+	                   AND NIC65.BAS_YYMM <![CDATA[>=]]> #{fromDate }
+	                   AND NIC65.BAS_YYMM <![CDATA[<=]]> #{toDate }
+	                   AND NIC65.BIZ_RULE_CCD = '03'
+	                   AND ((    #{ROLE_ID } IN ('4', '5', '7', '104')
+	                         AND NIC65.BRN_CD = '99999')
+	                        OR (    #{ROLE_ID } NOT IN ('4', '5', '7', '104')
+	                            AND NIC65.BRN_CD = #{BDPT_CD }))
+	                 GROUP BY NIC65.BAS_YYMM, NIC65.DATA_DTIL_CCD)
+	         WHERE 1 = 1
+	         GROUP BY BAS_YYMM, ROLLUP(DATA_DTIL_CCD)
+	         ORDER BY BAS_YYMM DESC, DATA_DTIL_CCD)
+	</select>
+	
+	<select id="AML_00_02_01_P2_getSearch_02" parameterType="hashMap" resultType="DataObj">
+		SELECT CASE WHEN SUBSTR(CUST_CCD, 1, 1) = '1' THEN BAS_YYMM
+		            WHEN   SUBSTR(CUST_CCD, 1, 1) = '2'
+		                OR BAS_YYMM IS NOT NULL
+		                                              THEN NULL
+		                                              ELSE '합계'
+		       END AS BAS_YYMM
+		     , CASE WHEN SUBSTR(CUST_CCD, 2, 2) = '01' THEN '개인'
+		            WHEN SUBSTR(CUST_CCD, 2, 2) = '02' THEN '법인'
+		                                               ELSE CASE WHEN BAS_YYMM IS NULL THEN NULL
+		                                                                               ELSE '계'
+		                                                    END
+		       END AS CUST_NM
+		     , TRM_PERS_CNT
+		     , RRM_PERS_CNT
+		     , RRM_PERS_RAT
+		     , TRE_PERS_CNT
+		     , RRE_PERS_CNT
+		     , RRE_PERS_RAT
+		  FROM (
+		        SELECT BAS_YYMM
+		             , CUST_CCD
+		             , SUM(TRM_PERS_CNT) AS TRM_PERS_CNT
+		             , SUM(RRM_PERS_CNT) AS RRM_PERS_CNT
+		             , TRUNC(CASE WHEN SUM(TRM_PERS_CNT) = 0
+		                               THEN 0
+		                               ELSE (SUM(RRM_PERS_CNT)/SUM(TRM_PERS_CNT))
+		                     END, 3)     AS RRM_PERS_RAT
+		             , SUM(TRE_PERS_CNT) AS TRE_PERS_CNT
+		             , SUM(RRE_PERS_CNT) AS RRE_PERS_CNT
+		             , TRUNC(CASE WHEN SUM(TRE_PERS_CNT) = 0
+		                               THEN 0
+		                               ELSE (SUM(RRE_PERS_CNT)/SUM(TRE_PERS_CNT))
+		                     END, 3)     AS RRE_PERS_RAT
+		          FROM (
+		                SELECT BAS_YYMM
+		                     , CUST_CCD
+		                     , TRM_PERS_CNT
+		                     , RRM_PERS_CNT
+		                     , TRE_PERS_CNT
+		                     , RRE_PERS_CNT
+		                  FROM (
+		                        SELECT NIC65_T.BAS_YYMM
+		                             , RANK() OVER (PARTITION BY NIC65_T.BAS_YYMM ORDER BY NIC65_T.CUST_CCD)
+		                               || NIC65_T.CUST_CCD       AS CUST_CCD
+		                             , MAX(NIC65_T.TRM_PERS_CNT) AS TRM_PERS_CNT
+		                             , MAX(NIC65_T.TRE_PERS_CNT) AS TRE_PERS_CNT
+		                             , SUM(CASE WHEN NIC65.DATE_TEX_CCD = '02' THEN NIC65.CNT ELSE 0 END) AS RRM_PERS_CNT
+		                             , SUM(CASE WHEN NIC65.DATE_TEX_CCD = '03' THEN NIC65.CNT ELSE 0 END) AS RRE_PERS_CNT
+		                          FROM (
+		                                SELECT NIC65.BAS_YYMM
+		                                     , NIC65.CUST_CCD
+		                                     , SUM(CASE WHEN NIC65.DATA_CCD = '12' THEN NIC65.CNT ELSE 0 END) AS TRM_PERS_CNT
+		                                     , SUM(CASE WHEN NIC65.DATA_CCD = '13' THEN NIC65.CNT ELSE 0 END) AS TRE_PERS_CNT
+		                                  FROM NIC65B NIC65
+		                                 WHERE 1 = 1
+		                                   AND NIC65.BAS_YYMM <![CDATA[>=]]> #{fromDate }
+		                                   AND NIC65.BAS_YYMM <![CDATA[<=]]> #{toDate }
+		                                   AND NIC65.BIZ_RULE_CCD = '01'
+		                                   AND NIC65.DATA_CCD IN ('12','13')
+		                                   AND ((    #{ROLE_ID } IN ('4', '5', '7', '104')
+		                                         AND NIC65.BRN_CD = '99999')
+		                                        OR (    #{ROLE_ID } NOT IN ('4', '5', '7', '104')
+		                                            AND NIC65.BRN_CD = #{BDPT_CD }))
+		                                 GROUP BY NIC65.BAS_YYMM, NIC65.CUST_CCD) NIC65_T
+		                               LEFT OUTER JOIN NIC65B NIC65
+		                                            ON (    NIC65.BIZ_RULE_CCD = '03'
+		                                                AND NIC65.DATE_TEX_CCD IN ('02', '03')
+		                                                AND NIC65.BAS_YYMM = NIC65_T.BAS_YYMM
+		                                                AND NIC65.CUST_CCD = NIC65_T.CUST_CCD
+		                                                AND ((    #{ROLE_ID } IN ('4', '5', '7', '104')
+		                                                      AND NIC65.BRN_CD = '99999')
+		                                                     OR (    #{ROLE_ID } NOT IN ('4', '5', '7', '104')
+		                                                         AND NIC65.BRN_CD = #{BDPT_CD })))
+		                         WHERE 1 = 1
+		                         GROUP BY NIC65_T.BAS_YYMM, NIC65_T.CUST_CCD))
+		         WHERE 1 = 1
+		         GROUP BY BAS_YYMM, ROLLUP(CUST_CCD)
+		         ORDER BY BAS_YYMM DESC, CUST_CCD)
+	</select>
+
+    <select id="AML_00_02_01_P2_getSearch_01_old" parameterType="hashMap" resultType="DataObj">
+        SELECT CASE WHEN SUBSTR(C.DATA_DTIL_CCD, 1, 1) = '1' THEN C.BAS_YYMM
+                    WHEN SUBSTR(C.DATA_DTIL_CCD, 1, 1) IN ('2', '3')
+                         OR C.BAS_YYMM IS NOT NULL           THEN NULL
+                    ELSE 'Total'
+                END AS BAS_YYMM
+              ,CASE WHEN SUBSTR(C.DATA_DTIL_CCD, 2, 2) = '01' THEN GET_CODE_NAME('A004', 'H')
+                    WHEN SUBSTR(C.DATA_DTIL_CCD, 2, 2) = '02' THEN GET_CODE_NAME('A004', 'M')
+                    WHEN SUBSTR(C.DATA_DTIL_CCD, 2, 2) = '03' THEN GET_CODE_NAME('A004', 'L')
+                    ELSE CASE WHEN C.BAS_YYMM IS NULL THEN NULL
+                              ELSE 'Total'
+                          END
+                END AS DATA_DTIL_NM
+              ,C.TN_PERS_CNT
+              ,C.TR_PERS_CNT
+              ,C.TD_PERS_CNT
+              ,C.TF_PERS_CNT
+              ,C.PN_PERS_CNT
+              ,C.PR_PERS_CNT
+              ,C.PD_PERS_CNT
+              ,C.PF_PERS_CNT
+              ,C.CN_PERS_CNT
+              ,C.CR_PERS_CNT
+              ,C.CD_PERS_CNT
+              ,C.CF_PERS_CNT
+          FROM ( SELECT B.BAS_YYMM
+                       ,B.DATA_DTIL_CCD
+                       ,SUM(B.TN_PERS_CNT) AS TN_PERS_CNT
+                       ,SUM(B.TR_PERS_CNT) AS TR_PERS_CNT
+                       ,SUM(B.TD_PERS_CNT) AS TD_PERS_CNT
+                       ,SUM(B.TF_PERS_CNT) AS TF_PERS_CNT
+                       ,SUM(B.PN_PERS_CNT) AS PN_PERS_CNT
+                       ,SUM(B.PR_PERS_CNT) AS PR_PERS_CNT
+                       ,SUM(B.PD_PERS_CNT) AS PD_PERS_CNT
+                       ,SUM(B.PF_PERS_CNT) AS PF_PERS_CNT
+                       ,SUM(B.CN_PERS_CNT) AS CN_PERS_CNT
+                       ,SUM(B.CR_PERS_CNT) AS CR_PERS_CNT
+                       ,SUM(B.CD_PERS_CNT) AS CD_PERS_CNT
+                       ,SUM(B.CF_PERS_CNT) AS CF_PERS_CNT
+                   FROM ( SELECT A.BAS_YYMM
+                                ,RANK() OVER (PARTITION BY A.BAS_YYMM ORDER BY A.DATA_DTIL_CCD) || A.DATA_DTIL_CCD
+                                                                                                  AS DATA_DTIL_CCD
+                        /* 전체 */
+                                /* 신규 */
+                                ,SUM(CASE WHEN A.DATA_TEX_CCD = '01' THEN A.CNT ELSE 0 END) AS TN_PERS_CNT
+                                /* 재이행 */
+                                ,SUM(CASE WHEN A.DATA_TEX_CCD = '02' THEN A.CNT ELSE 0 END) AS TR_PERS_CNT
+                                /* 지연이행 */
+                                ,SUM(CASE WHEN A.DATA_TEX_CCD = '03' THEN A.CNT ELSE 0 END) AS TD_PERS_CNT
+                                /* 선이행 */
+                                ,SUM(CASE WHEN A.DATA_TEX_CCD = '04' THEN A.CNT ELSE 0 END) AS TF_PERS_CNT
+                        /* 개인 */
+                                /* 신규 */
+                                ,SUM(CASE WHEN A.DATA_TEX_CCD = '01' AND A.CUST_CCD = '01'
+                                               THEN A.CNT ELSE 0 END) AS PN_PERS_CNT
+                                /* 재이행 */
+                                ,SUM(CASE WHEN A.DATA_TEX_CCD = '02' AND A.CUST_CCD = '01'
+                                               THEN A.CNT ELSE 0 END) AS PR_PERS_CNT
+                                /* 지연이행 */
+                                ,SUM(CASE WHEN A.DATA_TEX_CCD = '03' AND A.CUST_CCD = '01'
+                                               THEN A.CNT ELSE 0 END) AS PD_PERS_CNT
+                                /* 선이행 */
+                                ,SUM(CASE WHEN A.DATA_TEX_CCD = '04' AND A.CUST_CCD = '01'
+                                               THEN A.CNT ELSE 0 END) AS PF_PERS_CNT
+                        /* 법인 */
+                                /* 신규 */
+                                ,SUM(CASE WHEN A.DATA_TEX_CCD = '01' AND A.CUST_CCD = '02'
+                                               THEN A.CNT ELSE 0 END) AS CN_PERS_CNT
+                                /* 재이행 */
+                                ,SUM(CASE WHEN A.DATA_TEX_CCD = '02' AND A.CUST_CCD = '02'
+                                               THEN A.CNT ELSE 0 END) AS CR_PERS_CNT
+                                /* 지연이행 */
+                                ,SUM(CASE WHEN A.DATA_TEX_CCD = '03' AND A.CUST_CCD = '02'
+                                               THEN A.CNT ELSE 0 END) AS CD_PERS_CNT
+                                /* 선이행 */
+                                ,SUM(CASE WHEN A.DATA_TEX_CCD = '04' AND A.CUST_CCD = '02'
+                                               THEN A.CNT ELSE 0 END) AS CF_PERS_CNT
+                            FROM NIC65B A
+                           WHERE 1 = 1
+                             AND A.BAS_YYMM <![CDATA[>=]]> #{fromDate }
+                             AND A.BAS_YYMM <![CDATA[<=]]> #{toDate }
+                             AND A.BIZ_RULE_CCD = '03'
+                             AND ( ( #{ROLE_ID } IN ('4', '5', '7', '104') AND A.BRN_CD = '99999')
+                                   OR ( #{ROLE_ID } NOT IN ('4', '5', '7', '104') AND A.BRN_CD = #{BDPT_CD} )
+                                 )
+                           GROUP BY A.BAS_YYMM, A.DATA_DTIL_CCD
+                        ) B
+                  WHERE 1 = 1
+                  GROUP BY B.BAS_YYMM, ROLLUP(B.DATA_DTIL_CCD)
+                  ORDER BY B.BAS_YYMM DESC, B.DATA_DTIL_CCD
+               ) C
+    </select>
+
+    <select id="AML_00_02_01_P2_getSearch_02_old" parameterType="hashMap" resultType="DataObj">
+        SELECT CASE WHEN SUBSTR(F.CUST_CCD, 1, 1) = '1' THEN F.BAS_YYMM
+                    WHEN SUBSTR(F.CUST_CCD, 1, 1) = '2' OR F.BAS_YYMM IS NOT NULL THEN NULL
+                    ELSE 'Total'
+                END AS BAS_YYMM
+              ,CASE WHEN SUBSTR(F.CUST_CCD, 2, 2) IN ( '01', '02') THEN GET_CODE_NAME('M006', SUBSTR(F.CUST_CCD,3, 1) )
+                    ELSE CASE WHEN F.BAS_YYMM IS NULL THEN NULL  ELSE '계' END
+                END AS CUST_NM
+              ,F.TRM_PERS_CNT
+              ,F.RRM_PERS_CNT
+              ,F.RRM_PERS_RAT
+              ,F.TRE_PERS_CNT
+              ,F.RRE_PERS_CNT
+              ,F.RRE_PERS_RAT
+          FROM ( SELECT E.BAS_YYMM
+                       ,E.CUST_CCD
+                       ,SUM(E.TRM_PERS_CNT) AS TRM_PERS_CNT
+                       ,SUM(E.RRM_PERS_CNT) AS RRM_PERS_CNT
+                       ,TRUNC(CASE WHEN SUM(E.TRM_PERS_CNT) = 0 THEN 0
+                                   ELSE (SUM(E.RRM_PERS_CNT) / SUM(E.TRM_PERS_CNT) )
+                               END, 3)      AS RRM_PERS_RAT
+                       ,SUM(E.TRE_PERS_CNT) AS TRE_PERS_CNT
+                       ,SUM(E.RRE_PERS_CNT) AS RRE_PERS_CNT
+                       ,TRUNC(CASE WHEN SUM(E.TRE_PERS_CNT) = 0 THEN 0
+                                   ELSE (SUM(E.RRE_PERS_CNT) / SUM(E.TRE_PERS_CNT) )
+                               END, 3)      AS RRE_PERS_RAT
+                   FROM ( SELECT D.BAS_YYMM
+                                ,D.CUST_CCD
+                                ,D.TRM_PERS_CNT
+                                ,D.RRM_PERS_CNT
+                                ,D.TRE_PERS_CNT
+                                ,D.RRE_PERS_CNT
+                            FROM ( SELECT B.BAS_YYMM
+                                         ,RANK() OVER (PARTITION BY B.BAS_YYMM ORDER BY B.CUST_CCD)
+                                                                                   || B.CUST_CCD     AS CUST_CCD
+                                         ,MAX(B.TRM_PERS_CNT) AS TRM_PERS_CNT
+                                         ,MAX(B.TRE_PERS_CNT) AS TRE_PERS_CNT
+                                         ,SUM(CASE WHEN C.DATA_TEX_CCD = '02' THEN C.CNT ELSE 0 END) AS RRM_PERS_CNT
+                                         ,SUM(CASE WHEN C.DATA_TEX_CCD = '03' THEN C.CNT ELSE 0 END) AS RRE_PERS_CNT
+                                     FROM ( SELECT A.BAS_YYMM
+                                                  ,A.CUST_CCD
+                                                  ,SUM(CASE WHEN A.DATA_CCD = '12' THEN A.CNT ELSE 0 END) AS TRM_PERS_CNT
+                                                  ,SUM(CASE WHEN A.DATA_CCD = '13' THEN A.CNT ELSE 0 END) AS TRE_PERS_CNT
+                                              FROM NIC65B A
+                                             WHERE 1 = 1
+                                               AND A.BAS_YYMM <![CDATA[>=]]> #{fromDate }
+                                               AND A.BAS_YYMM <![CDATA[<=]]> #{toDate }
+                                               AND A.BIZ_RULE_CCD = '01'
+                                               AND A.DATA_CCD IN ('12','13')
+                                               AND ( ( #{ROLE_ID} IN ('4', '5', '7') AND A.BRN_CD = '99999')
+                                                     OR ( #{ROLE_ID } NOT IN ('4', '5', '7') AND A.BRN_CD = #{BDPT_CD} )
+                                                   )
+                                             GROUP BY A.BAS_YYMM, A.CUST_CCD
+                                           ) B
+                                     LEFT OUTER JOIN NIC65B C
+                                       ON ( C.BIZ_RULE_CCD = '03'
+                                             AND C.DATA_TEX_CCD IN ('02', '03')
+                                             AND C.BAS_YYMM = B.BAS_YYMM
+                                             AND C.CUST_CCD = B.CUST_CCD
+                                             AND ( ( #{ROLE_ID } IN ('4', '5', '7') AND C.BRN_CD = '99999')
+                                                    OR ( #{ROLE_ID } NOT IN ('4', '5', '7')
+                                                         AND C.BRN_CD = #{BDPT_CD} )
+                                                  )
+                                           )
+                                    WHERE 1 = 1
+                                    GROUP BY B.BAS_YYMM, B.CUST_CCD
+                                  ) D
+                        ) E
+                  WHERE 1 = 1
+                  GROUP BY E.BAS_YYMM, ROLLUP(E.CUST_CCD)
+                  ORDER BY E.BAS_YYMM DESC, E.CUST_CCD
+               ) F
+    </select>
+
+	<select id="AML_00_02_01_P3_getSearch_01" parameterType="hashMap" resultType="DataObj">
+	/* TMS 보고 현황 - 거래일자 조회시 */
+	WITH BAS_YMD_LIST AS (
+	    SELECT DECODE(A.SSPS_DL_CRT_CCD,'STR',B.SSPS_DL_CRT_DT,'CTR',B.DL_DT) AS YMD
+	      FROM SSQ.NIC66B A
+	         , SSQ.NIC75B B
+	     WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+	       AND A.SSPS_DL_ID = B.SSPS_DL_ID
+	       AND A.SSPS_DL_CRT_CCD IN ('STR','CTR')
+	       AND A.INST_ID IS NOT NULL
+	       AND DECODE(A.SSPS_DL_CRT_CCD,'STR',B.SSPS_DL_CRT_DT,'CTR',B.DL_DT) BETWEEN #{stDate} AND #{edDate}
+	     GROUP BY DECODE(A.SSPS_DL_CRT_CCD,'STR',B.SSPS_DL_CRT_DT,'CTR',B.DL_DT)
+	     ORDER BY DECODE(A.SSPS_DL_CRT_CCD,'STR',B.SSPS_DL_CRT_DT,'CTR',B.DL_DT) DESC
+	)
+	SELECT TO_CHAR(TO_DATE(X.YMD,'YYYYMMDD'),'YYYY.MM.DD') AS YMD  /* 추출일자 */
+	     , NVL(Y.ALT_CNT,0)+NVL(Z.ALT_CNT,0) AS ALT_CNT_SUM  /* 추출건수 - 계 */
+	     , NVL(Y.RPT_CNT,0)+NVL(Z.RPT_CNT,0) AS RPT_CNT_SUM  /* 보고건수 - 계 */
+	     , DECODE(NVL(Y.ALT_CNT,0)+NVL(Z.ALT_CNT,0), 0, 0
+	          , (NVL(Y.RPT_CNT,0)+NVL(Z.RPT_CNT,0))/(NVL(Y.ALT_CNT,0)+NVL(Z.ALT_CNT,0))) AS RPT_RT_SUM  /* 보고율 - 계 */
+	     , NVL(Y.ALT_CNT,0) AS ALT_CNT_CTR  /* 추출건수 - CTR */
+	     , NVL(Y.RPT_CNT,0) AS RPT_CNT_CTR  /* 보고건수 - CTR*/
+	     , DECODE(NVL(Y.ALT_CNT,0), 0, 0, NVL(Y.RPT_CNT,0)/NVL(Y.ALT_CNT,0)) AS RPT_RT_CTR  /* 보고율 - CTR */
+	     , NVL(Z.ALT_CNT,0) AS ALT_CNT_STR  /* 추출건수 - STR */
+	     , NVL(Z.RPT_CNT,0) AS RPT_CNT_STR  /* 보고건수 - STR*/
+	     , DECODE(NVL(Z.ALT_CNT,0), 0, 0, NVL(Z.RPT_CNT,0)/NVL(Z.ALT_CNT,0)) AS RPT_RT_STR  /* 보고율 - STR */
+	  FROM BAS_YMD_LIST X
+	     , (
+	                SELECT B.DL_DT AS YMD
+	                     , COUNT(*) AS ALT_CNT
+	                     , COUNT(DECODE(A.RPR_PRGRS_CCD,'99',1)) AS RPT_CNT
+	                  FROM SSQ.NIC66B A, SSQ.NIC75B B
+	                 WHERE A.SSPS_DL_CRT_DT = B.SSPS_DL_CRT_DT
+	                   AND A.SSPS_DL_ID = B.SSPS_DL_ID
+	                   AND B.DL_DT BETWEEN #{stDate} AND #{edDate}  /* 추출일자 파라미터 */
+	                   AND A.SSPS_DL_CRT_CCD = 'CTR'
+	                   AND A.INST_ID IS NOT NULL
+	                 GROUP BY B.DL_DT
+	       ) Y
+	     , (
+	                SELECT SSPS_DL_CRT_DT AS YMD
+	                     , COUNT(*) AS ALT_CNT
+	                     , COUNT(DECODE(RPR_PRGRS_CCD,'99',1)) AS RPT_CNT
+	                  FROM SSQ.NIC66B
+	                 WHERE SSPS_DL_CRT_DT BETWEEN #{stDate} AND #{edDate}  /* 추출일자 파라미터 */
+	                   AND SSPS_DL_CRT_CCD IN ('STR')
+	                   AND INST_ID IS NOT NULL
+	                 GROUP BY SSPS_DL_CRT_DT
+	       ) Z
+	 WHERE X.YMD = Y.YMD(+)
+	   AND X.YMD = Z.YMD(+)
+	 ORDER BY X.YMD DESC
+	</select>
+	
+	<select id="AML_00_02_01_P3_getSearch_02" parameterType="hashMap" resultType="DataObj">
+	/* TMS 보고 현황 - 거래년월 조회시 */
+	SELECT YMD /* 년월 */
+	     , ALT_CNT_SUM-RPT_CNT_SUM AS ALT_CNT_SUM  /* 추출건수 - 계 */
+	     , RPT_CNT_SUM  /* 보고건수 - 계 */
+	     , DECODE(ALT_CNT_SUM-RPT_CNT_SUM, 0, 0, RPT_CNT_SUM/(ALT_CNT_SUM-RPT_CNT_SUM)) AS RPT_RT_SUM  /* 보고율 - 계 */
+	     , ALT_CNT_CTR-RPT_CNT_CTR AS ALT_CNT_CTR  /* 추출건수 - CTR */
+	     , RPT_CNT_CTR  /* 보고건수 - CTR */
+	     , DECODE(ALT_CNT_CTR-RPT_CNT_CTR, 0, 0, RPT_CNT_CTR/(ALT_CNT_CTR-RPT_CNT_CTR)) AS RPT_RT_CTR  /* 보고율 - CTR */
+	     , ALT_CNT_STR-RPT_CNT_STR AS ALT_CNT_STR  /* 추출건수 - STR */
+	     , RPT_CNT_STR  /* 보고건수 - STR */
+	     , DECODE(ALT_CNT_STR-RPT_CNT_STR, 0, 0, RPT_CNT_STR/(ALT_CNT_STR-RPT_CNT_STR)) AS RPT_RT_STR  /* 보고율 - STR */
+	  FROM (
+				SELECT TO_CHAR(TO_DATE(YYYYMM,'YYYYMM'),'YYYY.MM') AS YMD /* 년월 */
+				     , SUM(ALT_CNT) AS ALT_CNT_SUM  /* 추출건수 - 계 */
+				     , SUM(RPT_CNT) AS RPT_CNT_SUM  /* 보고건수 - 계 */
+				     , MAX(DECODE(DATA_CCD,'41',ALT_CNT,0)) AS ALT_CNT_CTR  /* 추출건수 - CTR */
+				     , MAX(DECODE(DATA_CCD,'41',RPT_CNT,0)) AS RPT_CNT_CTR  /* 보고건수 - CTR */
+				     , MAX(DECODE(DATA_CCD,'42',ALT_CNT,0)) AS ALT_CNT_STR  /* 추출건수 - STR */
+				     , MAX(DECODE(DATA_CCD,'42',RPT_CNT,0)) AS RPT_CNT_STR  /* 보고건수 - STR */
+				  FROM (
+				              SELECT BAS_YYMM AS YYYYMM
+				                   , DATA_CCD  /* 41:CTR,42:STR */
+				                   , SUM(CNT) AS ALT_CNT
+				                   , SUM(DECODE(DATA_DTIL_CCD,'42',CNT,0)) AS RPT_CNT
+				                FROM SSQ.NIC65B
+				               WHERE BAS_YYMM <![CDATA[>=]]> #{fromYear}||#{fromMonth}  /* 년도와 월 파라미터 */
+				                 AND BAS_YYMM <![CDATA[<=]]> #{fromYear}||#{fromMonth}  /* 년도와 월 파라미터 */
+				                 AND BIZ_RULE_CCD = '04'  /* TMS */
+				                 AND BRN_CD = '99999'
+				               GROUP BY BAS_YYMM, DATA_CCD
+				       )
+				 GROUP BY YYYYMM
+				 ORDER BY YYYYMM DESC
+	       )
+	</select>
+	
+	<select id="AML_00_02_01_P4_getSearch_01" parameterType="hashMap" resultType="DataObj">
+	/* STR 룰별 적출 현황 - 분기별 */
+	SELECT RULE_ID   /* 룰 ID */
+	     , RULE_NM   /* 룰 명 */
+	     , ALT_CNT1-RPT_CNT1 AS ALT_CNT1  /* N분기 1번째 월의 추출건수 */
+	     , RPT_CNT1  /* N분기 1번째 월의 보고건수 */
+	     , DECODE(ALT_CNT1-RPT_CNT1, 0, 0, RPT_CNT1/(ALT_CNT1-RPT_CNT1)) AS RPT_RT1  /* N분기 1번째 월의 보고율 */
+	     , ALT_CNT2-RPT_CNT2 AS ALT_CNT2  /* N분기 2번째 월의 추출건수 */
+	     , RPT_CNT2  /* N분기 2번째 월의 보고건수 */
+	     , DECODE(ALT_CNT2-RPT_CNT2, 0, 0, RPT_CNT2/(ALT_CNT2-RPT_CNT2)) AS RPT_RT2  /* N분기 2번째 월의 보고율 */
+	     , ALT_CNT3-RPT_CNT3 AS ALT_CNT3  /* N분기 3번째 월의 추출건수 */
+	     , RPT_CNT3  /* N분기 3번째 월의 보고건수 */
+	     , DECODE(ALT_CNT3-RPT_CNT3, 0, 0, RPT_CNT3/(ALT_CNT3-RPT_CNT3)) AS RPT_RT3  /* N분기 3번째 월의 보고율 */
+	     , RULE_NM_DESC
+	  FROM (
+	          SELECT NVL(X.SSPS_TYP_CD,'합계') AS RULE_ID
+	               , NVL2(X.SSPS_TYP_CD, MAX(X.RULE_NM), '') AS RULE_NM
+	               , NVL2(X.SSPS_TYP_CD, MAX(X.RULE_NM_DESC), '') AS RULE_NM_DESC
+	               , SUM(CASE WHEN Y.MON_GB = 1 THEN Y.CNT ELSE 0 END) AS ALT_CNT1
+	               , SUM(CASE WHEN Y.MON_GB = 1 AND Y.RPT_GB = 2 THEN Y.CNT ELSE 0 END) AS RPT_CNT1
+	               , SUM(CASE WHEN Y.MON_GB = 2 THEN Y.CNT ELSE 0 END) AS ALT_CNT2
+	               , SUM(CASE WHEN Y.MON_GB = 2 AND Y.RPT_GB = 2 THEN Y.CNT ELSE 0 END) AS RPT_CNT2
+	               , SUM(CASE WHEN Y.MON_GB = 3 THEN Y.CNT ELSE 0 END) AS ALT_CNT3
+	               , SUM(CASE WHEN Y.MON_GB = 3 AND Y.RPT_GB = 2 THEN Y.CNT ELSE 0 END) AS RPT_CNT3
+	            FROM (
+	                     SELECT B.MA01_6 AS SSPS_TYP_CD
+	                          , A.BIZ_NM AS RULE_NM
+	                          , A.BIZ_DESC AS RULE_NM_DESC
+	                       FROM SSQ.C_BIZ A
+	                          , SSQ.MMA010TB B
+	                      WHERE A.BIZ_ID = B.RT30_1 
+	                        AND B.MA01_8 = 'S'
+	                        AND NOT EXISTS (SELECT 1 
+	                                                    FROM C_PKG_BIZ_MAP AA 
+	                                                          , C_BIZ BB
+	                                                  WHERE AA.BIZ_ID = A.BIZ_ID
+	                                                      AND AA.PAR_BIZ_ID = BB.BIZ_ID
+	                                                      AND BB.BIZ_NM LIKE '%' || CASE WHEN #{fromYear} &lt; '2021' THEN '신규' ELSE '(구)' END  || '%')  
+	                   	 UNION   
+	                     SELECT A.SCNR_ID AS SSPS_TYP_CD
+                              , A.SCNR_NM AS RULE_NM 
+                              , '' AS RULE_NM_DESC  
+                         FROM TMS_REQ A
+                         LEFT JOIN TMS_RUN_INFO B
+                           ON A.SCNR_ID = B.SCNR_ID
+                         LEFT JOIN TMS_BZDM_MNG C
+                           ON A.BZDM_CD = C.BZDM_CD
+                          AND A.BIZ_CD = C.BIZ_CD
+                         WHERE 1=1
+                           AND B.USE_YN ='Y'
+                           AND A.BZDM_CD = '02'
+                           AND A.SCNR_NM LIKE  '%' || CASE WHEN #{fromYear} <![CDATA[ > ]]> '2021' THEN '신규' ELSE '(구)' END  || '%' 
+                        UNION 
+                        SELECT 'KYC0'  AS SSPS_TYP_CD
+                             , '수기 등록' AS RULE_NM
+                             , 'KYC0::수기 등록' RULE_NM_DESC 
+                         FROM DUAL
+	                 ) X
+	               , (
+	                      SELECT DATE_TEX_CCD AS SSPS_TYP_CD
+	                           , BAS_YYMM AS YYYYMM
+	                           , MAX(MOD(SUBSTR(BAS_YYMM,-2)-1,3)+1) AS MON_GB
+	                           , DECODE(DATA_DTIL_CCD,'42',2,1) AS RPT_GB
+	                           , SUM(CNT) AS CNT
+	                        FROM SSQ.NIC65B
+	                       WHERE BAS_YYMM <![CDATA[>=]]> #{fromYear}||LPAD(3*#{fromQuart}-2,2,'0')  /* 년도와 분기 파라미터 */
+	                         AND BAS_YYMM <![CDATA[<=]]> #{fromYear}||LPAD(3*#{fromQuart}  ,2,'0')  /* 년도와 분기 파라미터 */
+	                         AND BIZ_RULE_CCD = '04'  /* TMS */
+	                         AND DATA_CCD = '42'      /* 41:CTR,42:STR */
+	                         AND BRN_CD = '99999'
+	                       GROUP BY DATE_TEX_CCD, BAS_YYMM, DECODE(DATA_DTIL_CCD,'42',2,1)
+	                 ) Y
+	           WHERE X.SSPS_TYP_CD = Y.SSPS_TYP_CD(+)
+	           GROUP BY ROLLUP (X.SSPS_TYP_CD)
+	           ORDER BY X.SSPS_TYP_CD NULLS FIRST
+	       )   
+	</select>
+
+    <select id="AML_00_02_01_01_getApprovalCount_STR_CRITV_old" parameterType="hashMap" resultType="DataObj">
+        SELECT E.INST_CCD , COUNT(*) AS CNT
+          FROM NIC58B E, WF_PROC_INSTANCE A, WF_PROC_INSTANCE D, WF_WORK_PARTICIPANT B
+          LEFT OUTER JOIN WF_WORK_PERFORMER C
+            ON ( C.WORK_STATUS_CD ='FINISHED' AND B.WORK_ID=C.WORK_ID AND B.PARTICIPANT_ID=C.PERFORMER_ID)
+         WHERE A.WORK_ID = B.WORK_ID
+           AND C.PERFORMER_ID IS NULL
+           AND ( (B.PERSON_YN='Y' AND B.PARTICIPANT_ID = #{USER_ID})
+                  OR (B.PERSON_YN='N' AND B.PARTICIPANT_ID IN (SELECT N.DEP_ID || '.' || M.ROLE_ID
+                                                                 FROM C_USER_GROUP_ROLE M, C_USER N
+                                                                WHERE M.USER_ID= #{USER_ID} AND M.USER_ID = N.USER_ID
+                                                                  AND N.DEP_ID || '.' || M.ROLE_ID = #{ROLE_ID}
+                                                              )
+                      )
+                )
+           AND A.PAR_INST_ID=D.INST_ID
+           AND E.INST_ID=D.INST_ID AND E.SN_PRGRS_CCD IN ('1','2')
+         GROUP BY E.INST_CCD
+    </select>
+
+    <select id="AML_00_offduty_getOffDutyCheck" parameterType="hashMap" resultType="DataObj">
+        SELECT /* AML_00_offduty_getOffDutyCheck */
+               CASE WHEN S.CUR_YMD <![CDATA[>]]> #{OFF_DUTY_START_DT} THEN 'ERROR'
+                    ELSE 'PASS'
+                END AS OFF_DUTY_CHECK_DT
+              ,CASE WHEN 'A' = #{CHECK_FLAG} THEN CASE WHEN U.OFF_DUTY_A_OFF <![CDATA[>]]> 0
+                                                       THEN 'ERROR_A_OFF'
+                                                       WHEN U.OFF_DUTY_A_AGENT <![CDATA[>]]> 0
+                                                       THEN 'ERROR_A_AGT'
+                                                       ELSE 'PASS'
+                                                   END
+                    WHEN 'O' = #{CHECK_FLAG} THEN CASE WHEN U.OFF_DUTY_O_OFF <![CDATA[>]]> 0
+                                                       THEN 'ERROR_O_OFF'
+                                                       WHEN U.OFF_DUTY_O_AGENT <![CDATA[>]]> 0
+                                                       THEN 'ERROR_O_AGT'
+                                                       ELSE 'PASS'
+                                                   END
+                    WHEN 'AO' = #{CHECK_FLAG} THEN CASE WHEN U.OFF_DUTY_A_OFF <![CDATA[>]]> 0
+                                                        THEN 'ERROR_A_OFF'
+                                                        WHEN U.OFF_DUTY_A_AGENT <![CDATA[>]]> 0
+                                                        THEN 'ERROR_A_AGT'
+                                                        WHEN U.OFF_DUTY_O_OFF <![CDATA[>]]> 0
+                                                        THEN 'ERROR_O_OFF'
+                                                        WHEN U.OFF_DUTY_O_AGENT <![CDATA[>]]> 0
+                                                        THEN 'ERROR_O_AGT'
+                                                        ELSE 'PASS'
+                                                    END
+                    ELSE 'ERROR_FLAG'
+                END AS OFF_DUTY_CHECK_CNT
+              ,CASE WHEN D.DEP_CNT <![CDATA[>]]> 0
+                    THEN 'ERROR'
+                    ELSE 'PASS'
+                END AS OFF_DUTY_CHECK_DEP
+          FROM ( SELECT /* A: AGENT(대리인)
+                         *    대직요청이 없어야 한다.
+                         * O: OFF(요청인)
+                         *    대직 중이거나 기 대직요청이 없어야 한다.
+                         */
+                        COUNT( CASE WHEN 'A' = #{CHECK_FLAG} OR 'AO' = #{CHECK_FLAG}
+                                    THEN CASE WHEN C.OFF_USER_ID = #{AGENT_USER_ID}
+                                              THEN C.OFF_USER_ID
+                                          END
+                                END) AS OFF_DUTY_A_OFF
+                       ,COUNT( CASE WHEN 'A' = #{CHECK_FLAG} OR 'AO' = #{CHECK_FLAG}
+                                    THEN CASE WHEN C.AGENT_USER_ID = #{AGENT_USER_ID} AND C.OFF_USER_ID = #{OFF_USER_ID}
+                                              THEN C.OFF_USER_ID
+                                          END
+                                END) AS OFF_DUTY_A_AGENT
+                       ,COUNT( CASE WHEN 'O' = #{CHECK_FLAG} OR 'AO' = #{CHECK_FLAG}
+                                    THEN CASE WHEN C.OFF_USER_ID = #{OFF_USER_ID }
+                                              THEN C.OFF_USER_ID
+                                          END
+                                END) AS OFF_DUTY_O_OFF
+                       ,COUNT( CASE WHEN 'O' = #{CHECK_FLAG } OR 'AO' = #{CHECK_FLAG }
+                                    THEN CASE WHEN C.AGENT_USER_ID = #{OFF_USER_ID }
+                                              THEN C.AGENT_USER_ID
+                                          END
+                                END) AS OFF_DUTY_O_AGENT
+                   FROM C_OFF_DUTY_USER C
+                  WHERE 1 = 1
+                    AND C.DEL_YN = 'N'
+                    AND ( C.AGENT_USER_ID = #{AGENT_USER_ID }
+                          OR C.AGENT_USER_ID = #{OFF_USER_ID }
+                          OR C.OFF_USER_ID   = #{AGENT_USER_ID }
+                          OR C.OFF_USER_ID   = #{OFF_USER_ID } )
+                <if test='OFF_DUTY_ID != null and OFF_DUTY_ID != ""'>
+                    AND C.OFF_DUTY_ID != #{OFF_DUTY_ID }
+                </if>
+                    AND C.OFF_DUTY_START_DT  <![CDATA[<=]]> #{OFF_DUTY_EXPECT_DT } || '235959'
+                    AND C.OFF_DUTY_EXPECT_DT <![CDATA[>=]]> #{OFF_DUTY_START_DT }  || '000000'
+               ) U
+               ,(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') AS CUR_YMD
+                   FROM DUAL
+                  WHERE 1 = 1) S
+               ,(SELECT COUNT(M.DEP_ID) AS DEP_CNT
+                   FROM (SELECT A.DEP_ID
+                           FROM C_USER A
+                          WHERE 1 = 1 AND A.USER_ID = #{AGENT_USER_ID }
+                         MINUS
+                         SELECT B.DEP_ID
+                           FROM C_USER B
+                          WHERE 1 = 1 AND B.USER_ID = #{OFF_USER_ID }
+                         ) M
+                ) D
+         WHERE 1 = 1
+    </select>
+
+	<!-- 삼성증권용 -->
+    <select id="AML_00_IPCheckList" parameterType="hashMap" resultType="DataObj">
+        SELECT A.CNTNT, A.CD_NM
+          FROM NIC92B A
+         WHERE A.CD='S093'
+           AND A.USE_F ='Y'
+    </select>
+	<!-- 삼성증권용 -->
+	
+    <insert id="AML_00_LoginInfo_SuccessFail" parameterType="hashMap">
+        INSERT INTO TB_EBZI_AML_LOG_SC
+                    (SEQ
+                    ,CNNT_TRY_DTTI
+                    ,LOGIN_ID
+                    ,USER_NM
+                    ,USER_IP
+                    ,LOGIN_SUS_YN
+                    ,SYS_NM )
+             VALUES (SSQ.TB_EBZI_AML_LOG_SC_SEQ.NEXTVAL
+                    ,TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                    ,#{LOGIN_ID,jdbcType=VARCHAR}
+                <choose>
+                    <when test='USER_NM != null and USER_NM != ""'>
+                    ,#{USER_NM ,jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                    ,(SELECT C.USER_NM FROM C_USER C WHERE C.LOGIN_ID = #{LOGIN_ID ,jdbcType=VARCHAR} AND ROWNUM =1 )
+                    </otherwise>
+                </choose>
+                    ,#{USER_IP ,jdbcType=VARCHAR}
+                    ,#{LOGIN_SUS_YN ,jdbcType=VARCHAR}
+                    ,#{SYS_NM ,jdbcType=VARCHAR} )
+    </insert>
+
+    <insert id="AML_00_LoginInfo_ACTION" parameterType="hashMap">
+        INSERT INTO TB_EBZI_AML_LOG_AC
+                    (SEQ
+                    ,CNNT_TRY_DTTI
+                    ,LOGIN_ID
+                    ,USER_NM
+                    ,USER_IP
+                    ,MNU_ID
+                    ,PGE_ID
+                    ,BRCH_NO
+                    ,PARAM_VAL
+                    ,SQL_ID_VAL
+                    ,EVNT_DVCD
+                    ,PSIF_INCL_YN
+                    ,DLD_NCNT
+                    ,LOG_CNTN)
+             VALUES (SSQ.TB_EBZI_AML_LOG_AC_SEQ.NEXTVAL
+                    ,TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+                    ,#{LOGIN_ID ,jdbcType=VARCHAR}
+                <choose>
+                    <when test='USER_NM != null and USER_NM != ""'>
+                    ,#{USER_NM ,jdbcType=VARCHAR}
+                    </when>
+                    <otherwise>
+                    ,(SELECT C.USER_NM FROM C_USER C WHERE C.LOGIN_ID = #{LOGIN_ID ,jdbcType=VARCHAR} AND ROWNUM =1 )
+                    </otherwise>
+                </choose>
+                   ,#{USER_IP ,jdbcType=VARCHAR}
+                   ,#{MNU_ID ,jdbcType=VARCHAR}
+                   ,#{PGE_ID ,jdbcType=VARCHAR}
+                   ,#{BRCH_NO ,jdbcType=VARCHAR}
+                   ,#{PARAM_VAL ,jdbcType=VARCHAR}
+                   ,#{SQL_ID_VAL ,jdbcType=VARCHAR}
+                   ,#{EVNT_DVCD ,jdbcType=VARCHAR}
+                   ,#{PSIF_INCL_YN ,jdbcType=VARCHAR}
+                   ,#{DLD_NCNT ,jdbcType=NUMERIC}
+                   ,#{LOG_CNTN ,jdbcType=VARCHAR}
+                   )
+    </insert>
+
+    <select id="AML_00_00_00_00_common_getPageIDList" parameterType="hashMap" resultType="DataObj">
+        SELECT A.CNTNT, A.CD_NM
+          FROM NIC92B A
+         WHERE A.USE_F = 'Y'
+           AND A.CD = #{cd}
+         ORDER BY A.CD_RNK_SQ
+    </select>
+
+    <select id="AML_00_00_00_00_getMultiPosition" parameterType="hashMap" resultType="DataObj">
+        SELECT B.DEP_DESC AS DEP_CD
+              ,B.DEP_TITLE AS DPRT_NM
+              ,B.DEP_ID AS DEP_ID
+          FROM C_MULTI_POSITION A
+              ,C_DEP_INFO B
+         WHERE A.CHRG_DEP_ID = B.DEP_ID
+           AND A.CHRG_P_ID = #{CHRG_P_ID}
+           AND A.TASK_DVCD = '2'  --겸임
+           AND A.APPR_STAT_CD ='E'  --승인
+           AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN A.START_DT AND A.END_DT
+     UNION ALL
+        SELECT B.DEP_DESC AS DEP_CD
+              ,B.DEP_TITLE AS DPRT_NM
+              ,B.DEP_ID AS DEP_ID
+          FROM C_MULTI_POSITION A
+              ,C_DEP_INFO B
+         WHERE A.TGT_DEP_ID = B.DEP_ID
+           AND A.CHRG_P_ID = #{CHRG_P_ID}
+           AND A.TASK_DVCD = '2'  --겸임
+           AND A.APPR_STAT_CD ='E'  --승인
+           AND TO_CHAR(SYSDATE,'YYYYMMDD') BETWEEN A.START_DT AND A.END_DT
+    </select>
+
+    <update id="AML_00_01_01_02_changeActiveYn" parameterType="hashMap">
+        UPDATE C_USER C
+           SET C.ACTIVE_YN = 'N'
+              ,C.LAST_USE_DATE = TO_CHAR(SYSDATE, 'YYYYMMDDHH24MISS')
+         WHERE C.LOGIN_ID = #{LOGIN_ID}
+    </update>
+
+    <select id="AML_00_01_01_02_getCheckLastUseDate" parameterType="hashMap" resultType="DataObj">
+        SELECT NVL(SUBSTR(C.LAST_USE_DATE, 1, 8), TO_CHAR(SYSDATE,'YYYYMMDD') ) AS LAST_USE_DATE
+          FROM C_USER C
+         WHERE C.LOGIN_ID = #{LOGIN_ID}
+    </select>
+
+    <select id="AML_00_01_01_02.getLastAccecMaxDate" parameterType="hashMap" resultType="DataObj">
+        SELECT NVL(MAX(T.CNNT_TRY_DTTI), 'NO_DATE') AS CNNT_TRY_DTTI
+          FROM TB_EBZI_AML_LOG_SC T
+         WHERE T.LOGIN_ID = #{LOGIN_ID}
+           AND T.LOGIN_SUS_YN= 'Y'
+    </select>
+
+    <select id="AML_00_90_02_01_getSearch" parameterType="hashMap" resultType="DataObj">
+        <![CDATA[
+            SELECT *
+              FROM ( SELECT ROW_NUMBER() OVER(ORDER BY A.CS_NM ) AS NU
+                           ,A.RNMCNO /* 20250605 AML_CUST_ID */                                                     -- 실명번호(마스킹)
+                           ,A.RNMCNO AS RNMCNO_HIDDEN                                         -- 실명번호(마스킹x) 
+                           ,CASE WHEN LENGTH(TRIM(A.CS_RGST_DT) ) > 0 AND LENGTH(TRIM(A.CS_RGST_DT) ) < 9
+                                 THEN SUBSTR(A.CS_RGST_DT,1,4)||'-'||SUBSTR(A.CS_RGST_DT,5,2)||'-'||SUBSTR(A.CS_RGST_DT,7,2)
+                                 ELSE ''
+                             END AS CS_RGST_DT                                                -- 생년월일(설립일자)
+                           ,A.CS_NM                                                           -- 한글고객명
+                           ,A.ENG_CS_NM                                                       -- 영문고객명
+                           ,A.RNM_CNFR_CCD                                                    -- 실명확인구분코드
+                           ,A.INDV_CORP_CCD                                                   -- 개인법인구분코드
+                           ,GET_CODE_NAME('M006', A.INDV_CORP_CCD) AS INDV_CORP_CCD_NM        -- 개인법인구분코드명
+                           ,A.CS_NO
+                       FROM NIC01B A
+                      WHERE 1=1
+        ]]>
+            <if test="INDV_CORP_CCD != 'ALL' and INDV_CORP_CCD != ''">
+                <choose>
+                    <when test='INDV_CORP_CCD == "1"'>
+                        AND A.INDV_CORP_CCD = '1'
+                    </when>
+                    <when test='INDV_CORP_CCD == "2"'>
+                        AND A.INDV_CORP_CCD = '2'
+                    </when>
+                </choose>
+            </if>
+                <choose>
+                    <when test='searchGubnCode == "A"'>
+                        AND A.CS_NM LIKE '%'|| #{CS_NM} || '%'
+                    </when>
+                    <when test='searchGubnCode == "B"'>
+                        AND A.ENG_CS_NM LIKE '%'|| #{CS_NM} ||'%'
+                    </when>
+                    <otherwise>
+                        AND (A.CS_NM LIKE '%'|| #{CS_NM} || '%' OR A.ENG_CS_NM LIKE '%'|| #{CS_NM} ||'%')
+                    </otherwise>
+                </choose>
+                    ) B
+             WHERE 1=1
+            <if test="thisPage != '' or pageCount !='' ">
+               AND B.NU <![CDATA[>=]]> ( ( #{thisPage} - 1 ) * #{pageCount} + 1 )
+               AND B.NU <![CDATA[<=]]> ( #{thisPage} * #{pageCount} )
+            </if>
+    </select>
+
+    <select id="AML_00_90_02_01_getSearch_TOTAL" parameterType="hashMap" resultType="DataObj">
+        <![CDATA[
+            SELECT COUNT(A.RNMCNO /* 20250605 AML_CUST_ID */) AS TOTALCOUNT
+              FROM NIC01B A
+             WHERE 1=1
+        ]]>
+        <if test="INDV_CORP_CCD != 'ALL' and INDV_CORP_CCD != ''">
+            <choose>
+                <when test='INDV_CORP_CCD == "1"'>
+                    AND A.INDV_CORP_CCD = '1'
+                </when>
+                <when test='INDV_CORP_CCD == "2"'>
+                    AND A.INDV_CORP_CCD = '2'
+                </when>
+            </choose>
+        </if>
+        <choose>
+            <when test='searchGubnCode == "A"'>
+                AND A.CS_NM LIKE '%'|| #{CS_NM} || '%'
+            </when>
+            <when test='searchGubnCode == "B"'>
+                AND A.ENG_CS_NM LIKE '%'|| #{CS_NM} ||'%'
+            </when>
+            <otherwise>
+                AND (A.CS_NM LIKE '%'|| #{CS_NM} || '%' OR A.ENG_CS_NM LIKE '%'|| #{CS_NM} ||'%')
+            </otherwise>
+        </choose>
+    </select>
+
+    <select id="getCodeIdRuleMappedCode" parameterType="hashMap" resultType="DataObj">
+        SELECT A.RT3K_7 AS CD_NM, A.RT3K_A AS CD_ID
+          FROM BRT3K0TB A
+         WHERE A.RT31_1 = #{RT31_1}
+           AND A.RT32_1 = #{RT32_1}
+           AND A.RT3K_A IS NOT NULL
+     UNION ALL
+        SELECT B.RT33_3, B.RT33_5
+          FROM BRT330TB B
+         WHERE B.RT31_1 = #{RT31_1}
+           AND B.RT32_1 = #{RT32_1}
+           AND B.RT33_5 IS NOT NULL
+    </select>
+
+    <select id="AML_00_00_00_00_SessionWFGroupID" parameterType="hashMap" resultType="DataObj">
+        SELECT (A.TGT_DEP_ID ||'.'|| B.ROLE_ID) AS WF_GROUP_DEP_ROLE
+          FROM C_MULTI_POSITION A, C_USER_GROUP_ROLE B
+         WHERE A.TASK_DVCD ='2' --겸임
+           AND A.APPR_STAT_CD ='E'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A.START_DT AND A.END_DT
+           AND A.CHRG_P_ID = B.USER_ID
+           AND A.CHRG_P_ID = #{USER_ID}
+        UNION
+        SELECT (A.DEP_ID ||'.'|| B.ROLE_ID) AS WF_GROUP_DEP_ROLE
+          FROM C_USER A, C_USER_GROUP_ROLE B
+         WHERE A.USER_ID = B.USER_ID
+           AND A.USER_ID = #{USER_ID}
+        UNION
+        SELECT (C.DEP_ID ||'.'||B.ROLE_ID) AS WF_GROUP_DEP_ROLE
+          FROM C_OFF_DUTY_USER A
+              ,C_USER_GROUP_ROLE B
+              ,C_USER C
+         WHERE A.OFF_USER_ID = B.USER_ID
+           AND A.OFF_USER_ID = C.USER_ID
+           AND SYSDATE BETWEEN TO_DATE(A.OFF_DUTY_START_DT, 'YYYYMMDDHH24MISS') AND TO_DATE(NVL(A.OFF_DUTY_DUE_DT,A.OFF_DUTY_EXPECT_DT),'YYYYMMDDHH24MISS')
+           AND A.DEL_YN ='N'
+           AND A.AGENT_USER_ID = #{USER_ID}
+    </select>
+
+    <!-- 대시보드 움직이는 타이틀바 -->
+    <select id="AML_00_00_00_00_getData" parameterType="hashMap" resultType="DataObj">
+        SELECT NVL(LISTAGG(A.TITLE, ',') WITHIN GROUP (ORDER BY A.START_TM),' ') AS STR_LIST
+          FROM C_NOTI A
+         WHERE A.ISSCROLL = 'Y'
+           AND TO_CHAR(SYSDATE, 'YYYYMMDD') BETWEEN A.START_DT AND A.END_DT
+           AND TO_CHAR(SYSDATE, 'HH24MISS') BETWEEN A.START_TM AND A.END_TM
+    </select>
+
+    <select id="AML_00_ScheduleLoader_loadSchedules" parameterType="hashMap" resultType="hashMap">
+        SELECT * FROM NIC93B A WHERE A.USE_YN = 'Y' AND A.SCHEDULE_YN = 'Y'
+    </select>
+
+    <select id="AML_00_ScheduleLoader_loadSchedule" parameterType="hashMap" resultType="hashMap">
+        SELECT * FROM NIC93B A WHERE A.JOB_ID = #{JOB_ID} AND A.USE_YN = 'Y' AND A.SCHEDULE_YN = 'Y'
+    </select>
+
+    <update id="AML_00_UpdateScheduleLoader.updateStateRunning2Stop">
+        UPDATE NIC93B A SET A.JOB_ST_CD = '8' WHERE A.USE_YN = 'Y' AND A.SCHEDULE_YN = 'Y' AND A.JOB_ST_CD = '2'
+    </update>
+
+    <select id="AML_00_02_01_04_data_verification" parameterType="hashMap" resultType="DataObj">
+        SELECT SUBSTR(M.WK_DT,1,4) ||'-'|| SUBSTR(M.WK_DT, 5,2)||'-'||SUBSTR(M.WK_DT, 7,2) AS WK_DT
+              ,COUNT(*) AS TOTAL
+              ,SUM(CASE WHEN M.COL_VAL = '정상' THEN 1 ELSE 0 END) AS SC_CNT
+              ,SUM(CASE WHEN M.COL_VAL != '정상' THEN 1 ELSE 0 END) AS ER_CNT
+          FROM NIC00B_MART_LOG M
+         WHERE M.WK_DT IN (SELECT MAX(N.WK_DT) FROM NIC00B_MART_LOG N)
+         GROUP BY M.WK_DT
+    </select>
+
+    <select id="AML_00_00_00_00_common_getHDCodeList_GroupCode" parameterType="hashMap" resultType="DataObj">
+        SELECT *
+          FROM (SELECT B.CD
+                      ,B.CCD
+                      ,B.STND_CD_NM
+                      ,B.TBL_NM
+                  FROM NIC91B B
+                ) A
+         WHERE A.CD IN
+         <foreach collection="CD_LIST" item="CD_LIST" index="indexs" open="(" separator="," close=")">
+             #{CD_LIST, jdbcType=VARCHAR}
+         </foreach>
+    </select>
+
+    <select id="AML_00_00_00_00_common_getAllCommonCodeList" parameterType="hashMap" resultType="DataObj">
+        SELECT A.GRP_CD || A.ITM_CD AS CODE, A.ITM_NM AS NAME
+          FROM (SELECT B.CD AS GRP_CD
+                      ,B.CNTNT AS ITM_CD
+                      ,B.CD_NM AS ITM_NM
+                      ,B.USE_F AS USE_YN
+                  FROM NIC92B B
+                ) A
+         WHERE A.GRP_CD = #{CD}
+        <if test="bUse = Y">
+           AND A.USE_YN = 'Y'
+        </if>
+    </select>
+
+    <select id="AML_00_00_00_00_common_getComboData" parameterType="hashMap" resultType="DataObj">
+        SELECT /*AML.common.getComboData*/
+               A.CNTNT AS CODE
+              ,A.CD_NM AS NAME
+              ,A.GRP_CD AS GRP_CODE
+          FROM NIC92B A
+         WHERE A.CD = #{CD}
+           AND A.USE_F = 'Y'
+         ORDER BY A.CD_RNK_SQ, A.CNTNT
+    </select>
+
+    <select id="AML_01_00_00_00_common_C_MENU_DISPLAY" parameterType="HashMap" resultType="DataObj">
+        SELECT *
+          FROM C_WINDOW_DISPLAY A
+         WHERE A.LANG_CD = #{LANG_CD}
+           AND A.WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+    </select>
+
+    <select id="AML_01_00_00_00_common_C_MENU_DISPLAY_URL" parameterType="HashMap" resultType="DataObj">
+        SELECT B.WINDOW_ACT_ID
+              ,D.DISPLAY_NM
+              ,M.MENU_ACT_ID AS MENU_ACT_ID_1
+              ,P.DISPLAY_NM AS MENU_ACT_ID_NM_1
+              ,N.MENU_ACT_ID AS MENU_ACT_ID_2
+              ,Q.DISPLAY_NM AS MENU_ACT_ID_NM_2
+              ,N.PAR_MENU_ACT_ID AS MENU_ACT_ID_3
+              ,R.DISPLAY_NM AS MENU_ACT_ID_NM_3
+          FROM C_MENU_ACT A
+         INNER JOIN C_MENU_WINDOW_MAP B
+            ON A.MENU_ACT_ID = B.MENU_ACT_ID
+         INNER JOIN C_WINDOW_ACT C
+            ON B.WINDOW_ACT_ID = C.WINDOW_ACT_ID
+         INNER JOIN C_WINDOW_DISPLAY D
+            ON C.WINDOW_ACT_ID = D.WINDOW_ACT_ID
+         INNER JOIN C_GROUP_ROLE_MENU_ACT_AUTH M
+            ON A.MENU_ACT_ID = M.MENU_ACT_ID
+         INNER JOIN C_GROUP_ROLE_MENU_ACT_AUTH N
+            ON M.PAR_MENU_ACT_ID = N.MENU_ACT_ID
+         INNER JOIN C_MENU_DISPLAY P
+            ON M.MENU_ACT_ID = P.MENU_ACT_ID
+           AND M.MENU_ACT_ID != 'AML'
+           AND P.LANG_CD = #{LANG_CD}
+         INNER JOIN C_MENU_DISPLAY Q
+            ON N.MENU_ACT_ID = Q.MENU_ACT_ID
+           AND N.MENU_ACT_ID != 'AML'
+           AND Q.LANG_CD = #{LANG_CD}
+         INNER JOIN C_MENU_DISPLAY R
+            ON N.PAR_MENU_ACT_ID = R.MENU_ACT_ID
+           AND N.MENU_ACT_ID != 'AML'
+           AND R.LANG_CD = #{LANG_CD}
+         WHERE D.LANG_CD = #{LANG_CD}
+           AND C.WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+           AND M.GROUP_ID = #{GROUP_ID}
+           AND M.ROLE_ID = #{ROLE_ID}
+           AND N.GROUP_ID = #{GROUP_ID}
+           AND N.ROLE_ID = #{ROLE_ID}
+    </select>
+
+    <select id="AML_01_00_00_00_CommonAuth_hasMenuAccess" parameterType="HashMap" resultType="DataObj">
+        SELECT A.MENU_ACT_ID
+          FROM C_GROUP_ROLE_MENU_ACT_AUTH A
+         INNER JOIN C_MENU_WINDOW_MAP B
+            ON A.MENU_ACT_ID = B.MENU_ACT_ID
+         WHERE A.ACCESS_YN = 'Y'
+           AND A.GROUP_ID = #{GROUP_ID}
+           AND A.ROLE_ID = #{ROLE_ID}
+           AND B.WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+    </select>
+
+    <select id="AML_01_00_00_00_CommonAuth_getWinAuth" parameterType="HashMap" resultType="DataObj">
+        SELECT A.BIZ_AUTH_YN
+              ,B.GROUP_ID
+              ,B.ROLE_ID
+              ,B.WINDOW_ACT_ID
+              ,B.USE_YN
+              ,B.C
+              ,B.R
+              ,B.U
+              ,B.D
+          FROM C_WINDOW_ACT A
+          LEFT JOIN C_AUTH_WINDOW_MAP B
+            ON A.WINDOW_ACT_ID = B.WINDOW_ACT_ID
+           AND B.GROUP_ID = #{GROUP_ID}
+           AND B.ROLE_ID = #{ROLE_ID}
+         WHERE A.WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+    </select>
+
+    <select id="AML_01_00_00_00_CommonAuth_getWinAuth_C_AUTH_WINDOW_MAP" parameterType="HashMap" resultType="DataObj">
+        SELECT A.GROUP_ID
+              ,A.ROLE_ID
+              ,A.WINDOW_ACT_ID
+              ,A.USE_YN
+              ,A.C
+              ,A.R
+              ,A.U
+              ,A.D
+          FROM C_AUTH_WINDOW_MAP A
+         WHERE A.GROUP_ID = #{GROUP_ID}
+           AND A.ROLE_ID = #{ROLE_ID}
+           AND A.WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+    </select>
+
+    <select id="AML_01_00_00_00_CommonAuth_checkWinAuthYN_C_WINDOW_ACT" parameterType="HashMap" resultType="DataObj">
+        SELECT A.WINDOW_ACT_ID
+              ,A.BIZ_AUTH_YN
+              ,A.SCREEN_TYPE_CD
+              ,A.SCREEN_ID
+              ,A.WINDOW_FORM_URL
+              ,A.WINDOW_LOCATION_CD
+              ,A.WINDOW_ITEM_YN
+              ,A.WINDOW_DISPLAY_YN
+              ,A.POPUP_YN
+              ,A.WINDOW_ACT_DESC
+          FROM C_WINDOW_ACT A
+         WHERE A.WINDOW_ACT_ID = #{WINDOW_ACT_ID}
+    </select>
+
+    <select id="AML_00_02_01_01_getApprovalCount_Report" parameterType="HashMap" resultType="DataObj">
+        SELECT A.SSPS_DL_CRT_CCD
+              ,COUNT(*) AS CNT
+          FROM NIC66B A
+         WHERE A.RPR_PRGRS_CCD = '9'
+         GROUP BY A.SSPS_DL_CRT_CCD
+    </select>
+
+    <select id="AML_00_00_00_00_common_getComboData_MergeToNIC92B" parameterType="hashMap" resultType="DataObj">
+        SELECT A.CNTNT AS CODE
+              ,A.CD_NM AS NAME
+          FROM NIC92B A
+         WHERE A.CD = #{CD}
+           AND A.USE_F = 'Y'
+         ORDER BY A.CD_RNK_SQ, A.CNTNT
+    </select>
+
+    <select id="AML_00_00_00_00_common_getComboData_NCC92B" parameterType="hashMap" resultType="DataObj">
+        SELECT A.*
+          FROM (SELECT B.CNTNT AS CODE
+                      ,B.CD_NM AS NAME
+                  FROM NIC92B B
+                 WHERE B.CD = #{CD}
+                   AND B.USE_F = 'Y'
+                 ORDER BY B.CD_RNK_SQ, B.CD_NM
+                ) A
+         UNION ALL
+        SELECT D.TRNSFRM_CD AS CODE
+              ,D.TRNSFRM_CD_EXPL AS NAME
+          FROM NIC95B D
+         WHERE D.CD = #{CD}
+    </select>
+
+    <select id="AML_00_00_00_00_common_getComboData_jspeed_C_CD" parameterType="hashMap" resultType="DataObj">
+        SELECT A.CD_ID AS CODE
+              ,B.DISPLAY_NM AS NAME
+          FROM C_CD A
+         INNER JOIN C_CD_NM B
+            ON A.CD_ID = B.CD_ID
+         WHERE A.DEL_YN = 'N'
+           AND B.LANG_CD = #{LANG_CD}
+           AND A.CD_GRP_ID = #{CD_GRP_ID}
+         ORDER BY A.DISPLAY_ORDER
+    </select>
+
+    <select id="AML_00_00_00_00_common_getComboData_jspeed_C_GROUP" parameterType="hashMap" resultType="DataObj">
+        SELECT A.GROUP_ID AS CODE
+              ,B.GROUP_NM AS NAME
+          FROM C_GROUP_ROLE_MENU_ACT_AUTH A
+         INNER JOIN C_GROUP B
+            ON A.GROUP_ID = B.GROUP_ID
+         WHERE A.PKG_ID = #{PKG_ID}
+         GROUP BY A.GROUP_ID, B.GROUP_NM
+    </select>
+
+    <select id="AML_00_00_00_00_common_getComboData_jspeed_C_ROLE" parameterType="hashMap" resultType="DataObj">
+        SELECT B.ROLE_ID AS CODE
+              ,B.ROLE_NM AS NAME
+              ,B.ROLE_DESC
+          FROM C_ROLE B
+         ORDER BY B.ROLE_DESC ASC
+    </select>
+
+    <select id="AML_00_00_00_00_common_login_getRoleInfo" parameterType="hashMap" resultType="DataObj">
+        SELECT C.ROLE_ID, C.ROLE_NM
+          FROM C_ROLE C
+         WHERE C.ROLE_ID = #{ROLE_ID}
+    </select>
+
+    <select id="AML_00_00_00_00_common_setRadio_NCC92B" parameterType="hashMap" resultType="DataObj">
+        SELECT A.CNTNT AS CODE
+              ,A.CD_NM AS NAME
+          FROM NIC92B A
+         WHERE A.CD = #{CD}
+           AND A.USE_F = 'Y'
+         ORDER BY A.CD_RNK_SQ, A.CNTNT
+    </select>
+
+    <select id="AML_00_00_00_01_getMenuTotal" parameterType="hashMap" resultType="DataObj">
+        <![CDATA[
+        SELECT C.PAR_MENU_ACT_ID
+              ,B.MENU_ACT_ID
+              ,A.DISPLAY_NM
+              ,B.ACTIVE_MENU_IMAGE
+              ,B.INACTIVE_MENU_IMAGE
+              ,C.DISPLAY_ORDER
+              ,E.WINDOW_ACT_ID
+          FROM C_MENU_DISPLAY A
+         INNER JOIN C_MENU_ACT B
+            ON A.MENU_ACT_ID = B.MENU_ACT_ID
+         INNER JOIN C_PKG_MENU_MAP C
+            ON B.MENU_ACT_ID = C.MENU_ACT_ID
+           AND C.MENU_ACT_ID <> C.PAR_MENU_ACT_ID
+         INNER JOIN C_GROUP_ROLE_MENU_ACT_AUTH D
+            ON C.PKG_ID = D.PKG_ID
+           AND D.PAR_MENU_ACT_ID = C.PAR_MENU_ACT_ID
+           AND D.MENU_ACT_ID = C.MENU_ACT_ID
+          LEFT JOIN ( SELECT ROW_NUMBER() OVER (PARTITION BY T.MENU_ACT_ID ORDER BY T.WINDOW_DEFAULT_YN DESC, T.WINDOW_ACT_ID ASC) AS RN
+                            ,T.MENU_ACT_ID
+                            ,T.WINDOW_ACT_ID
+                        FROM C_MENU_WINDOW_MAP T
+                    ) E
+            ON E.MENU_ACT_ID = B.MENU_ACT_ID
+           AND E.RN = 1
+         WHERE D.PKG_ID = #{PKG_ID}
+           AND D.GROUP_ID = #{GROUP_ID}
+           AND D.ROLE_ID  = #{ROLE_ID}
+           AND D.ACCESS_YN = 'Y'
+           AND A.LANG_CD = #{LANG_CD}
+           AND B.MENU_DISPLAY_YN = 'Y'
+         ORDER BY C.DISPLAY_ORDER
+        ]]>
+    </select>
+
+    <select id="AML_00_02_01_01_getAlertCountDay01_MASTER_BRANCH_N" parameterType="hashMap" resultType="DataObj">
+        SELECT NVL(SUM(E.CTR_1),0) AS CTR_1
+              ,NVL(SUM(E.CTR_2),0) AS CTR_2
+              ,NVL(SUM(E.STR_1),0) AS STR_1
+              ,NVL(SUM(E.STR_2),0) AS STR_2
+              ,NVL(SUM(E.KYC_1),0) AS KYC_1
+              ,NVL(SUM(E.KYC_2),0) AS KYC_2
+          FROM ( SELECT CASE WHEN (D.CRT='CTR') AND (D.BCD = '2') THEN D.BCD_COUNT ELSE 0 END AS CTR_1
+                       ,CASE WHEN (D.CRT='CTR') AND (D.BCD = '9') THEN D.BCD_COUNT ELSE 0 END AS CTR_2
+                       ,CASE WHEN (D.CRT='STR') AND (D.BCD = '2') THEN D.BCD_COUNT ELSE 0 END AS STR_1
+                       ,CASE WHEN (D.CRT='STR') AND (D.BCD = '9') THEN D.BCD_COUNT ELSE 0 END AS STR_2
+                       ,CASE WHEN (D.CRT='KYC') AND (D.BCD = '2') THEN D.BCD_COUNT ELSE 0 END AS KYC_1
+                       ,CASE WHEN (D.CRT='KYC') AND (D.BCD = '9') THEN D.BCD_COUNT ELSE 0 END AS KYC_2
+                   FROM ( SELECT C.SSPS_DL_CRT_CCD AS CRT
+                                ,C.RPR_PRGRS_CCD AS BCD
+                                ,COUNT(C.RPR_PRGRS_CCD) AS BCD_COUNT
+                            FROM ( SELECT A.SSPS_DL_CRT_DT
+                                         ,A.SSPS_DL_CRT_CCD       -- 혐의거래생성구분코드[STR/CTR]
+                                         ,A.SSPS_DL_ANLYS_BRN_CD  -- 주거래지점코드
+                                         ,A.RPR_PRGRS_CCD         -- 보고진행구분코드
+                                     FROM NIC66B A
+                                    INNER JOIN NIC73B B
+                                       ON A.SSPS_DL_CRT_DT=B.SSPS_DL_CRT_DT
+                                      AND A.SSPS_DL_ID=B.SSPS_DL_ID
+                                    WHERE B.MN_DL_BRN_CD = #{BDPT_CD}
+                                      AND A.SSPS_DL_CRT_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+                                      AND A.INST_ID IS NOT NULL
+                                 ) C
+                           GROUP BY C.SSPS_DL_CRT_CCD, C.RPR_PRGRS_CCD
+                        ) D
+                ) E
+    </select>
+
+    <select id="AML_00_02_01_01_getAlertCountDay01_MASTER_BRANCH_Y" parameterType="hashMap" resultType="DataObj">
+        SELECT NVL(SUM(C.CTR_1),0) AS CTR_1
+              ,NVL(SUM(C.CTR_2),0) AS CTR_2
+              ,NVL(SUM(C.STR_1),0) AS STR_1
+              ,NVL(SUM(C.STR_2),0) AS STR_2
+              ,NVL(SUM(C.KYC_1),0) AS KYC_1
+              ,NVL(SUM(C.KYC_2),0) AS KYC_2
+          FROM ( SELECT CASE WHEN (B.CRT='CTR') AND (B.BCD = '2') THEN B.BCD_COUNT ELSE 0 END AS CTR_1
+                       ,CASE WHEN (B.CRT='CTR') AND (B.BCD = '9') THEN B.BCD_COUNT ELSE 0 END AS CTR_2
+                       ,CASE WHEN (B.CRT='STR') AND (B.BCD = '2') THEN B.BCD_COUNT ELSE 0 END AS STR_1
+                       ,CASE WHEN (B.CRT='STR') AND (B.BCD = '9') THEN B.BCD_COUNT ELSE 0 END AS STR_2
+                       ,CASE WHEN (B.CRT='KYC') AND (B.BCD = '2') THEN B.BCD_COUNT ELSE 0 END AS KYC_1
+                       ,CASE WHEN (B.CRT='KYC') AND (B.BCD = '9') THEN B.BCD_COUNT ELSE 0 END AS KYC_2
+                   FROM ( SELECT A.SSPS_DL_CRT_CCD AS CRT
+                                ,A.RPR_PRGRS_CCD AS BCD
+                                ,COUNT(A.RPR_PRGRS_CCD) AS BCD_COUNT
+                            FROM NIC66B A
+                           WHERE A.SSPS_DL_CRT_DT = TO_CHAR(SYSDATE,'YYYYMMDD')
+                             AND A.INST_ID IS NOT NULL
+                           GROUP BY A.SSPS_DL_CRT_CCD, A.RPR_PRGRS_CCD
+                        ) B
+                ) C
+    </select>
+
+</mapper>

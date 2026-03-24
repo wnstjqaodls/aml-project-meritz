@@ -1,0 +1,874 @@
+1=\
+	1,\
+	Admin Console,\
+	0,\
+	,\
+	Common,\
+	N,\
+	,\
+	,\
+	1,\
+	Admin Console,\
+	0,\
+	,\
+	,\
+	jspeed,\
+	20050119105314,\
+	Y,\
+	Y,\
+	N,\
+	Admin Console,\
+	0,\
+	N
+
+2=\
+	2,\
+	Console Management,\
+	0,\
+	,\
+	Common,\
+	N,\
+	/jspeed/images/mainM_adminM_on.gif,\
+	/jspeed/images/mainM_adminM.gif,\
+	1,\
+	Console Management ,\
+	1,\
+	,\
+	,\
+	jspeed,\
+	20050202102834,\
+	N,\
+	Y,\
+	N,\
+	Console Management,\
+	1,\
+	N
+
+3=\
+	3,\
+	Base Service Management,\
+	1,\
+	,\
+	Common,\
+	N,\
+	/jspeed/images/mainM_sysM_on.gif,\
+	/jspeed/images/mainM_sysM.gif,\
+	1,\
+	Base Service Management,\
+	1,\
+	,\
+	,\
+	jspeed,\
+	20050202102834,\
+	Y,\
+	Y,\
+	N,\
+	Base Service Management,\
+	1,\
+	N
+
+4=\
+	4,\
+	Content Management,\
+	3,\
+	,\
+	Common,\
+	N,\
+	/jspeed/images/mainM_conM_on.gif,\
+	/jspeed/images/mainM_conM.gif,\
+	1,\
+	,\
+	1,\
+	,\
+	,\
+	jspeed,\
+	20050312104635,\
+	N,\
+	Y,\
+	N,\
+	Content Management,\
+	1,\
+	N
+
+6=\
+	6,\
+	Service Monitoring,\
+	2,\
+	,\
+	Common,\
+	N,\
+	/jspeed/images/mainM_changeM_on.gif,\
+	/jspeed/images/mainM_changeM.gif,\
+	1,\
+	Service Monitoring  ,\
+	1,\
+	,\
+	,\
+	jspeed,\
+	20050203213516,\
+	N,\
+	Y,\
+	N,\
+	Service Monitoring,\
+	1,\
+	N
+
+9=\
+	9,\
+	Authorization Management,\
+	0,\
+	,\
+	Common,\
+	N,\
+	,\
+	,\
+	1,\
+	Authorization Management,\
+	2,\
+	,\
+	,\
+	jspeed,\
+	20050204171736,\
+	N,\
+	Y,\
+	N,\
+	Authorization Management,\
+	2,\
+	N
+
+10=\
+	10,\
+	Menu Management,\
+	1,\
+	/jspeed/admin/menu/menuTree.jsp?navMenuNo=10,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	Menu Management,\
+	2,\
+	,\
+	,\
+	jspeed,\
+	20050204171736,\
+	N,\
+	Y,\
+	N,\
+	Menu Management,\
+	2,\
+	Y
+
+12=\
+	12,\
+	Notice Management,\
+	2,\
+	/jspeed/admin/notice/noticeList.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	Notice Management,\
+	2,\
+	,\
+	,\
+	jspeed,\
+	20050204171736,\
+	N,\
+	Y,\
+	N,\
+	Notice Management,\
+	2,\
+	N
+
+13=\
+	13,\
+	Group Management,\
+	4,\
+	/jspeed/admin/acl/group/index.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	Group Management,\
+	9,\
+	,\
+	,\
+	jspeed,\
+	20050201220343,\
+	N,\
+	Y,\
+	N,\
+	Group Management,\
+	3,\
+	N
+
+14=\
+	14,\
+	Role Management,\
+	1,\
+	/jspeed/admin/acl/role/index.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	Role Management,\
+	9,\
+	,\
+	,\
+	jspeed,\
+	20050201220403,\
+	N,\
+	Y,\
+	N,\
+	Role Management,\
+	3,\
+	N
+
+15=\
+	15,\
+	ACL(Rule) Management,\
+	0,\
+	/jspeed/admin/acl/rule/index.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	9,\
+	,\
+	,\
+	jspeed,\
+	20050201220429,\
+	N,\
+	Y,\
+	N,\
+	ACL(Rule) Management,\
+	3,\
+	N
+
+16=\
+	16,\
+	User Management,\
+	3,\
+	/jspeed/admin/acl/user/index.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	User Management,\
+	9,\
+	,\
+	,\
+	jspeed,\
+	20050201220443,\
+	N,\
+	Y,\
+	N,\
+	User Management,\
+	3,\
+	N
+
+17=\
+	17,\
+	Biz Domain Service,\
+	0,\
+	/jspeed/admin/domain/index.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	Biz Domain Service,\
+	3,\
+	,\
+	,\
+	jeenp,\
+	20050118141412,\
+	Y,\
+	Y,\
+	N,\
+	Biz Domain Service,\
+	2,\
+	N
+
+20=\
+	20,\
+	Query Service,\
+	2,\
+	/jspeed/base/query/queryItemList.jsp?serviceElementName=jspeed.query,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	Query Service,\
+	3,\
+	,\
+	,\
+	jeenp,\
+	20050118141456,\
+	Y,\
+	Y,\
+	N,\
+	Query Service,\
+	2,\
+	N
+
+21=\
+	21,\
+	JNDI Service,\
+	3,\
+	/jspeed/base/jndi/index.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	JNDI Service,\
+	3,\
+	,\
+	,\
+	jeenp,\
+	20050118141739,\
+	Y,\
+	Y,\
+	N,\
+	JNDI Service,\
+	2,\
+	N
+
+22=\
+	22,\
+	EJB Service,\
+	4,\
+	/jspeed/base/ejb/index.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	EJB Service,\
+	3,\
+	,\
+	,\
+	jeenp,\
+	20050118141751,\
+	Y,\
+	Y,\
+	N,\
+	EJB Service,\
+	2,\
+	N
+
+23=\
+	23,\
+	Log Service,\
+	5,\
+	/jspeed/base/log/index.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	Log Service,\
+	3,\
+	,\
+	,\
+	jeenp,\
+	20050118141802,\
+	Y,\
+	Y,\
+	N,\
+	Log Service,\
+	2,\
+	N
+
+24=\
+	24,\
+	JDBC Service,\
+	1,\
+	/jspeed/base/jdbc/index.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	JDBC Service  ,\
+	3,\
+	,\
+	,\
+	jeenp,\
+	20050118143108,\
+	Y,\
+	Y,\
+	N,\
+	JDBC Service,\
+	2,\
+	N
+
+25=\
+	25,\
+	Session Service,\
+	6,\
+	/jspeed/base/session/index.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	Session Service,\
+	3,\
+	,\
+	,\
+	jeenp,\
+	20050118141904,\
+	Y,\
+	Y,\
+	N,\
+	Session Service,\
+	2,\
+	N
+
+26=\
+	26,\
+	Property Service,\
+	7,\
+	/jspeed/base/property/index.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	Property Service ,\
+	3,\
+	,\
+	,\
+	jspeed,\
+	20050204160957,\
+	N,\
+	Y,\
+	N,\
+	Property Service,\
+	2,\
+	N
+
+27=\
+	27,\
+	Message Service,\
+	8,\
+	,\
+	Common,\
+	N,\
+	,\
+	,\
+	1,\
+	Message,\
+	3,\
+	,\
+	,\
+	jeenp,\
+	20050118142033,\
+	Y,\
+	Y,\
+	N,\
+	Message,\
+	2,\
+	N
+
+28=\
+	28,\
+	Message,\
+	0,\
+	/jspeed/base/message/messageItemList.jsp?serviceElementName=jspeed.err.msg.mng,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	Message Service,\
+	27,\
+	,\
+	,\
+	jeenp,\
+	20050118142045,\
+	Y,\
+	Y,\
+	N,\
+	Message Service,\
+	4,\
+	N
+
+29=\
+	29,\
+	Message Template,\
+	1,\
+	/jspeed/base/message/messageTemplateList.jsp?serviceElementName=jspeed.err.msg.tplt.mng,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	Message Template,\
+	27,\
+	,\
+	,\
+	jeenp,\
+	20050118142057,\
+	Y,\
+	Y,\
+	N,\
+	Message Template,\
+	4,\
+	N
+
+64=\
+	64,\
+	Instance Status View,\
+	0,\
+	/jspeed/monitor/instance/monitorFrame.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	Instance Status View,\
+	6,\
+	,\
+	,\
+	jspeed,\
+	20050211113712,\
+	N,\
+	Y,\
+	N,\
+	Instance Status View,\
+	2,\
+	N
+
+65=\
+	65,\
+	Page Access View,\
+	1,\
+	/jspeed/monitor/jsp/instConditionViewer.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	1,\
+	Page Access View   ,\
+	6,\
+	,\
+	,\
+	jspeed,\
+	20050211114344,\
+	N,\
+	Y,\
+	N,\
+	Page Access View,\
+	2,\
+	N
+
+71=\
+	71,\
+	Monitoring Page Management,\
+	0,\
+	/jspeed/monitor/jsp/monitoringList.jsp?menuNo=71,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	65,\
+	,\
+	,\
+	jspeed,\
+	20050412164119,\
+	N,\
+	Y,\
+	N,\
+	Monitoring Page Management,\
+	3,\
+	N
+
+72=\
+	72,\
+	Page Access View,\
+	1,\
+	/jspeed/monitor/jsp/monitorTree.jsp?menuNo=72,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	65,\
+	,\
+	,\
+	jspeed,\
+	20050412183455,\
+	N,\
+	Y,\
+	N,\
+	Page Access View,\
+	3,\
+	N
+
+125=\
+	125,\
+	Service View,\
+	2,\
+	,\
+	Common,\
+	N,\
+	,\
+	,\
+	1,\
+	,\
+	6,\
+	,\
+	,\
+	jspeed,\
+	20050314115738,\
+	N,\
+	Y,\
+	N,\
+	Service View,\
+	2,\
+	N
+
+127=\
+	127,\
+	Log View,\
+	3,\
+	/jspeed/monitor/log/instConditionViewer.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	6,\
+	,\
+	,\
+	jspeed,\
+	20050211165221,\
+	N,\
+	Y,\
+	N,\
+	Log View,\
+	2,\
+	N
+
+129=\
+	129,\
+	Page Management,\
+	0,\
+	/jspeed/composer/index_site.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	4,\
+	jspeed,\
+	20050311131109,\
+	jspeed,\
+	20050311131109,\
+	N,\
+	Y,\
+	N,\
+	Page Management,\
+	2,\
+	N
+
+130=\
+	130,\
+	Template Management,\
+	1,\
+	/jspeed/composer/index_tmp.jsp,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	4,\
+	jspeed,\
+	20050311131148,\
+	jspeed,\
+	20050311131148,\
+	N,\
+	Y,\
+	N,\
+	Template Management,\
+	2,\
+	N
+
+131=\
+	131,\
+	TPS View,\
+	2,\
+	/jspeed/monitor/Chart.jsp?VIEWTYPE=TPS&menuNo=131,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	125,\
+	jspeed,\
+	20050314115712,\
+	jspeed,\
+	20050314115809,\
+	N,\
+	Y,\
+	N,\
+	TPS View,\
+	3,\
+	N
+
+132=\
+	132,\
+	TPS Change View,\
+	3,\
+	/jspeed/monitor/Chart.jsp?VIEWTYPE=TPSLine&menuNo=132,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	125,\
+	jspeed,\
+	20050314115736,\
+	jspeed,\
+	20050314115809,\
+	N,\
+	Y,\
+	N,\
+	TPS Change View,\
+	3,\
+	N
+
+133=\
+	133,\
+	Elapse Time View,\
+	4,\
+	/jspeed/monitor/Chart.jsp?VIEWTYPE=Elapse&menuNo=133,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	125,\
+	jspeed,\
+	20050314115836,\
+	jspeed,\
+	20050314115836,\
+	N,\
+	Y,\
+	N,\
+	Elapse Time View,\
+	3,\
+	N
+
+134=\
+	134,\
+	Elapse Time Change View,\
+	5,\
+	/jspeed/monitor/Chart.jsp?VIEWTYPE=ElapseLine&menuNo=134,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	125,\
+	jspeed,\
+	20050314115856,\
+	jspeed,\
+	20050314115856,\
+	N,\
+	Y,\
+	N,\
+	Elapse Time Change View,\
+	3,\
+	N
+
+135=\
+	135,\
+	Integrated Service View,\
+	6,\
+	/jspeed/monitor/serviceView.jsp?menuNo=135,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	125,\
+	jspeed,\
+	20050314115920,\
+	jspeed,\
+	20050314115920,\
+	N,\
+	Y,\
+	Y,\
+	Integrated Service View,\
+	3,\
+	N
+
+136=\
+	136,\
+	HIT View,\
+	0,\
+	/jspeed/monitor/Chart.jsp?VIEWTYPE=HIT&menuNo=136,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	125,\
+	,\
+	,\
+	jspeed,\
+	20050331203918,\
+	N,\
+	Y,\
+	N,\
+	HIT View,\
+	3,\
+	N
+
+137=\
+	137,\
+	HIT Change View,\
+	1,\
+	/jspeed/monitor/Chart.jsp?VIEWTYPE=HITLine&menuNo=137,\
+	Common,\
+	N,\
+	,\
+	,\
+	0,\
+	,\
+	125,\
+	,\
+	,\
+	jspeed,\
+	20050331203924,\
+	N,\
+	Y,\
+	N,\
+	HIT Change View,\
+	3,\
+	N
+

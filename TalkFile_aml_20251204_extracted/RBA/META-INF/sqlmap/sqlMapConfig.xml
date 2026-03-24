@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- UTF-8 처리 -->
+
+<!DOCTYPE configuration
+PUBLIC "-//ibatis.apache.org//DTD Config 3.0//EN"
+"http://ibatis.apache.org/dtd/ibatis-3-config.dtd">
+<configuration>
+	<typeAliases>
+		<typeAlias alias="DataObj" type="com.gtone.aml.basic.common.data.DataObj"/>
+	</typeAliases>
+
+	<environments default="development">
+		<environment id="development">
+			<transactionManager type="JDBC"/>
+			<dataSource type="JNDI">
+				<property name="data_source" value="java:comp/env/jdbc/AMLDataSource"/>
+			</dataSource>
+		</environment>
+	</environments>
+
+	<mappers>
+		<mapper resource="sql/aml/AML_00.xml"/>
+		<mapper resource="sql/aml/AML_10.xml"/>
+		<mapper resource="sql/aml/AML_20.xml"/>
+		<mapper resource="sql/aml/AML_20_KOFIU.xml"/>
+		<mapper resource="sql/aml/AML_20_SS.xml"/>
+		<mapper resource="sql/aml/AML_30.xml"/>
+		<mapper resource="sql/aml/AML_40.xml"/>
+		<mapper resource="sql/aml/AML_50.xml"/>
+		<mapper resource="sql/aml/AML_60.xml"/>
+		<mapper resource="sql/aml/AML_70.xml"/>
+		<mapper resource="sql/aml/AML_90.xml"/>
+		<!-- <mapper resource="sql/rba/type01/RBA_10.xml"/>     -->
+		<!-- <mapper resource="sql/rba/type01/RBA_10_06.xml"/>  -->
+		<!-- <mapper resource="sql/rba/type01/RBA_30.xml"/>     -->
+ 		<mapper resource="sql/rba/type03/RBA_30_S.xml"/> <!-- 삼성증권 KRI  -->
+ 		<mapper resource="sql/rba/type03/RBA_50.xml"/>
+ 		<mapper resource="sql/rba/type03/RBA_80.xml"/>
+	 	<!-- <mapper resource="sql/rba/type04/RBA_04.xml"/> -->
+		<!-- <mapper resource="sql/rba/type07/RBA_70.xml"/> -->
+        <!-- <mapper resource="sql/rba/RBA_20.xml"/> -->
+		<mapper resource="sql/rba/RBA_90.xml"/>
+		<mapper resource="sql/rba/RBA_99.xml"/>
+		<mapper resource="META-INF/sqlmap/context/common.xml"/>
+		<mapper resource="META-INF/sqlmap/amlmanager/manager.xml"/>
+	</mappers>
+</configuration>
