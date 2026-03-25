@@ -35,6 +35,7 @@ logs/
 # OS
 .DS_Store
 Thumbs.db
+*.stackdump
 
 # H2 DB files
 *.db
